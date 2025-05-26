@@ -21,7 +21,8 @@ jobs:
           submodules: true
 
       - name: Install dependencies 
-        run:
+        shell: bash
+        run: |
           sudo apt update
           sudo apt install -y \
             protobuf-compiler
@@ -52,8 +53,9 @@ jobs:
         with:
           submodules: true
 
-      - name: Install dependencies 
-        run:
+      - name: Install dependencies
+        shell: bash
+        run: |
           sudo apt update
           sudo apt install -y \
             protobuf-compiler
