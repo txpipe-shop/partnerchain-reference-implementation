@@ -1,0 +1,72 @@
+name: Main
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        rust: [ stable ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install dependencies 
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            protobuf-compiler
+
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+          target: wasm32-unknown-unknown
+          components: rust-src
+      
+      - name: Run cargo build
+        run: cargo build
+
+  format:
+    name: Format
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        rust: [ stable ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            protobuf-compiler
+
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
+
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+
+      - name: Run cargo clippy
+        run: cargo clippy -- -D warnings
