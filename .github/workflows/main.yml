@@ -64,7 +64,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           target: wasm32-unknown-unknown
-          components: rustfmt, clippy, rustsrc
+          components: rustfmt, clippy, rust-src
 
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
