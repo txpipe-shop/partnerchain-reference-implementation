@@ -63,7 +63,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
-          components: rustfmt, clippy
+          target: wasm32-unknown-unknown
+          components: rustfmt, clippy, rustsrc
 
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
