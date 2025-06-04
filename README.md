@@ -89,12 +89,6 @@ polkadot-omni-node --chain <path/to/chain_spec.json> --dev
 
 #### Build both node & runtime
 
-<!-- ```sh
-cargo build --workspace --release
-```
-
-This takes longer as it builds more artifacts. The gcc error happened! -->
-
 🐳 Build the docker image which builds all the workspace members, and has as entry point the node binary:
 
 ```sh
