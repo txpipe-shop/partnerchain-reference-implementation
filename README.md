@@ -62,11 +62,13 @@ Please see the installation section at [`crates.io/staging-chain-spec-builder`](
 cargo build
 ```
 
-#### Use chain-spec-builder to generate the chain_spec.json file
+#### Use chain-spec-builder to generate the chain_spec.json file for a custom runtime
+
+The project includes a [`chain_spec`](dev_chain_spec.json) file to test initially. But if you want to test out a custom runtime you can use the `chain-spec-builder` command like the following to create the file:
 
 ```sh
 chain-spec-builder create --relay-chain "dev" --para-id 1000 --runtime \
-    target/release/wbuild/minimal-template-runtime/minimal_template_runtime.wasm named-preset development
+    target/debug/wbuild/minimal-template-runtime/minimal_template_runtime.wasm named-preset development
 ```
 
 **Note**: the `relay-chain` and `para-id` flags are extra bits of information required to
