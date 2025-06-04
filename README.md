@@ -31,6 +31,13 @@ compiled unless building the entire workspace).
 - 🛠️ Depending on your operating system and Rust version, there might be additional
 packages required to compile this template - please take note of the Rust compiler output.
 
+Usually, it will be necessary to add the `wasm32-unknown-unknown` target, and the `rust-src` component, both of which can be installed, for example in Linux by executing the following commands:
+
+```sh
+$ rustup target add wasm32-unknown-unknown --toolchain stable-x86_64-unknown-linux-gnu
+$ rustup component add rust-src --toolchain stable-x86_64-unknown-linux-gnu
+```
+
 - Fetch minimal template code.
 
 ## Starting a Minimal Template Chain
