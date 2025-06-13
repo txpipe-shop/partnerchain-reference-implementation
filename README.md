@@ -89,23 +89,29 @@ polkadot-omni-node --chain <path/to/chain_spec.json> --dev
 
 #### Build both node & runtime
 
-🐳 Build the docker image which builds all the workspace members, and has as entry point the node binary:
+🐙 Alternatively, you can build all of the artifacts like the runtime and the node:
+
+```sh
+cargo build --workspace --release
+```
+
+To run use:
+
+```sh
+<target/release/path/to/minimal-template-node> --chain <path/to/chain_spec.json> --tmp --consensus manual-seal-3000
+```
+
+#### Build and run with docker
+
+🐳 Build the docker image which builds all the workspace members, creates the chain specification, and has as entry point the node binary:
 
 ```sh
 docker build . -t polkadot-sdk-minimal-template
 ```
-
-#### Start the `minimal-template-node`
-
-The `minimal-template-node` has dependency on the `minimal-template-runtime`. It will use
-the `minimal_template_runtime::WASM_BINARY` constant (which holds the WASM blob as a byte
-array) for chain spec building, while starting. This is in contrast to Omni Node which doesn't
-depend on a specific runtime, but asks for the chain spec at startup.
+Then run using:
 
 ```sh
-<target/release/path/to/minimal-template-node> --tmp --consensus manual-seal-3000
-# or via docker
-docker run --rm polkadot-sdk-minimal-template
+docker run polkadot-sdk-minimal-template --chain polkadot/chain_spec.json --base-path /data
 ```
 
 ### Connect with the Polkadot-JS Apps Front-End
