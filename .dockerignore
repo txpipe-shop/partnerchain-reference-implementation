@@ -1,0 +1,5 @@
+.github/
+.git/
+target/
+docs/
+chain_spec.json

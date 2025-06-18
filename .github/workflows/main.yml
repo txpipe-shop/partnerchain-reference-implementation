@@ -1,7 +1,13 @@
 name: Main
 on:
   pull_request:
-
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - 'Dockerfile'
+      - '.github/**'
+      - '.dockerignore'
+      - '.gitignore'
 jobs:
   build:
     name: Build
@@ -19,7 +25,7 @@ jobs:
         with:
           submodules: true
 
-      - name: Install dependencies 
+      - name: Install dependencies
         shell: bash
         run: |
           sudo apt update
@@ -32,7 +38,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           target: wasm32-unknown-unknown
           components: rust-src
-      
+
       - name: Run cargo build
         run: cargo build
 
@@ -63,7 +69,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
-          components: rustfmt, clippy
+          target: wasm32-unknown-unknown
+          components: rustfmt, clippy, rust-src
 
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
