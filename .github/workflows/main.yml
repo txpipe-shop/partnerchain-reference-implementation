@@ -2,10 +2,12 @@ name: Main
 on:
   pull_request:
     paths-ignore:
-      - docs/
-      - .github/
-      - README.md
-      - Dockerfile
+      - 'docs/**'
+      - 'README.md'
+      - 'Dockerfile'
+      - '.github/**'
+      - '.dockerignore'
+      - '.gitignore'
 jobs:
   build:
     name: Build
