@@ -1,7 +1,11 @@
 name: Main
 on:
   pull_request:
-
+    paths-ignore:
+      - docs/
+      - .github/
+      - README.md
+      - Dockerfile
 jobs:
   build:
     name: Build
@@ -19,7 +23,7 @@ jobs:
         with:
           submodules: true
 
-      - name: Install dependencies 
+      - name: Install dependencies
         shell: bash
         run: |
           sudo apt update
@@ -32,7 +36,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           target: wasm32-unknown-unknown
           components: rust-src
-      
+
       - name: Run cargo build
         run: cargo build
 

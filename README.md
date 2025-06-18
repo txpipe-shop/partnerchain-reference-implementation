@@ -111,7 +111,7 @@ docker build . -t polkadot-sdk-minimal-template
 Then run using:
 
 ```sh
-docker run polkadot-sdk-minimal-template --chain polkadot/chain_spec.json --base-path /data
+docker run polkadot-sdk-minimal-template --chain polkadot/chain_spec.json --base-path /data --unsafe-rpc-external
 ```
 
 ### Connect with the Polkadot-JS Apps Front-End

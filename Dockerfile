@@ -35,7 +35,7 @@ RUN useradd -m -u 1001 -U -s /bin/sh -d /polkadot polkadot && \
 	rm -rf /usr/bin /usr/sbin && \
 # check if executable works in this container
 	/usr/local/bin/minimal-template-node --version
-    
+
 USER polkadot
 
 EXPOSE 30333 9933 9944 9615
