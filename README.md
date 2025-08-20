@@ -4,6 +4,8 @@ This repository will contain a reference implementation of a Substrate partnerch
 
 ## Table of Contents
 
+- [Documentation] (#documentation)
+
 - [Structure](#structure)
 
 - [Getting Started](#getting-started)
@@ -13,6 +15,10 @@ This repository will contain a reference implementation of a Substrate partnerch
   - [Omni Node](#omni-node)
   - [Minimal Template Node](#minimal-template-node)
   - [Connect with the Polkadot-JS Apps Front-End](#connect-with-the-polkadot-js-apps-front-end)
+
+## Documentation
+
+In the [docs](./docs/) folder you can find important information such as the [contribution guidelines](./docs/CONTRIBUTING.md).
 
 ## Structure
 
