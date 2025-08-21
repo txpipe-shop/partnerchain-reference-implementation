@@ -18,7 +18,7 @@ This repository will contain a reference implementation of a Substrate partnerch
 
 ## Documentation
 
-In the [docs](./docs/) folder you can find important information such as the [contribution guidelines](./docs/CONTRIBUTING.md).
+In the [docs](./docs/) folder you can find important information such as the [contribution guidelines](./docs/CONTRIBUTING.md) and the procedure for [releases](./docs/release_procedure.md).
 
 ## Structure
 
