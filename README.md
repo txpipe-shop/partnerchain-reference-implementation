@@ -4,7 +4,7 @@ This repository will contain a reference implementation of a Substrate partnerch
 
 ## Table of Contents
 
-- [Documentation] (#documentation)
+- [Documentation](#documentation)
 
 - [Structure](#structure)
 
