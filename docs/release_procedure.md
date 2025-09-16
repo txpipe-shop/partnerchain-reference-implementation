@@ -11,8 +11,8 @@ R2=6.11.1 # next release
 
 Check out a new release branch:
 ```
-git fetch partnerchain-reference-implementation
-git checkout -b release-v${R1} partnerchain-reference-implementation/main
+git fetch
+git checkout -b release-v${R1}
 ```
 
 ### Create a changelog
@@ -21,7 +21,6 @@ Create a changelog for all merges to `main` since the previous release.  You'll 
 
 ```
 echo "# ${R1}\n\n#### List of all changes\n\nSee below for a complete list of features and fixes.\n" > changelog/v${R1}.md
-./tasks/changelog.sh v${R0}.. >> changelog/v${R1}.md
 ```
 
 Edit the resulting changelog file with any summary notes or special upgrade considerations.
@@ -46,7 +45,7 @@ cargo build
 Commit the version updates including the node, runtime and other packages' Cargo.toml if applicable, and the new changelog:
 
 ```
-git add node/Cargo.toml runtime/Cargo.toml Cargo.lock changelog
+git add node/Cargo.toml runtime/Cargo.toml Cargo.toml Cargo.lock docs/changelog
 git commit -m "Updates for the ${R1} release"
 ```
 
@@ -55,7 +54,7 @@ git commit -m "Updates for the ${R1} release"
 Create a pull request for the release branch.  This allows for any final review of upgrade notes or other parts of the changelog. Do not merge yet!
 
 ```
-git push partnerchain-reference-implementation release-v${R1}
+git push
 ```
 
 ### Tag
@@ -67,7 +66,7 @@ After CI jobs for the above pull request pass, tag the release:
 git tag -a v${R1} -m "${R1}"
 
 # push the tag
-git push partnerchain-reference-implementation v${R1}
+git push v${R1}
 ```
 
 ### Publish the draft GitHub release
