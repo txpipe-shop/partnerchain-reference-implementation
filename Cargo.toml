@@ -1,9 +1,10 @@
 [workspace.package]
 license = "MIT-0"
 authors = ["TxPipe-Shop"]
-homepage = ""
+homepage = "https://github.com/txpipe-shop/partnerchain-reference-implementation"
 repository = "https://github.com/txpipe-shop/partnerchain-reference-implementation"
 edition = "2021"
+version = "0.0.1"
 
 [workspace]
 default-members = ["pallets/template", "runtime"]
