@@ -67,8 +67,29 @@ In the [runtime library](../../runtime/src/lib.rs):
 
 - Import Griffin types for Transaction, Block, Executive and Output.
 
+### Changes made to Griffin
 
-## Griffin usage guide
+As mentioned, the version of Griffin that we use for this project has some modifications compared to the original. Most of these changes are dependency upgrades, but below we'll go over other more interesting modifications:
+- [Authorities set function]: we re-implemented the authorities setting function to utilize the EUTxO model. The new function reads the authorities list from a UTxO that is set in the Genesis. A more detailed explanation on how it works and how to use it can be found in the respective readme.
+- [Griffin-RPC]: We extended the native node RPC with some queries to obtain UTxOs information through an output reference, an address, or an asset class. More over, we also added a method to submit a transaction in CBOR format. More information and usage examples can be found in the Griffin RPC [readme].
+- [Wallet]: The wallet was also improved on through the addition of new functionalities like the queries by address and asset. The `build-tx` command was also modified to take as input a whole json file, instead of many arguments for each component of the transaction.
+
+## Guide to Griffin
+
+### Types
+
+### Wallet
+
+Griffin provides a CLI wallet to interact with the node. This wallet has helpful commands:
+`show-all-outputs`: Displays every UTxO in the chain with brief details about the owner, the coins and value.
+`show-outputs-at`: Displays UTxOs owned by the provided address.
+`show-outputs-with-asset`: Displays UTxOs that contain a certain token in its value.
+`insert-key`: Inserts a key into the wallets keystore.
+`generate-key`: Creates a new key and inserts it into the keystore. Also displays the details.
+`show-balance`: summarizes Value amounts for each address.
+`build-tx`: Transaction builder command, which takes as input a complete Griffin transaction in json. This transaction must be balanced manually. 
+
+More information can be found in the wallet [readme] and also there are some usage examples in the [examples folder].
 
 ## Troubleshooting
 
