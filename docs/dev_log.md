@@ -65,7 +65,25 @@ In the [runtime library](../../runtime/src/lib.rs):
 
 ##### Type definitions
 
-- Import Griffin types for Transaction, Block, Executive and Output.
+- Import Griffin types for `Transaction`, `Block`, `Executive` and `Output`.
+- Define `SessionKeys` struct within `impl_opaque_keys` macro, with fields for `Aura` and `Grandpa` public keys.
+- Remove `genesis_config_presets` mod definitions, since we are using our custom genesis.
+- Declare `Runtime` struct without FRAME pallets.
+- Implement custom `aura_authorities` and `grandpa_authorities` methods for Runtime.
+- Remove all FRAME trait implementations for Runtime.
+
+###### `impl_runtime_apis` macro
+
+Runtime APIs are traits that are implemented in the runtime and provide both a runtime-side implementation and a client-side API for the node to interact with. To utilize Griffin we provide new implementations for the required traits.
+
+- Core: use Griffin’s `Executive::execute_block` and `Executive::open_block` in `execute_block` and `initialize_block` methods implementations.
+- Metadata: use trivial implementation.
+- BlockBuilder: call Griffin’s `Executive::apply_extrinsic` and `Executive::close_block` in `apply_extrinsic` and `finalize_block` methods, and provide trivial implementations of `inherent_extrinsics` and `check_inherents` methods.
+- TaggedTransactionQueue: use Griffin’s `Executive::validate_transaction`.
+- SessionKeys: use the `generate` and `decode_into_raw_public_keys` methods of our defined `SessionKeys` type in `generate_session_keys` and `decode_session_keys` methods implementations.
+- GenesisBuilder: use Griffin’s `GriffinGenesisConfigBuilder::build` and `get_genesis_config` functions to implement `build_state` and `get_preset` methods. Give trivial implementation of `preset_names`.
+- Add `AuraApi` and `GrandpaApi` trait implementations.
+- Remove OffchainWorkerApi, AccountNonceApi and TransactionPaymentApi trait implementations.
 
 ### Changes made to Griffin
 
