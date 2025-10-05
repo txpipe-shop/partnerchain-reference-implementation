@@ -13,6 +13,7 @@ members = [
     "pallets/template",
     "runtime",
     "griffin-core",
+    "wallet",
 ]
 resolver = "2"
 
@@ -25,6 +26,8 @@ derive-new = { version = "0.7.0" }
 docify = { version = "0.2.9" }
 futures = { version = "0.3.31" }
 futures-timer = { version = "3.0.2" }
+hex = { version = "0.4.3", features = ["alloc"], default-features = false }
+hex-literal = "1.0.0"
 jsonrpsee = { version = "0.24.3" }
 log = { version = "0.4", default-features = false }
 parity-scale-codec = { package = "parity-scale-codec", version = "3.6.12", default-features = false, features = [
@@ -34,6 +37,10 @@ parity-scale-codec = { package = "parity-scale-codec", version = "3.6.12", defau
 polkadot-sdk = { version = "2503.0.1", default-features = false }
 codec = { version = "3.7.4", default-features = false, package = "parity-scale-codec" }
 scale-info = { version = "2.11.6", default-features = false }
+serde = { version = "1.0.209", default-features = false, features = [
+	"derive",
+	"alloc",
+] }
 serde_json = { version = "1.0.132", default-features = false }
 
 # substrate dependencies
@@ -41,6 +48,7 @@ frame-support = { default-features = false, git = "https://github.com/paritytech
 frame-system = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sc-client-api = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sc-executor = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
+sc-keystore = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-api = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-blockchain = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-core = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
@@ -48,6 +56,7 @@ sp-debug-derive = { git = "https://github.com/paritytech/polkadot-sdk.git", tag 
 sp-genesis-builder = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-inherents = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-io = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
+sp-keystore = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-storage = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 
