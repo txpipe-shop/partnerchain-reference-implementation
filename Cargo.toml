@@ -7,10 +7,9 @@ edition = "2021"
 version = "0.0.1"
 
 [workspace]
-default-members = ["pallets/template", "runtime"]
+default-members = ["runtime"]
 members = [
     "node",
-    "pallets/template",
     "runtime",
     "griffin-core",
     "wallet",
@@ -20,7 +19,6 @@ resolver = "2"
 [workspace.dependencies]
 griffin-core = { default-features = false, path = "griffin-core" }
 minimal-template-runtime = { path = "./runtime", default-features = false }
-pallet-minimal-template = { path = "./pallets/template", default-features = false }
 clap = { version = "4.5.13" }
 derive-new = { version = "0.7.0" }
 docify = { version = "0.2.9" }

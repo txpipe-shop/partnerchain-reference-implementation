@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! A minimal runtime that includes the template [`pallet`](`pallet_minimal_template`).
+//! A minimal runtime.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -167,10 +167,6 @@ mod runtime {
     /// Provides the ability to charge for extrinsic execution.
     #[runtime::pallet_index(4)]
     pub type TransactionPayment = pallet_transaction_payment::Pallet<Runtime>;
-
-    /// A minimal pallet template.
-    #[runtime::pallet_index(5)]
-    pub type Template = pallet_minimal_template::Pallet<Runtime>;
 }
 
 parameter_types! {
@@ -209,9 +205,6 @@ impl pallet_transaction_payment::Config for Runtime {
     // Setting fee as fixed for any length of the call data for demo purposes
     type LengthToFee = FixedFee<1, <Self as pallet_balances::Config>::Balance>;
 }
-
-// Implements the types required for the template pallet.
-impl pallet_minimal_template::Config for Runtime {}
 
 type Block = frame::runtime::types_common::BlockOf<Runtime, TxExtension>;
 type Header = HeaderFor<Runtime>;
