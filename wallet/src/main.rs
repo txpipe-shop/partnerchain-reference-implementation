@@ -132,22 +132,22 @@ async fn main() -> anyhow::Result<()> {
             match sync::get_unspent(&db, &input)? {
                 Some((owner, amount, _)) => {
                     println!("Found in local db. Value: {amount:?}, owned by {owner}");
-                },
+                }
                 None => {
                     println!("Not found in local db");
-                },
+                }
             }
 
             Ok(())
-        },
+        }
         Some(cli::Command::SpendValue(args)) => {
             command::spend_value(&db, &client, &keystore, args).await
-        },
+        }
         Some(Command::InsertKey { seed }) => crate::keystore::insert_key(&keystore, &seed),
         Some(Command::GenerateKey { password }) => {
             crate::keystore::generate_key(&keystore, password)?;
             Ok(())
-        },
+        }
         Some(Command::ShowKeys) => {
             crate::keystore::get_keys(&keystore)?.for_each(|pubkey| {
                 let pk_str: &str = &hex::encode(pubkey);
@@ -157,14 +157,16 @@ async fn main() -> anyhow::Result<()> {
             });
 
             Ok(())
-        },
+        }
         Some(Command::RemoveKey { pub_key }) => {
             println!(
                 "CAUTION!!! About permanently remove {pub_key}. This action CANNOT BE REVERSED. Type \"proceed\" to confirm deletion."
             );
 
             let mut confirmation = String::new();
-            std::io::stdin().read_line(&mut confirmation).expect("Failed to read line");
+            std::io::stdin()
+                .read_line(&mut confirmation)
+                .expect("Failed to read line");
 
             if confirmation.trim() == "proceed" {
                 crate::keystore::remove_key(&keystore_path, &pub_key)
@@ -172,7 +174,7 @@ async fn main() -> anyhow::Result<()> {
                 println!("Deletion aborted. That was close.");
                 Ok(())
             }
-        },
+        }
         Some(Command::ShowBalance) => {
             println!("Balance Summary");
             let mut total = Value::Coin(0);
@@ -185,19 +187,22 @@ async fn main() -> anyhow::Result<()> {
             println!("Total:   {}", total.normalize());
 
             Ok(())
-        },
+        }
         Some(Command::ShowAllOutputs) => {
             println!("###### Unspent outputs ###########");
             sync::print_unspent_tree(&db)?;
             println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
             Ok(())
-        },
+        }
         Some(Command::ShowOutputsAt(args)) => {
-            println!("###### Unspent outputs at address {} ###########", args.address);
+            println!(
+                "###### Unspent outputs at address {} ###########",
+                args.address
+            );
             sync::show_outputs_at(&db, args)?;
             println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
             Ok(())
-        },
+        }
         Some(Command::ShowOutputsWithAsset(args)) => {
             println!(
                 "###### Unspent outputs containing asset with name {} and policy ID {} ###########",
@@ -206,17 +211,17 @@ async fn main() -> anyhow::Result<()> {
             sync::show_outputs_with_asset(&db, args)?;
             println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
             Ok(())
-        },
+        }
         Some(Command::ShowAllOrders) => {
             println!("###### Available Orders ###########");
             sync::print_orders(&db)?;
             Ok(())
-        },
+        }
         Some(cli::Command::BuildTx(args)) => command::build_tx(&db, &client, &keystore, args).await,
         None => {
             log::info!("No Wallet Command invoked. Exiting.");
             Ok(())
-        },
+        }
     }?;
 
     if tmp {
@@ -275,14 +280,20 @@ fn input_from_string(s: &str) -> Result<Input, clap::Error> {
 
 /// Takes a string and checks for a 0x prefix. Returns a string without a 0x prefix.
 fn strip_0x_prefix(s: &str) -> &str {
-    if &s[..2] == "0x" { &s[2..] } else { s }
+    if &s[..2] == "0x" {
+        &s[2..]
+    } else {
+        s
+    }
 }
 
 /// Generate a plaform-specific temporary directory for the wallet
 fn temp_dir() -> PathBuf {
     // Since it is only used for testing purpose, we don't need a secure temp dir, just a unique one.
-    std::env::temp_dir()
-        .join(format!("griffin-wallet-{}", std::time::UNIX_EPOCH.elapsed().unwrap().as_millis(),))
+    std::env::temp_dir().join(format!(
+        "griffin-wallet-{}",
+        std::time::UNIX_EPOCH.elapsed().unwrap().as_millis(),
+    ))
 }
 
 /// Generate the platform-specific default data path for the wallet

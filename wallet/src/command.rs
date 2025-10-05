@@ -1,20 +1,19 @@
 use crate::{
-    H224, H256,
     cli::{BuildTxArgs, SpendValueArgs},
     keystore::SHAWN_ADDRESS,
-    sync,
+    sync, H224, H256,
 };
 use anyhow::anyhow;
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
     genesis::config_builder::{
-        TransparentMultiasset, TransparentOutput, transp_to_multiasset, transp_to_output,
+        transp_to_multiasset, transp_to_output, TransparentMultiasset, TransparentOutput,
     },
     pallas_primitives::babbage::{MintedTx, Tx as PallasTransaction},
     pallas_traverse::OriginalHash,
     types::{
-        AssetName, Input, Multiasset, Output, PlutusData, PlutusScript, PolicyId, Redeemer,
-        RedeemerTag, Transaction, VKeyWitness, Value, address_from_hex, value_leq,
+        address_from_hex, value_leq, AssetName, Input, Multiasset, Output, PlutusData,
+        PlutusScript, PolicyId, Redeemer, RedeemerTag, Transaction, VKeyWitness, Value,
     },
     uplc::tx::apply_params_to_script,
 };
@@ -76,20 +75,30 @@ pub async fn build_tx(
         let mut inputs_info: Vec<InputInfo> = tx_info.inputs_info;
         // Lexicographically order inputs by tx_hash and index
         inputs_info.sort_by(|a, b| {
-            if a.tx_hash == b.tx_hash { a.index.cmp(&b.index) } else { a.tx_hash.cmp(&b.tx_hash) }
+            if a.tx_hash == b.tx_hash {
+                a.index.cmp(&b.index)
+            } else {
+                a.tx_hash.cmp(&b.tx_hash)
+            }
         });
         inputs_info
     };
 
     let inputs = ordered_inputs_info
         .iter()
-        .map(|i| Input { tx_hash: i.tx_hash, index: i.index })
+        .map(|i| Input {
+            tx_hash: i.tx_hash,
+            index: i.index,
+        })
         .collect::<Vec<Input>>();
 
     // Check if the input UTxOs are in the wallet database
     for input in &inputs {
         if let None = sync::get_unspent(db, input)? {
-            log::info!("Warning: User-specified utxo {:x?} not found in wallet database", input);
+            log::info!(
+                "Warning: User-specified utxo {:x?} not found in wallet database",
+                input
+            );
         }
     }
 
@@ -108,7 +117,10 @@ pub async fn build_tx(
         let tmas = mintings_info
             .clone()
             .into_iter()
-            .map(|mi| TransparentMultiasset { policy: mi.policy, assets: mi.assets })
+            .map(|mi| TransparentMultiasset {
+                policy: mi.policy,
+                assets: mi.assets,
+            })
             .collect::<Vec<TransparentMultiasset<i64>>>();
         transaction.transaction_body.mint = Some(Multiasset::from(transp_to_multiasset(tmas)));
     }
@@ -205,7 +217,10 @@ pub async fn build_tx(
     let params = rpc_params![genesis_spend_hex];
     let genesis_spend_response: Result<String, _> =
         client.request("author_submitExtrinsic", params).await;
-    log::info!("Node's response to spend transaction: {:?}", genesis_spend_response);
+    log::info!(
+        "Node's response to spend transaction: {:?}",
+        genesis_spend_response
+    );
     if let Err(_) = genesis_spend_response {
         Err(anyhow!("Node did not accept the transaction"))?;
     } else {
@@ -213,10 +228,16 @@ pub async fn build_tx(
         // Print new output refs for user to check later
         let tx_hash = <BlakeTwo256 as Hash>::hash_of(&Encode::encode(&transaction));
         for (i, output) in transaction.transaction_body.outputs.iter().enumerate() {
-            let new_value_ref = Input { tx_hash, index: i as u32 };
+            let new_value_ref = Input {
+                tx_hash,
+                index: i as u32,
+            };
             let amount = &output.value;
 
-            println!("{:?} worth {amount:?}.", hex::encode(Encode::encode(&new_value_ref)));
+            println!(
+                "{:?} worth {amount:?}.",
+                hex::encode(Encode::encode(&new_value_ref))
+            );
         }
     }
 
@@ -248,7 +269,10 @@ pub async fn spend_value(
         ))?;
     }
     if num_nam > num_tok {
-        Err(anyhow!("Missing token amount for asset {:?}.", args.name[num_nam - 1],))?;
+        Err(anyhow!(
+            "Missing token amount for asset {:?}.",
+            args.name[num_nam - 1],
+        ))?;
     }
     if (num_tok != 0) & ((num_nam == 0) | (num_pol == 0)) {
         Err(anyhow!("Missing policy ID(s) and/or asset name."))?;
@@ -263,7 +287,10 @@ pub async fn spend_value(
         if let Some((_owner_pubkey, amount, _)) = sync::get_unspent(db, input)? {
             input_value += amount;
         } else {
-            log::info!("Warning: User-specified utxo {:x?} not found in wallet database", input);
+            log::info!(
+                "Warning: User-specified utxo {:x?} not found in wallet database",
+                input
+            );
         }
     }
 
@@ -339,7 +366,10 @@ pub async fn spend_value(
     let params = rpc_params![genesis_spend_hex];
     let genesis_spend_response: Result<String, _> =
         client.request("author_submitExtrinsic", params).await;
-    log::info!("Node's response to spend transaction: {:?}", genesis_spend_response);
+    log::info!(
+        "Node's response to spend transaction: {:?}",
+        genesis_spend_response
+    );
     if let Err(_) = genesis_spend_response {
         Err(anyhow!("Node did not accept the transaction"))?;
     } else {
@@ -347,10 +377,16 @@ pub async fn spend_value(
         // Print new output refs for user to check later
         let tx_hash = <BlakeTwo256 as Hash>::hash_of(&Encode::encode(&transaction));
         for (i, output) in transaction.transaction_body.outputs.iter().enumerate() {
-            let new_value_ref = Input { tx_hash, index: i as u32 };
+            let new_value_ref = Input {
+                tx_hash,
+                index: i as u32,
+            };
             let amount = &output.value;
 
-            println!("{:?} worth {amount:?}.", hex::encode(Encode::encode(&new_value_ref)));
+            println!(
+                "{:?} worth {amount:?}.",
+                hex::encode(Encode::encode(&new_value_ref))
+            );
         }
     }
 
@@ -376,7 +412,7 @@ mod tests {
     use griffin_core::types::{
         Address, Datum, Input, Output, PlutusData, PlutusScript, Redeemer, RedeemerTag, Value,
     };
-    use griffin_core::uplc::tx::{ResolvedInput, SlotConfig, eval_phase_two};
+    use griffin_core::uplc::tx::{eval_phase_two, ResolvedInput, SlotConfig};
     use sp_core::H256;
 
     #[test]
@@ -390,17 +426,17 @@ mod tests {
             MaybeIndefArray::{Def, Indef},
         };
         use griffin_core::pallas_crypto::hash::Hash;
-        use griffin_core::pallas_primitives::Fragment;
         use griffin_core::pallas_primitives::conway::{
             BigInt, BoundedBytes, Constr, MintedTx as ConwayMintedTx,
             PlutusData as PallasPlutusData, TransactionInput, TransactionOutput,
         };
+        use griffin_core::pallas_primitives::Fragment;
         use griffin_core::types::{
-            Address, AssetName, Input, Multiasset, Output, PlutusData, PlutusScript, Redeemer,
-            RedeemerTag, Value, compute_plutus_v2_script_hash,
+            compute_plutus_v2_script_hash, Address, AssetName, Input, Multiasset, Output,
+            PlutusData, PlutusScript, Redeemer, RedeemerTag, Value,
         };
         use griffin_core::uplc::tx::{
-            ResolvedInput, SlotConfig, apply_params_to_script, eval_phase_two,
+            apply_params_to_script, eval_phase_two, ResolvedInput, SlotConfig,
         };
         use sp_core::H256;
 
@@ -461,8 +497,10 @@ mod tests {
             datum_option: None,
         }];
 
-        let pallas_inputs =
-            inputs.iter().map(|i| TransactionInput::from(i.clone())).collect::<Vec<_>>();
+        let pallas_inputs = inputs
+            .iter()
+            .map(|i| TransactionInput::from(i.clone()))
+            .collect::<Vec<_>>();
         let pallas_resolved_inputs = resolved_inputs
             .iter()
             .map(|ri| TransactionOutput::from(ri.clone()))
@@ -482,7 +520,11 @@ mod tests {
                 fields: Def([].to_vec()),
             })),
         };
-        let mint = Some(Multiasset::from((policy, AssetName::from("oneShot".to_string()), 1)));
+        let mint = Some(Multiasset::from((
+            policy,
+            AssetName::from("oneShot".to_string()),
+            1,
+        )));
 
         transaction.transaction_body.mint = mint;
         transaction.transaction_witness_set.redeemer = Some(vec![mint_redeemer]);
@@ -495,12 +537,22 @@ mod tests {
         let input_utxos: Vec<ResolvedInput> = pallas_inputs
             .iter()
             .zip(pallas_resolved_inputs.iter())
-            .map(|(input, output)| ResolvedInput { input: input.clone(), output: output.clone() })
+            .map(|(input, output)| ResolvedInput {
+                input: input.clone(),
+                output: output.clone(),
+            })
             .collect();
 
-        let redeemers =
-            eval_phase_two(&mtx, &input_utxos, None, None, &SlotConfig::default(), false, |_| ())
-                .unwrap();
+        let redeemers = eval_phase_two(
+            &mtx,
+            &input_utxos,
+            None,
+            None,
+            &SlotConfig::default(),
+            false,
+            |_| (),
+        )
+        .unwrap();
         assert_eq!(redeemers.len(), 1);
     }
 
@@ -516,10 +568,10 @@ mod tests {
             TransactionInput, TransactionOutput,
         };
         use griffin_core::types::{
-            Address, Datum, Input, Output, PlutusData, PlutusScript, Redeemer, RedeemerTag,
-            VKeyWitness, Value, compute_plutus_v2_script_hash,
+            compute_plutus_v2_script_hash, Address, Datum, Input, Output, PlutusData, PlutusScript,
+            Redeemer, RedeemerTag, VKeyWitness, Value,
         };
-        use griffin_core::uplc::tx::{ResolvedInput, SlotConfig, eval_phase_two};
+        use griffin_core::uplc::tx::{eval_phase_two, ResolvedInput, SlotConfig};
         use sp_core::H256;
 
         let script = PlutusScript(hex::decode("58f2010000323232323232323222232325333008323232533300b002100114a06644646600200200644a66602200229404c8c94ccc040cdc78010028a511330040040013014002375c60240026eb0c038c03cc03cc03cc03cc03cc03cc03cc03cc020c008c020014dd71801180400399b8f375c6002600e00a91010d48656c6c6f2c20576f726c6421002300d00114984d958c94ccc020cdc3a400000226464a66601a601e0042930b1bae300d00130060041630060033253330073370e900000089919299980618070010a4c2c6eb8c030004c01401058c01400c8c014dd5000918019baa0015734aae7555cf2ab9f5742ae881").unwrap());
@@ -533,7 +585,10 @@ mod tests {
             tag: 121,
             any_constructor: None,
             fields: Indef(
-                [PallasPlutusData::BoundedBytes(BoundedBytes(owner.0.to_vec()))].to_vec(),
+                [PallasPlutusData::BoundedBytes(BoundedBytes(
+                    owner.0.to_vec(),
+                ))]
+                .to_vec(),
             ),
         });
 
@@ -551,8 +606,10 @@ mod tests {
             datum_option: Some(Datum(PlutusData::from(datum.clone()).0)),
         }];
 
-        let pallas_inputs =
-            inputs.iter().map(|i| TransactionInput::from(i.clone())).collect::<Vec<_>>();
+        let pallas_inputs = inputs
+            .iter()
+            .map(|i| TransactionInput::from(i.clone()))
+            .collect::<Vec<_>>();
         let pallas_resolved_inputs = resolved_inputs
             .iter()
             .map(|ri| TransactionOutput::from(ri.clone()))
@@ -594,12 +651,22 @@ mod tests {
         let input_utxos: Vec<ResolvedInput> = pallas_inputs
             .iter()
             .zip(pallas_resolved_inputs.iter())
-            .map(|(input, output)| ResolvedInput { input: input.clone(), output: output.clone() })
+            .map(|(input, output)| ResolvedInput {
+                input: input.clone(),
+                output: output.clone(),
+            })
             .collect();
 
-        let redeemers =
-            eval_phase_two(&mtx, &input_utxos, None, None, &SlotConfig::default(), false, |_| ())
-                .unwrap();
+        let redeemers = eval_phase_two(
+            &mtx,
+            &input_utxos,
+            None,
+            None,
+            &SlotConfig::default(),
+            false,
+            |_| (),
+        )
+        .unwrap();
         assert_eq!(redeemers.len(), 1);
     }
 
@@ -683,8 +750,10 @@ mod tests {
             },
         ];
 
-        let pallas_inputs =
-            inputs.iter().map(|i| TransactionInput::from(i.clone())).collect::<Vec<_>>();
+        let pallas_inputs = inputs
+            .iter()
+            .map(|i| TransactionInput::from(i.clone()))
+            .collect::<Vec<_>>();
         let pallas_resolved_inputs = resolved_inputs
             .iter()
             .map(|o| TransactionOutput::from(o.clone()))
@@ -720,7 +789,10 @@ mod tests {
         let input_utxos: Vec<ResolvedInput> = pallas_inputs
             .iter()
             .zip(pallas_resolved_inputs.iter())
-            .map(|(input, output)| ResolvedInput { input: input.clone(), output: output.clone() })
+            .map(|(input, output)| ResolvedInput {
+                input: input.clone(),
+                output: output.clone(),
+            })
             .collect();
 
         let slot_config = SlotConfig {

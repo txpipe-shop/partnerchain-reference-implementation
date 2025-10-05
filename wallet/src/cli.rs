@@ -3,9 +3,9 @@
 use std::path::PathBuf;
 
 use crate::{
-    DEFAULT_ENDPOINT, H256, address_from_string, h224_from_string, h256_from_string,
-    input_from_string,
+    address_from_string, h224_from_string, h256_from_string, input_from_string,
     keystore::{SHAWN_ADDRESS, SHAWN_PUB_KEY},
+    DEFAULT_ENDPOINT, H256,
 };
 use clap::{ArgAction::Append, Args, Parser, Subcommand};
 use griffin_core::types::{Address, Coin, Input, PolicyId};
@@ -141,7 +141,13 @@ pub struct BuildTxArgs {
     /// - `required_signers`: A list of payment hashes of the senders.
     /// - `validity_interval_start`: Start of the validity interval (optional).
     /// - `ttl`: Time to live (optional).
-    #[arg(long, short, verbatim_doc_comment, required = true, value_name = "TX_INFO_JSON")]
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "TX_INFO_JSON"
+    )]
     pub tx_info: String,
 }
 
@@ -192,6 +198,12 @@ pub struct ShowOutputsWithAssetArgs {
     pub policy: PolicyId,
 
     /// Name of the asset.
-    #[arg(long, short, verbatim_doc_comment, required = true, value_name = "ASSET_NAME")]
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "ASSET_NAME"
+    )]
     pub name: String,
 }

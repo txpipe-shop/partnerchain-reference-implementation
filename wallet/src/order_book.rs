@@ -115,7 +115,7 @@ impl From<OrderDatum> for PallasPlutusData {
             }),
             OrderDatum::MalformedOrderDatum => {
                 PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(0))))
-            },
+            }
         }
     }
 }
@@ -128,50 +128,36 @@ impl From<PallasPlutusData> for OrderDatum {
             fields: Indef(order_datum),
         }) = data
         {
-            if let [
-                PallasPlutusData::Constr(Constr {
-                    tag: 121,
-                    any_constructor: None,
-                    fields: Indef(order_info),
-                }),
-                PallasPlutusData::Constr(Constr {
-                    tag: 121,
-                    any_constructor: None,
-                    fields: Indef(control_token_class),
-                }),
-            ] = &order_datum[..]
+            if let [PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(order_info),
+            }), PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(control_token_class),
+            })] = &order_datum[..]
             {
-                if let [
-                    PallasPlutusData::BoundedBytes(BoundedBytes(sender_payment_hash_vec)),
-                    PallasPlutusData::Constr(Constr {
+                if let [PallasPlutusData::BoundedBytes(BoundedBytes(sender_payment_hash_vec)), PallasPlutusData::Constr(Constr {
+                    tag: 121,
+                    any_constructor: None,
+                    fields: Indef(asset_info),
+                })] = &order_info[..]
+                {
+                    if let [PallasPlutusData::Constr(Constr {
                         tag: 121,
                         any_constructor: None,
-                        fields: Indef(asset_info),
-                    }),
-                ] = &order_info[..]
-                {
-                    if let [
-                        PallasPlutusData::Constr(Constr {
-                            tag: 121,
-                            any_constructor: None,
-                            fields: Indef(asset_class),
-                        }),
-                        PallasPlutusData::BigInt(BigInt::Int(Int(amount))),
-                    ] = &asset_info[..]
+                        fields: Indef(asset_class),
+                    }), PallasPlutusData::BigInt(BigInt::Int(Int(amount)))] = &asset_info[..]
                     {
-                        if let [
-                            PallasPlutusData::BoundedBytes(BoundedBytes(policy_id_vec)),
-                            PallasPlutusData::BoundedBytes(BoundedBytes(asset_name_vec)),
-                        ] = &asset_class[..]
+                        if let [PallasPlutusData::BoundedBytes(BoundedBytes(policy_id_vec)), PallasPlutusData::BoundedBytes(BoundedBytes(asset_name_vec))] =
+                            &asset_class[..]
                         {
-                            if let [
-                                PallasPlutusData::BoundedBytes(BoundedBytes(
-                                    control_token_policy_vec,
-                                )),
-                                PallasPlutusData::BoundedBytes(BoundedBytes(
-                                    control_token_name_vec,
-                                )),
-                            ] = &control_token_class[..]
+                            if let [PallasPlutusData::BoundedBytes(BoundedBytes(
+                                control_token_policy_vec,
+                            )), PallasPlutusData::BoundedBytes(BoundedBytes(
+                                control_token_name_vec,
+                            ))] = &control_token_class[..]
                             {
                                 OrderDatum::Ok {
                                     sender_payment_hash: H224::from(PallasHash::from(
@@ -234,10 +220,10 @@ mod tests {
         TransactionOutput,
     };
     use griffin_core::types::{
-        Address, AssetClass, AssetName, Datum, Input, Multiasset, Output, PlutusData, PlutusScript,
-        Redeemer, RedeemerTag, Transaction, VKeyWitness, Value, compute_plutus_v2_script_hash,
+        compute_plutus_v2_script_hash, Address, AssetClass, AssetName, Datum, Input, Multiasset,
+        Output, PlutusData, PlutusScript, Redeemer, RedeemerTag, Transaction, VKeyWitness, Value,
     };
-    use griffin_core::uplc::tx::{ResolvedInput, SlotConfig, eval_phase_two};
+    use griffin_core::uplc::tx::{eval_phase_two, ResolvedInput, SlotConfig};
     use sp_core::H256;
 
     #[test]
@@ -260,7 +246,11 @@ mod tests {
         );
         let control_token_policy = script_hash;
         let control_token_name = AssetName::from("controlToken".to_string());
-        let _mint = Some(Multiasset::from((control_token_policy, control_token_name.clone(), -1)));
+        let _mint = Some(Multiasset::from((
+            control_token_policy,
+            control_token_name.clone(),
+            -1,
+        )));
 
         let order_datum = OrderDatum::Ok {
             sender_payment_hash,
@@ -268,7 +258,10 @@ mod tests {
                 policy_id: control_token_policy,
                 asset_name: control_token_name.clone(),
             },
-            ordered_class: AssetClass { policy_id: token_b_policy, asset_name: token_b_name },
+            ordered_class: AssetClass {
+                policy_id: token_b_policy,
+                asset_name: token_b_name,
+            },
             ordered_amount: token_b_amount,
         };
 
@@ -293,7 +286,11 @@ mod tests {
             Hash::from_str("01e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4").unwrap(),
         );
 
-        let mint = Some(Multiasset::from((control_token_policy, control_token_name, 1)));
+        let mint = Some(Multiasset::from((
+            control_token_policy,
+            control_token_name,
+            1,
+        )));
         let mint_redeemer = Redeemer {
             tag: RedeemerTag::Mint,
             index: 0,
@@ -314,9 +311,16 @@ mod tests {
         let cbor_bytes: Vec<u8> = babbage_tx_to_cbor(&pallas_tx);
         let mtx: ConwayMintedTx = conway_minted_tx_from_cbor(&cbor_bytes);
 
-        let redeemers =
-            eval_phase_two(&mtx, &vec![], None, None, &SlotConfig::default(), false, |_| ())
-                .unwrap();
+        let redeemers = eval_phase_two(
+            &mtx,
+            &vec![],
+            None,
+            None,
+            &SlotConfig::default(),
+            false,
+            |_| (),
+        )
+        .unwrap();
         assert_eq!(redeemers.len(), 1);
     }
 
@@ -396,8 +400,10 @@ mod tests {
             datum_option: None,
         }];
 
-        let pallas_inputs =
-            inputs.iter().map(|i| TransactionInput::from(i.clone())).collect::<Vec<_>>();
+        let pallas_inputs = inputs
+            .iter()
+            .map(|i| TransactionInput::from(i.clone()))
+            .collect::<Vec<_>>();
         let pallas_resolved_inputs = resolved_inputs
             .iter()
             .map(|ri| TransactionOutput::from(ri.clone()))
@@ -434,7 +440,11 @@ mod tests {
             Hash::from_str("01e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4").unwrap(),
         );
 
-        let mint = Some(Multiasset::from((control_token_policy, control_token_name, -1)));
+        let mint = Some(Multiasset::from((
+            control_token_policy,
+            control_token_name,
+            -1,
+        )));
         let burn_redeemer = Redeemer {
             tag: RedeemerTag::Mint,
             index: 0,
@@ -458,12 +468,22 @@ mod tests {
         let input_utxos: Vec<ResolvedInput> = pallas_inputs
             .iter()
             .zip(pallas_resolved_inputs.iter())
-            .map(|(input, output)| ResolvedInput { input: input.clone(), output: output.clone() })
+            .map(|(input, output)| ResolvedInput {
+                input: input.clone(),
+                output: output.clone(),
+            })
             .collect();
 
-        let redeemers =
-            eval_phase_two(&mtx, &input_utxos, None, None, &SlotConfig::default(), false, |_| ())
-                .unwrap();
+        let redeemers = eval_phase_two(
+            &mtx,
+            &input_utxos,
+            None,
+            None,
+            &SlotConfig::default(),
+            false,
+            |_| (),
+        )
+        .unwrap();
         assert_eq!(redeemers.len(), 2);
     }
 
@@ -492,7 +512,10 @@ mod tests {
                 policy_id: control_token_policy,
                 asset_name: control_token_name.clone(),
             },
-            ordered_class: AssetClass { policy_id: token_b_policy, asset_name: token_b_name },
+            ordered_class: AssetClass {
+                policy_id: token_b_policy,
+                asset_name: token_b_name,
+            },
             ordered_amount: token_b_amount,
         };
 
@@ -511,8 +534,10 @@ mod tests {
             datum_option: Some(Datum::from(order_datum)),
         }];
 
-        let pallas_inputs =
-            inputs.iter().map(|i| TransactionInput::from(i.clone())).collect::<Vec<_>>();
+        let pallas_inputs = inputs
+            .iter()
+            .map(|i| TransactionInput::from(i.clone()))
+            .collect::<Vec<_>>();
         let pallas_resolved_inputs = resolved_inputs
             .iter()
             .map(|ri| TransactionOutput::from(ri.clone()))
@@ -547,7 +572,11 @@ mod tests {
                 fields: Def([].to_vec()),
             })),
         };
-        let mint = Some(Multiasset::from((control_token_policy, control_token_name, -1)));
+        let mint = Some(Multiasset::from((
+            control_token_policy,
+            control_token_name,
+            -1,
+        )));
 
         transaction.transaction_body.mint = mint;
         transaction.transaction_body.required_signers = Some(vec![sender_payment_hash]);
@@ -566,12 +595,22 @@ mod tests {
         let input_utxos: Vec<ResolvedInput> = pallas_inputs
             .iter()
             .zip(pallas_resolved_inputs.iter())
-            .map(|(input, output)| ResolvedInput { input: input.clone(), output: output.clone() })
+            .map(|(input, output)| ResolvedInput {
+                input: input.clone(),
+                output: output.clone(),
+            })
             .collect();
 
-        let redeemers =
-            eval_phase_two(&mtx, &input_utxos, None, None, &SlotConfig::default(), false, |_| ())
-                .unwrap();
+        let redeemers = eval_phase_two(
+            &mtx,
+            &input_utxos,
+            None,
+            None,
+            &SlotConfig::default(),
+            false,
+            |_| (),
+        )
+        .unwrap();
         assert_eq!(redeemers.len(), 2);
     }
 }

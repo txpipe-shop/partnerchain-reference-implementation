@@ -14,21 +14,21 @@
 
 use std::path::PathBuf;
 
-use crate::order_book::{ORDER_SCRIPT_HEX, OrderDatum};
+use crate::order_book::{OrderDatum, ORDER_SCRIPT_HEX};
 use crate::rpc;
 use anyhow::anyhow;
 use colored::Colorize;
 use griffin_core::types::{
-    Address, AssetName, Datum, Input, OpaqueBlock, PlutusScript, Transaction, Value,
-    compute_plutus_v2_script_hash,
+    compute_plutus_v2_script_hash, Address, AssetName, Datum, Input, OpaqueBlock, PlutusScript,
+    Transaction, Value,
 };
 use jsonrpsee::http_client::HttpClient;
 use parity_scale_codec::{Decode, Encode};
 use sled::Db;
 use sp_core::H256;
 use sp_runtime::{
-    OpaqueExtrinsic,
     traits::{BlakeTwo256, Hash},
+    OpaqueExtrinsic,
 };
 
 /// The identifier for the blocks tree in the db.
@@ -85,11 +85,17 @@ pub(crate) fn open_db(
     }
 
     // If there are no local blocks yet, initialize the tables
-    log::info!("Initializing fresh sync from genesis {:?}", expected_genesis_hash);
+    log::info!(
+        "Initializing fresh sync from genesis {:?}",
+        expected_genesis_hash
+    );
 
     // Update both tables
     wallet_block_hashes_tree.insert(0u32.encode(), expected_genesis_hash.encode())?;
-    wallet_blocks_tree.insert(expected_genesis_hash.encode(), expected_genesis_block.encode())?;
+    wallet_blocks_tree.insert(
+        expected_genesis_hash.encode(),
+        expected_genesis_block.encode(),
+    )?;
 
     Ok(db)
 }
@@ -170,7 +176,9 @@ pub(crate) fn get_unspent(
         return Ok(None);
     };
 
-    Ok(Some(<(Address, Value, std::option::Option<Datum>)>::decode(&mut &ivec[..])?))
+    Ok(Some(
+        <(Address, Value, std::option::Option<Datum>)>::decode(&mut &ivec[..])?,
+    ))
 }
 
 /// Gets the block hash from the local database given a block height. Similar the Node's RPC.
@@ -218,7 +226,10 @@ async fn apply_transaction(db: &Db, opaque_tx: OpaqueExtrinsic) -> anyhow::Resul
 
     // Insert all new outputs
     for (index, output) in tx.transaction_body.outputs.iter().enumerate() {
-        let input = Input { tx_hash, index: index as u32 };
+        let input = Input {
+            tx_hash,
+            index: index as u32,
+        };
 
         crate::sync::add_unspent_output(
             db,
@@ -247,7 +258,10 @@ pub(crate) fn add_unspent_output(
     datum_option: &Option<Datum>,
 ) -> anyhow::Result<()> {
     let unspent_tree = db.open_tree(UNSPENT)?;
-    unspent_tree.insert(input.encode(), (owner_pubkey, amount, datum_option).encode())?;
+    unspent_tree.insert(
+        input.encode(),
+        (owner_pubkey, amount, datum_option).encode(),
+    )?;
 
     Ok(())
 }
@@ -305,7 +319,10 @@ fn unapply_transaction(db: &Db, tx: &OpaqueExtrinsic) -> anyhow::Result<()> {
     let tx_hash = BlakeTwo256::hash_of(&tx.encode());
 
     for i in 0..tx.transaction_body.outputs.len() {
-        let input = Input { tx_hash, index: i as u32 };
+        let input = Input {
+            tx_hash,
+            index: i as u32,
+        };
         remove_unspent_output(db, &input)?;
     }
 
@@ -322,13 +339,17 @@ pub(crate) async fn unapply_highest_block(db: &Db) -> anyhow::Result<()> {
 
     // Take the hash from the block_hashes tables
     let Some(ivec) = wallet_block_hashes_tree.remove(height.encode())? else {
-        return Err(anyhow!("No block hash found at height reported as best. DB is inconsistent."));
+        return Err(anyhow!(
+            "No block hash found at height reported as best. DB is inconsistent."
+        ));
     };
     let hash = H256::decode(&mut &ivec[..])?;
 
     // Take the block from the blocks table
     let Some(ivec) = wallet_blocks_tree.remove(hash.encode())? else {
-        return Err(anyhow!("Block was not present in db but block hash was. DB is corrupted."));
+        return Err(anyhow!(
+            "Block was not present in db but block hash was. DB is corrupted."
+        ));
     };
 
     let block = OpaqueBlock::decode(&mut &ivec[..])?;
@@ -348,7 +369,11 @@ pub(crate) fn height(db: &Db) -> anyhow::Result<Option<u32>> {
     let wallet_block_hashes_tree = db.open_tree(BLOCK_HASHES)?;
     let num_blocks = wallet_block_hashes_tree.len();
 
-    Ok(if num_blocks == 0 { None } else { Some(num_blocks as u32 - 1) })
+    Ok(if num_blocks == 0 {
+        None
+    } else {
+        Some(num_blocks as u32 - 1)
+    })
 }
 
 /// Debugging use. Print the entire unspent outputs tree.
@@ -393,8 +418,13 @@ pub(crate) fn print_orders(db: &Db) -> anyhow::Result<()> {
             let order_datum = datum_option.map(|d| OrderDatum::from(d));
             match order_datum {
                 None | Some(OrderDatum::MalformedOrderDatum) => {
-                    println!("{}: datum {:?}, value: {}", input, order_datum, value.normalize(),);
-                },
+                    println!(
+                        "{}: datum {:?}, value: {}",
+                        input,
+                        order_datum,
+                        value.normalize(),
+                    );
+                }
                 Some(OrderDatum::Ok {
                     sender_payment_hash,
                     control_token_class,
@@ -410,7 +440,7 @@ pub(crate) fn print_orders(db: &Db) -> anyhow::Result<()> {
                         control_token_class,
                         value.normalize(),
                     );
-                },
+                }
             }
         }
     }

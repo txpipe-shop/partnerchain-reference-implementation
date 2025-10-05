@@ -4,10 +4,10 @@ use anyhow::anyhow;
 use griffin_core::types::address_from_pk;
 use sc_keystore::LocalKeystore;
 use sp_core::{
-    H256,
     // The `Pair` trait is used to have `Pair::{generate_with,from}_phrase`
     crypto::{KeyTypeId, Pair as _},
     ed25519::{Pair, Public, Signature},
+    H256,
 };
 use sp_keystore::Keystore;
 use std::path::Path;
@@ -65,7 +65,10 @@ pub fn generate_key(keystore: &LocalKeystore, password: Option<String>) -> anyho
     let (pair, phrase, _) = Pair::generate_with_phrase(password.as_deref());
     println!("Generated public key is {:?}", pair.public());
     println!("Generated Phrase is {:?}", phrase);
-    println!("Associated address is 0x{}", address_from_pk(&pair.public()));
+    println!(
+        "Associated address is 0x{}",
+        address_from_pk(&pair.public())
+    );
     keystore
         .insert(KEY_TYPE, phrase.as_ref(), pair.public().as_ref())
         .map_err(|()| anyhow!("Error inserting key"))?;
@@ -81,7 +84,11 @@ pub fn get_keys(keystore: &LocalKeystore) -> anyhow::Result<impl Iterator<Item =
 pub fn remove_key(keystore_path: &Path, pub_key: &H256) -> anyhow::Result<()> {
     // The keystore doesn't provide an API for removing keys, so we
     // remove them from the filesystem directly
-    let filename = format!("{}{}", hex::encode(KEY_TYPE.0), hex::encode(pub_key.0.clone()));
+    let filename = format!(
+        "{}{}",
+        hex::encode(KEY_TYPE.0),
+        hex::encode(pub_key.0.clone())
+    );
     let path = keystore_path.join(filename);
 
     std::fs::remove_file(path)?;
