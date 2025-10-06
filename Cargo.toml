@@ -9,9 +9,10 @@ version = "0.0.1"
 [workspace]
 default-members = ["runtime"]
 members = [
+    "demo/authorities",
+    "griffin-core",
     "node",
     "runtime",
-    "griffin-core",
     "wallet",
 ]
 resolver = "2"
@@ -40,6 +41,7 @@ serde = { version = "1.0.209", default-features = false, features = [
 	"alloc",
 ] }
 serde_json = { version = "1.0.132", default-features = false }
+thiserror = { version = "2.0", default-features = false }
 
 # substrate dependencies
 frame-support = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
@@ -49,6 +51,8 @@ sc-executor = { default-features = false, git = "https://github.com/paritytech/p
 sc-keystore = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-api = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-blockchain = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
+sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
+sp-consensus-grandpa = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-core = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
 sp-debug-derive = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5", default-features = false }
 sp-genesis-builder = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5" }
@@ -60,6 +64,9 @@ sp-storage = { default-features = false, git = "https://github.com/paritytech/po
 
 # griffin deps
 sc-chain-spec = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2503-5", default-features = false }
+
+# demo implementations
+demo-authorities = { path = "demo/authorities", default-features = false }
 
 [profile.release]
 opt-level = 3

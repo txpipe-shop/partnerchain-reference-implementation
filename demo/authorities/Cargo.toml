@@ -1,0 +1,28 @@
+[package]
+name = "demo-authorities"
+description = "Demo implementation for authorities setup using the UTxO model."
+version = "0.1.0"
+repository.workspace = true
+edition.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+parity-scale-codec = { features = ["derive"], workspace = true }
+griffin-core = { version = "0.2.0", path = "../../griffin-core", default-features = false }
+hex-literal = {workspace = true }
+sp-consensus-aura = { features = ["serde"], workspace = true, default-features = false }
+sp-consensus-grandpa = { features = ["serde"], workspace = true, default-features = false }
+sp-core = { workspace = true, default-features = false }
+thiserror = { workspace = true, default-features = false }
+serde = { workspace = true, features = ["alloc"], optional = true, default-features = false }
+
+[features]
+default = ["std"]
+std = [
+    "griffin-core/std",
+    "serde",
+    "sp-consensus-aura/std",
+    "sp-consensus-grandpa/std",
+]
