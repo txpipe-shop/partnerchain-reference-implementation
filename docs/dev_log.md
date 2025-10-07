@@ -4,19 +4,14 @@ This is a detailed log of the development activities that were required for the 
 
 ## :checkered_flag: Starting point: Substrate Template
 
-### :down_arrow: Download the [minimal template](https://github.com/paritytech/polkadot-sdk-minimal-template).
+### :arrow_down: Download the [minimal template](https://github.com/paritytech/polkadot-sdk-minimal-template).
 
-This version of the node includes the most basic featurs of a Substrate node.
+This version of the node includes the most basic features of a Substrate node.
 
 ### :computer: Rust setup & dependencies:
 
-#### Rust installation
-
-Check the Rust [installation instructions](https://www.rust-lang.org/tools/install) for your system.
-
-#### Additional packages
-
-Depending on your system and Rust version, there might be additional packages required to compile this template - please take note of the Rust compiler output. Usually, it will be necessary to add the `wasm32-unknown-unknown` target, and the `rust-src` component, both of which can be installed, for example in Linux by executing the following commands:
+Check out Polkadot's official [installation instructions](https://docs.polkadot.com/develop/parachains/install-polkadot-sdk/) to install Rust and the additional dependencies needed for your system. 
+Usually, it will be necessary to add the `wasm32-unknown-unknown` target, and the `rust-src` component, both of which can be installed, for example in Linux by executing the following commands:
 
 ```bash
 $ rustup target add wasm32-unknown-unknown --toolchain stable-x86_64-unknown-linux-gnu
@@ -51,28 +46,34 @@ A common Substrate node uses an account model ledger and its runtime is built wi
 
 This imposes a restriction on the design and implementation, opposed to usual Substrate app-chains. For developers coming from the Cardano ecosystem though, Griffin provides a familiar environment. We can think about decentralized applications in terms of validators and UTxOs, with the advantage of having a completely modifiable starting point as well.
 
-The original Griffin is a bit outdated, so to use it we updated some dependencies and made some minor compatibility changes, which will be detailed below. If you wish to use Griffin, we encourage the use of the ad-hoc version provided in this repository at [griffin-core].
+The original Griffin is a bit outdated, so to use it we updated some dependencies and made some minor compatibility changes, which will be detailed below. We encourage the use of the ad-hoc version provided in this repository at [griffin-core].
 
 ### Changes made to the template to add Griffin
 
-To add Griffin to the template, these are the changes that have to be made:
+Firstly, copy the source code for `griffin-core`, `griffin-rpc` and `griffin-wallet`. Then we have to add these packages as workspace members to the project manifest:  add the paths to the packages under the `[members]` section.
+
+To integrate Griffin into the node these are the necessary modifications:
 
 #### Runtime
 
-A new [genesis](../../runtime/src/) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
+Add dependencies to the Cargo.toml:
+
+Add a new [genesis](../../runtime/src/) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
 
 In the [runtime library](../../runtime/src/lib.rs):
 
-##### Type definitions
-
-- Import Griffin types for `Transaction`, `Block`, `Executive` and `Output`.
+- Import Griffin types for `Transaction`, `Block`, `Executive` and `Output`. These types are used to implement the types of the runtime.
+- Import Griffin types for  `Address`, `AssetName`, `Datum`, `Input` and `PolicyId`. These types will be used to implement the runtime apis necessary for Griffin RPC. 
+- Import `TransparentUTxOSet` from Griffin.
+- Import `MILLI_SECS_PER_SLOT` from Griffin, which will be used to define the slot duration of the chain.
+- Import `GenesisConfig` from Griffin's config builder.
 - Define `SessionKeys` struct within `impl_opaque_keys` macro, with fields for `Aura` and `Grandpa` public keys.
 - Remove `genesis_config_presets` mod definitions, since we are using our custom genesis.
 - Declare `Runtime` struct without FRAME pallets.
-- Implement custom `aura_authorities` and `grandpa_authorities` methods for Runtime.
+- Implement custom `aura_authorities` and `grandpa_authorities` methods for Runtime. 
 - Remove all FRAME trait implementations for Runtime.
 
-###### `impl_runtime_apis` macro
+##### `impl_runtime_apis` macro
 
 Runtime APIs are traits that are implemented in the runtime and provide both a runtime-side implementation and a client-side API for the node to interact with. To utilize Griffin we provide new implementations for the required traits.
 
@@ -82,8 +83,26 @@ Runtime APIs are traits that are implemented in the runtime and provide both a r
 - TaggedTransactionQueue: use Griffin’s `Executive::validate_transaction`.
 - SessionKeys: use the `generate` and `decode_into_raw_public_keys` methods of our defined `SessionKeys` type in `generate_session_keys` and `decode_session_keys` methods implementations.
 - GenesisBuilder: use Griffin’s `GriffinGenesisConfigBuilder::build` and `get_genesis_config` functions to implement `build_state` and `get_preset` methods. Give trivial implementation of `preset_names`.
-- Add `AuraApi` and `GrandpaApi` trait implementations.
-- Remove OffchainWorkerApi, AccountNonceApi and TransactionPaymentApi trait implementations.
+- Include `sp_consensus_aura::AuraApi<Block, AuraId> `. Use custom `aura_authorities` implementation for `authorities` method. Use `SlotDuration::from_millis` from `sp_consensus_aura` with previously imported MILLI_SECS_PER_SLOT to define `slot_duration`.
+- Include `sp_consensus_grandpa::GrandpaApi<Block>`. Use custom `grandpa_authorities` implementation for the homonymous function from the api. Give a trivial implementation for `current_set_id`, `submit_report_equivocation_unsigned_extrinsic` and `generate_key_ownership_proof`.
+- Include `griffin_core::utxo_set::TransparentUtxoSetApi<Block>`. Use `peek_utxo`, `peek_utxo_from_address` and `peek_utxo_with_asset` from `TransparentUtxoSet` to implement `peek_utxo`, `peek_utxo_by_address` and `peek_utxo_with_asset` from the api, respectively.
+- Remove `OffchainWorkerApi`, `AccountNonceApi` and `TransactionPaymentApi` trait implementations.
+
+#### Node
+
+Add dependencies to the Cargo.toml:
+
+In [service](../node/src/service.rs):
+
+- Import `GriffinGenesisBuilder` from Griffin genesis, and `OpaqueBlock`, from Griffin types, as `Block`.
+- Within `new_partial`, define `genesis_block_builder` from `GriffinGenesisBlockBuilder`.
+
+In [rpc](../node/src/rpc.rs):
+
+- Import `CardanoRpc` and `CardanoRpcApiServer` from Cardano RPC within Griffin RPC.
+- Import `TransparentUtxoSetRpc` and `TransparentUtxoSetRpcApiServer` from RPC within Griffin RPC.
+
+Add the new RPC modules in the `create_full` function:
 
 ### Changes made to Griffin
 
@@ -95,6 +114,16 @@ As mentioned, the version of Griffin that we use for this project has some modif
 ## Guide to Griffin
 
 ### Types
+
+Griffin is based on Cardano and the eUTxO model so it bears a lot of similarities, but there are some key differences that we will clarify here.  
+
+##### Addresses
+
+Griffin addresses are ed25519 keys. Public keys are prefixed by `61` and script addresses are prefixed by `70`. For simplicity, addresses don't have a staking part.
+
+##### Transactions
+
+Transactions don't have fees.
 
 ### Wallet
 
