@@ -1,7 +1,6 @@
-use alloc::{vec, vec::Vec};
+use alloc::vec::Vec;
 use core::str::FromStr;
 use derive_new::new;
-use griffin_core::h224::H224;
 use griffin_core::types::{Address, AssetName, Input, Output, PolicyId};
 use griffin_core::uplc::Hash;
 use griffin_core::utxo_set::TransparentUtxoSetApi;
@@ -64,8 +63,9 @@ where
         let best_block = self.client.info().best_hash;
 
         let addr = Address::from(addr_bytes.to_vec());
-        let utxos: Vec<Output> =
-            api.peek_utxo_by_address(best_block, &addr).map_err(error_object_from)?;
+        let utxos: Vec<Output> = api
+            .peek_utxo_by_address(best_block, &addr)
+            .map_err(error_object_from)?;
 
         Ok(utxos)
     }

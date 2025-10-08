@@ -3,11 +3,11 @@ use griffin_core::checks_interface::babbage_minted_tx_from_cbor_checked;
 use griffin_core::pallas_primitives::babbage::Tx as BPallasTransaction;
 use griffin_core::types::Transaction;
 use jsonrpsee::{
-    core::{RpcResult, async_trait},
+    core::{async_trait, RpcResult},
     proc_macros::rpc,
 };
 use parity_scale_codec::{Decode, Encode};
-use sc_transaction_pool_api::{TransactionPool, TransactionSource, TxHash, error::IntoPoolError};
+use sc_transaction_pool_api::{error::IntoPoolError, TransactionPool, TransactionSource, TxHash};
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_core::Bytes;
@@ -49,13 +49,16 @@ where
 
                 let best_block = self.client.info().best_hash;
 
-                self.pool.submit_one(best_block, TX_SOURCE, xt).await.map_err(|e| {
-                    e.into_pool_error()
-                        .map(|e| error_object_from(e))
-                        .unwrap_or_else(|e| error_object_from(e))
-                        .into()
-                })
-            },
+                self.pool
+                    .submit_one(best_block, TX_SOURCE, xt)
+                    .await
+                    .map_err(|e| {
+                        e.into_pool_error()
+                            .map(|e| error_object_from(e))
+                            .unwrap_or_else(|e| error_object_from(e))
+                            .into()
+                    })
+            }
             Err(e) => Err(error_object_from(e)),
         }
     }
