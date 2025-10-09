@@ -12,7 +12,7 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::{fmt, ops::Deref};
 use frame_support::{
     dispatch::{DispatchClass, DispatchInfo, GetDispatchInfo, Pays},
-    traits::{ExtrinsicCall, InherentBuilder, SignedTransactionBuilder},
+    traits::{InherentBuilder, SignedTransactionBuilder},
     weights::Weight,
 };
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
@@ -20,7 +20,9 @@ use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{ed25519::Public, H256};
 use sp_runtime::{
-    traits::{BlakeTwo256, Dispatchable, ExtrinsicLike, ExtrinsicMetadata, Hash as HashT},
+    traits::{
+        BlakeTwo256, Dispatchable, ExtrinsicCall, ExtrinsicLike, ExtrinsicMetadata, Hash as HashT,
+    },
     transaction_validity::InvalidTransaction,
     DispatchResultWithInfo,
 };
