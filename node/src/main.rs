@@ -1,3 +1,4 @@
+//! A UTxO solochain node based on Substrate / Polkadot SDK.
 #![warn(missing_docs)]
 
 mod chain_spec;
