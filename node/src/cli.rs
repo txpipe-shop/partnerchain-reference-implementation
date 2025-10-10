@@ -15,8 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use polkadot_sdk::*;
-
 #[derive(Debug, Clone)]
 pub enum Consensus {
     ManualSeal(u64),

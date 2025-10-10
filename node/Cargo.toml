@@ -1,13 +1,12 @@
 [package]
-name = "minimal-template-node"
-description = "A minimal Substrate-based Substrate node, ready for hacking."
-version = "0.1.0"
-license = "Unlicense"
+name = "griffin-partner-chains-node"
+description = "A solochain node built with Substrate, part of Polkadot SDK"
+version = "0.2.0"
 authors.workspace = true
 homepage.workspace = true
 repository.workspace = true
 edition.workspace = true
-publish = false
+publish = true
 build = "build.rs"
 
 [package.metadata.docs.rs]
@@ -18,31 +17,34 @@ clap = { features = ["derive"], workspace = true }
 docify = { workspace = true }
 futures = { features = ["thread-pool"], workspace = true }
 futures-timer = { workspace = true }
+griffin-core = { workspace = true }
+griffin-partner-chains-runtime = { workspace = true }
+griffin-rpc = { workspace = true }
 jsonrpsee = { features = ["server"], workspace = true }
-minimal-template-runtime.workspace = true
-polkadot-sdk = { workspace = true, features = [
-	"sc-basic-authorship",
-	"sc-cli",
-	"sc-client-api",
-	"sc-consensus",
-	"sc-consensus-manual-seal",
-	"sc-executor",
-	"sc-network",
-	"sc-service",
-	"sc-offchain",
-	"sc-telemetry",
-	"sc-transaction-pool",
-	"sc-transaction-pool-api",
-	"sp-blockchain",
-	"substrate-frame-rpc-system",
-] }
+sc-basic-authorship = { workspace = true }
+sc-cli = { workspace = true }
+sc-client-api = { workspace = true }
+sc-consensus = { workspace = true }
+sc-consensus-manual-seal = { workspace = true }
+sc-executor = { workspace = true }
+sc-network = { workspace = true }
+sc-service = { workspace = true }
+sc-telemetry = { workspace = true }
+sc-transaction-pool = { workspace = true }
+sc-transaction-pool-api = { workspace = true }
+sp-api = { workspace = true }
+sp-block-builder = { workspace = true }
+sp-blockchain = { workspace = true }
+sp-genesis-builder = { workspace = true }
+sp-io = { workspace = true }
+sp-timestamp = { workspace = true }
+sp-runtime = { workspace = true }
 
 [build-dependencies]
-polkadot-sdk = { workspace = true, features = ["substrate-build-script-utils"] }
+substrate-build-script-utils = { workspace = true, default-features = true }
 
 [features]
 default = ["std"]
 std = [
-	"minimal-template-runtime/std",
-	"polkadot-sdk/std",
+	"griffin-partner-chains-runtime/std",
 ]

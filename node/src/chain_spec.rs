@@ -15,11 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use minimal_template_runtime::WASM_BINARY;
-use polkadot_sdk::{
-    sc_service::{ChainType, Properties},
-    *,
-};
+use griffin_partner_chains_runtime::WASM_BINARY;
+use sc_service::{ChainType, Properties};
 
 /// This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec;

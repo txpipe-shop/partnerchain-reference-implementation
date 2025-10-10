@@ -1,32 +1,12 @@
-// This file is part of Substrate.
-
-// Copyright (C) Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// 	http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 use crate::cli::Consensus;
-use futures::FutureExt;
-use minimal_template_runtime::{interface::OpaqueBlock as Block, RuntimeApi};
-use polkadot_sdk::{
-    sc_client_api::backend::Backend,
-    sc_executor::WasmExecutor,
-    sc_service::{error::Error as ServiceError, Configuration, TaskManager},
-    sc_telemetry::{Telemetry, TelemetryWorker},
-    sc_transaction_pool_api::OffchainTransactionPoolFactory,
-    sp_runtime::traits::Block as BlockT,
-    *,
-};
+use griffin_core::types::OpaqueBlock as Block;
+use griffin_partner_chains_runtime::{self, RuntimeApi};
+use sc_executor::WasmExecutor;
+use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
+use sc_telemetry::{Telemetry, TelemetryWorker};
+use sp_runtime::traits::Block as BlockT;
 use std::sync::Arc;
 
 type HostFunctions = sp_io::SubstrateHostFunctions;
@@ -152,29 +132,6 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
             block_relay: None,
             metrics,
         })?;
-
-    if config.offchain_worker.enabled {
-        let offchain_workers =
-            sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
-                runtime_api_provider: client.clone(),
-                is_validator: config.role.is_authority(),
-                keystore: Some(keystore_container.keystore()),
-                offchain_db: backend.offchain_storage(),
-                transaction_pool: Some(OffchainTransactionPoolFactory::new(
-                    transaction_pool.clone(),
-                )),
-                network_provider: Arc::new(network.clone()),
-                enable_http_requests: true,
-                custom_extensions: |_| vec![],
-            })?;
-        task_manager.spawn_handle().spawn(
-            "offchain-workers-runner",
-            "offchain-worker",
-            offchain_workers
-                .run(client.clone(), task_manager.spawn_handle())
-                .boxed(),
-        );
-    }
 
     let rpc_extensions_builder = {
         let client = client.clone();
