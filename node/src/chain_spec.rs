@@ -1,25 +1,30 @@
+use griffin_partner_chains_runtime::genesis::get_genesis_config;
 use griffin_partner_chains_runtime::WASM_BINARY;
-use sc_service::{ChainType, Properties};
+use sc_service::ChainType;
 
 /// This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec;
 
-fn props() -> Properties {
-    let mut properties = Properties::new();
-    properties.insert("tokenDecimals".to_string(), 0.into());
-    properties.insert("tokenSymbol".to_string(), "MINI".into());
-    properties
-}
-
-pub fn development_chain_spec() -> Result<ChainSpec, String> {
+pub fn development_config(genesis_json: String) -> Result<ChainSpec, String> {
     Ok(ChainSpec::builder(
-        WASM_BINARY.expect("Development wasm not available"),
-        Default::default(),
+        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
+        None,
     )
     .with_name("Development")
     .with_id("dev")
     .with_chain_type(ChainType::Development)
-    .with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
-    .with_properties(props())
+    .with_genesis_config_patch(serde_json::json!(get_genesis_config(genesis_json)))
+    .build())
+}
+
+pub fn local_testnet_config(genesis_json: String) -> Result<ChainSpec, String> {
+    Ok(ChainSpec::builder(
+        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
+        None,
+    )
+    .with_name("Local Testnet")
+    .with_id("local_testnet")
+    .with_chain_type(ChainType::Local)
+    .with_genesis_config_patch(serde_json::json!(get_genesis_config(genesis_json)))
     .build())
 }
