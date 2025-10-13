@@ -33,7 +33,7 @@ impl<'b> MultiEraPolicyAssets<'b> {
         }
     }
 
-    pub fn assets(&self) -> Vec<MultiEraAsset> {
+    pub fn assets(&self) -> Vec<MultiEraAsset<'_>> {
         match self {
             MultiEraPolicyAssets::AlonzoCompatibleMint(p, x) => x
                 .iter()
