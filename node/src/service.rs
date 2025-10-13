@@ -1,7 +1,7 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 use crate::cli::Consensus;
-use griffin_core::types::OpaqueBlock as Block;
+use griffin_core::{genesis::GriffinGenesisBlockBuilder, types::OpaqueBlock as Block};
 use griffin_partner_chains_runtime::{self, RuntimeApi};
 use sc_executor::WasmExecutor;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
@@ -42,11 +42,22 @@ pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
 
     let executor = sc_service::new_wasm_executor(&config.executor);
 
+    let backend = sc_service::new_db_backend(config.db_config())?;
+    let genesis_block_builder = GriffinGenesisBlockBuilder::new(
+        config.chain_spec.as_storage_builder(),
+        !config.no_genesis(),
+        backend.clone(),
+        executor.clone(),
+    )?;
+
     let (client, backend, keystore_container, task_manager) =
-        sc_service::new_full_parts::<Block, RuntimeApi, _>(
+        sc_service::new_full_parts_with_genesis_builder::<Block, RuntimeApi, _, _>(
             config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
             executor,
+            backend,
+            genesis_block_builder,
+            false,
         )?;
     let client = Arc::new(client);
 
