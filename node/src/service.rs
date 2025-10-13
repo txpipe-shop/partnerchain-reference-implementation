@@ -4,10 +4,16 @@ use crate::cli::Consensus;
 use griffin_core::{genesis::GriffinGenesisBlockBuilder, types::OpaqueBlock as Block};
 use griffin_partner_chains_runtime::{self, RuntimeApi};
 use sc_executor::WasmExecutor;
+use sc_network::peer_store::LOG_TARGET;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
-use sc_telemetry::{Telemetry, TelemetryWorker};
+use sc_telemetry::{log, Telemetry, TelemetryWorker};
 use sp_runtime::traits::Block as BlockT;
-use std::sync::Arc;
+use std::{
+    sync::Arc,
+    thread::sleep,
+    time::Duration,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 type HostFunctions = sp_io::SubstrateHostFunctions;
 
@@ -159,6 +165,19 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
 
     let prometheus_registry = config.prometheus_registry().cloned();
 
+    let chain_spec =
+        &serde_json::from_str::<serde_json::Value>(&config.chain_spec.as_json(false).unwrap())
+            .unwrap();
+    let zero_time = chain_spec["genesis"]["runtimeGenesis"]["patch"]["zero_time"]
+        .as_u64()
+        .unwrap();
+
+    log::warn!(
+        target: LOG_TARGET,
+        "Genesis posix time (milliseconds): {}",
+        zero_time
+    );
+
     let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         network,
         client: client.clone(),
@@ -181,6 +200,16 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
         prometheus_registry.as_ref(),
         telemetry.as_ref().map(|x| x.handle()),
     );
+
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64;
+
+    // Wait until genesis time
+    sleep(Duration::from_millis(
+        zero_time.checked_sub(now).unwrap_or(0),
+    ));
 
     match consensus {
         Consensus::InstantSeal => {
