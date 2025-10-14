@@ -1,30 +1,47 @@
 [package]
-name = "minimal-template-runtime"
-description = "A solochain runtime template built with Substrate, part of Polkadot Sdk."
-version = "0.0.1"
-license = "Unlicense"
+name = "griffin-partner-chains-runtime"
+description = "A solochain runtime built with Substrate, part of Polkadot SDK"
+version = "0.2.0"
 authors.workspace = true
 homepage.workspace = true
 repository.workspace = true
 edition.workspace = true
-publish = false
+publish = true
 
 [dependencies]
-codec = { workspace = true }
-pallet-minimal-template.workspace = true
-polkadot-sdk = { workspace = true, features = ["pallet-balances", "pallet-sudo", "pallet-timestamp", "pallet-transaction-payment", "pallet-transaction-payment-rpc-runtime-api", "runtime"] }
+demo-authorities = { workspace = true }
+griffin-core = { workspace = true }
+parity-scale-codec = { features = ["derive"], workspace = true }
+polkadot-sdk-frame = { features = ["runtime"], workspace = true }
 scale-info = { workspace = true }
 serde_json = { workspace = true, default-features = false, features = ["alloc"] }
+sp-api = { workspace = true }
+sp-application-crypto = { workspace = true }
+sp-block-builder = { workspace = true }
+sp-consensus-aura = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
+sp-core = { workspace = true }
+sp-genesis-builder = { workspace = true }
+sp-inherents = { workspace = true }
+sp-runtime = { workspace = true }
+sp-session = { workspace = true }
+sp-transaction-pool = { workspace = true }
+sp-version = { workspace = true }
 
 [build-dependencies]
-polkadot-sdk = { optional = true, workspace = true, features = ["substrate-wasm-builder"] }
+substrate-wasm-builder = { optional = true, workspace = true, default-features = true }
 
 [features]
 default = ["std"]
 std = [
-	"codec/std",
-	"pallet-minimal-template/std",
-	"polkadot-sdk/std",
+	"griffin-core/std",
+	"polkadot-sdk-frame/std",
 	"scale-info/std",
 	"serde_json/std",
+	"sp-block-builder/std",
+	"sp-consensus-aura/std",
+	"sp-consensus-grandpa/std",
+	"sp-session/std",
+	"sp-transaction-pool/std",
+	"substrate-wasm-builder",
 ]

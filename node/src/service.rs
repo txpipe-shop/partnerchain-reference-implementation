@@ -1,33 +1,19 @@
-// This file is part of Substrate.
-
-// Copyright (C) Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// 	http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 use crate::cli::Consensus;
-use futures::FutureExt;
-use minimal_template_runtime::{interface::OpaqueBlock as Block, RuntimeApi};
-use polkadot_sdk::{
-    sc_client_api::backend::Backend,
-    sc_executor::WasmExecutor,
-    sc_service::{error::Error as ServiceError, Configuration, TaskManager},
-    sc_telemetry::{Telemetry, TelemetryWorker},
-    sc_transaction_pool_api::OffchainTransactionPoolFactory,
-    sp_runtime::traits::Block as BlockT,
-    *,
+use griffin_core::{genesis::GriffinGenesisBlockBuilder, types::OpaqueBlock as Block};
+use griffin_partner_chains_runtime::{self, RuntimeApi};
+use sc_executor::WasmExecutor;
+use sc_network::peer_store::LOG_TARGET;
+use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
+use sc_telemetry::{log, Telemetry, TelemetryWorker};
+use sp_runtime::traits::Block as BlockT;
+use std::{
+    sync::Arc,
+    thread::sleep,
+    time::Duration,
+    time::{SystemTime, UNIX_EPOCH},
 };
-use std::sync::Arc;
 
 type HostFunctions = sp_io::SubstrateHostFunctions;
 
@@ -62,11 +48,22 @@ pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
 
     let executor = sc_service::new_wasm_executor(&config.executor);
 
+    let backend = sc_service::new_db_backend(config.db_config())?;
+    let genesis_block_builder = GriffinGenesisBlockBuilder::new(
+        config.chain_spec.as_storage_builder(),
+        !config.no_genesis(),
+        backend.clone(),
+        executor.clone(),
+    )?;
+
     let (client, backend, keystore_container, task_manager) =
-        sc_service::new_full_parts::<Block, RuntimeApi, _>(
+        sc_service::new_full_parts_with_genesis_builder::<Block, RuntimeApi, _, _>(
             config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
             executor,
+            backend,
+            genesis_block_builder,
+            false,
         )?;
     let client = Arc::new(client);
 
@@ -153,29 +150,6 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
             metrics,
         })?;
 
-    if config.offchain_worker.enabled {
-        let offchain_workers =
-            sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
-                runtime_api_provider: client.clone(),
-                is_validator: config.role.is_authority(),
-                keystore: Some(keystore_container.keystore()),
-                offchain_db: backend.offchain_storage(),
-                transaction_pool: Some(OffchainTransactionPoolFactory::new(
-                    transaction_pool.clone(),
-                )),
-                network_provider: Arc::new(network.clone()),
-                enable_http_requests: true,
-                custom_extensions: |_| vec![],
-            })?;
-        task_manager.spawn_handle().spawn(
-            "offchain-workers-runner",
-            "offchain-worker",
-            offchain_workers
-                .run(client.clone(), task_manager.spawn_handle())
-                .boxed(),
-        );
-    }
-
     let rpc_extensions_builder = {
         let client = client.clone();
         let pool = transaction_pool.clone();
@@ -190,6 +164,19 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
     };
 
     let prometheus_registry = config.prometheus_registry().cloned();
+
+    let chain_spec =
+        &serde_json::from_str::<serde_json::Value>(&config.chain_spec.as_json(false).unwrap())
+            .unwrap();
+    let zero_time = chain_spec["genesis"]["runtimeGenesis"]["patch"]["zero_time"]
+        .as_u64()
+        .unwrap();
+
+    log::warn!(
+        target: LOG_TARGET,
+        "Genesis posix time (milliseconds): {}",
+        zero_time
+    );
 
     let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         network,
@@ -213,6 +200,16 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
         prometheus_registry.as_ref(),
         telemetry.as_ref().map(|x| x.handle()),
     );
+
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64;
+
+    // Wait until genesis time
+    sleep(Duration::from_millis(
+        zero_time.checked_sub(now).unwrap_or(0),
+    ));
 
     match consensus {
         Consensus::InstantSeal => {

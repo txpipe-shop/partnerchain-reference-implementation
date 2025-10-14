@@ -1,22 +1,3 @@
-// This file is part of Substrate.
-
-// Copyright (C) Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// 	http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-use polkadot_sdk::{sc_cli::RunCmd, *};
-
 #[derive(Debug, Clone)]
 pub enum Consensus {
     ManualSeal(u64),
@@ -49,7 +30,7 @@ pub struct Cli {
     pub consensus: Consensus,
 
     #[clap(flatten)]
-    pub run: RunCmd,
+    pub run: sc_cli::RunCmd,
 }
 
 #[derive(Debug, clap::Subcommand)]
@@ -59,7 +40,15 @@ pub enum Subcommand {
     Key(sc_cli::KeySubcommand),
 
     /// Build a chain specification.
+    /// DEPRECATED: `build-spec` command will be removed after 1/04/2026. Use `export-chain-spec`
+    /// command instead.
+    #[deprecated(
+        note = "build-spec command will be removed after 1/04/2026. Use export-chain-spec command instead"
+    )]
     BuildSpec(sc_cli::BuildSpecCmd),
+
+    /// Export the chain specification.
+    ExportChainSpec(sc_cli::ExportChainSpecCmd),
 
     /// Validate blocks.
     CheckBlock(sc_cli::CheckBlockCmd),
