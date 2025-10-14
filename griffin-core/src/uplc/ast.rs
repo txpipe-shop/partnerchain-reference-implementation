@@ -7,7 +7,6 @@ use crate::pallas_traverse::ComputeHash;
 use crate::uplc::{
     builtins::DefaultFunction,
     debruijn::{self, Converter},
-    flat::Binder,
     machine::{
         cost_model::{initialize_cost_model, CostModel, ExBudget},
         eval_result::EvalResult,
@@ -105,15 +104,6 @@ impl Program<Name> {
     /// A convenient method to convery named programs to named debruijn programs.
     pub fn to_named_debruijn(self) -> Result<Program<NamedDeBruijn>, debruijn::Error> {
         self.try_into()
-    }
-}
-
-impl<'a, T> Display for Program<T>
-where
-    T: Binder<'a>,
-{
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self)
     }
 }
 
@@ -352,15 +342,6 @@ impl<T> TryInto<PlutusData> for Term<T> {
             },
             _ => Err("not a data".to_string()),
         }
-    }
-}
-
-impl<'a, T> Display for Term<T>
-where
-    T: Binder<'a>,
-{
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self)
     }
 }
 

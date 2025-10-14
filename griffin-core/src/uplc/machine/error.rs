@@ -1,7 +1,7 @@
 use super::{ExBudget, Value};
 use crate::uplc::ast::{NamedDeBruijn, Term, Type};
 use alloc::{
-    string::{FromUtf8Error, String, ToString},
+    string::{FromUtf8Error, String},
     vec::Vec,
 };
 use num_bigint::BigInt;
@@ -15,7 +15,7 @@ pub enum Error {
     #[error(
         "cannot evaluate an open term:\n{:>13} {}",
         "Term",
-        indent(redacted(.0.to_string(), 10)),
+        indent(redacted(format!("{:#?}", .0), 10)),
     )]
     OpenTermEvaluated(Term<NamedDeBruijn>),
     #[error("the validator crashed / exited prematurely")]

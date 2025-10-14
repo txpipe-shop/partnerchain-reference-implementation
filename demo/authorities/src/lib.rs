@@ -36,7 +36,7 @@ pub const RAW_AUTHORITIES_POLICY_ID: &str =
     "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005";
 
 /// In charge of parsing a datum to lookup for aura and grandpa keys.
-fn parse_authorities(bytes: &Vec<u8>) -> Result<(Vec<Bytes>, Vec<Bytes>), ConfigParsingErrors> {
+fn parse_authorities(bytes: &[u8]) -> Result<(Vec<Bytes>, Vec<Bytes>), ConfigParsingErrors> {
     let mut aura_keys = vec![];
     let mut grandpa_keys = vec![];
     if let Ok(MaybeIndefArray::Indef(arr0)) = minicbor::decode::<MaybeIndefArray<AnyCbor>>(bytes) {
@@ -59,7 +59,7 @@ fn parse_authorities(bytes: &Vec<u8>) -> Result<(Vec<Bytes>, Vec<Bytes>), Config
     } else {
         return Err(ConfigParsingErrors::BadPlutusData);
     }
-    return Ok((aura_keys, grandpa_keys));
+    Ok((aura_keys, grandpa_keys))
 }
 
 fn expect_unique(outputs: &Vec<Output>) -> Result<Output, ConfigParsingErrors> {
@@ -86,7 +86,7 @@ fn fetch_utxo_datum() -> Result<Datum, ConfigParsingErrors> {
 
 pub fn aura_authorities() -> Vec<AuraId> {
     let Datum(ref datum) = fetch_utxo_datum().unwrap();
-    let (key_bytes, _) = parse_authorities(&datum).unwrap();
+    let (key_bytes, _) = parse_authorities(datum).unwrap();
     key_bytes
         .iter()
         .map(|b| {
@@ -97,7 +97,7 @@ pub fn aura_authorities() -> Vec<AuraId> {
 
 pub fn grandpa_authorities() -> sp_consensus_grandpa::AuthorityList {
     let Datum(ref datum) = fetch_utxo_datum().unwrap();
-    let (_, key_bytes) = parse_authorities(&datum).unwrap();
+    let (_, key_bytes) = parse_authorities(datum).unwrap();
     key_bytes
         .iter()
         .map(|b| {

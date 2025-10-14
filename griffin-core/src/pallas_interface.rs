@@ -83,7 +83,7 @@ impl<K: Clone + Ord, V: Clone> From<EncapBTree<K, V>> for KeyValuePairs<K, V> {
 
 impl<K: Clone + Ord, V: Clone> From<KeyValuePairs<K, V>> for EncapBTree<K, V> {
     fn from(val: KeyValuePairs<K, V>) -> Self {
-        let tree: BTreeMap<K, V> = <_>::from_iter(Vec::from(val).into_iter());
+        let tree: BTreeMap<K, V> = <_>::from_iter(Vec::from(val));
 
         Self(tree)
     }
@@ -137,7 +137,7 @@ impl<A: Clone> From<PallasMultiasset<A>> for Multiasset<A> {
 
         for (k, v) in val.iter() {
             res.push((
-                PolicyId::from(k.clone()),
+                PolicyId::from(*k),
                 EncapBTree(<_>::from_iter(
                     v.clone()
                         .iter()
@@ -146,7 +146,7 @@ impl<A: Clone> From<PallasMultiasset<A>> for Multiasset<A> {
             ))
         }
 
-        EncapBTree(<_>::from_iter(res.into_iter()))
+        EncapBTree(<_>::from_iter(res))
     }
 }
 
@@ -239,7 +239,7 @@ impl From<LegacyTransactionOutput> for Output {
         let mut datum_option: Option<Datum> = None;
         let mut datum: Vec<u8> = Vec::new();
         if let Some(data) = val.datum_hash {
-            match encode(&data, &mut datum) {
+            match encode(data, &mut datum) {
                 Ok(_) => {
                     datum_option = Some(Datum(datum));
                 }
@@ -319,10 +319,9 @@ impl From<PlutusData> for PallasPlutusData {
 impl From<PallasPlutusData> for PlutusData {
     fn from(data: PallasPlutusData) -> Self {
         let mut plutus_data: Vec<u8> = Vec::new();
-        match encode(&data, &mut plutus_data) {
-            Err(err) => log::error!("Unable to encode Plutus Data ({:?})", err),
-            Ok(_) => (),
-        };
+        if let Err(err) = encode(&data, &mut plutus_data) {
+            log::error!("Unable to encode Plutus Data ({:?})", err)
+        }
 
         Self(plutus_data)
     }
@@ -343,10 +342,10 @@ impl From<WitnessSet> for PallasWitnessSet {
     fn from(val: WitnessSet) -> Self {
         let vkeywitness: Option<Vec<PallasVKeyWitness>> = val
             .vkeywitness
-            .map(|vks| vks.into_iter().map(|vk| <_>::from(vk)).collect());
+            .map(|vks| vks.into_iter().map(<_>::from).collect());
         let redeemer: Option<Vec<PallasRedeemer>> = val
             .redeemer
-            .map(|vks| vks.into_iter().map(|vk| <_>::from(vk)).collect());
+            .map(|vks| vks.into_iter().map(<_>::from).collect());
         let plutus_v2_script: Option<Vec<PallasPlutusScript<2>>> = val.plutus_script.map(|vks| {
             vks.into_iter()
                 .map(|vk| PallasPlutusScript::<2>(<_>::from(vk.0)))
@@ -369,7 +368,7 @@ impl From<PallasWitnessSet> for WitnessSet {
         Self {
             vkeywitness: val
                 .vkeywitness
-                .map(|v| v.into_iter().map(|y| <_>::from(y)).collect()),
+                .map(|v| v.into_iter().map(<_>::from).collect()),
             // FIXME: does not work as a `From`. Revise or eliminate all From<Pallas...>!
             plutus_script: None,
             redeemer: None,
@@ -380,8 +379,8 @@ impl From<PallasWitnessSet> for WitnessSet {
 impl From<TransactionBody> for PallasTransactionBody {
     fn from(val: TransactionBody) -> Self {
         Self {
-            inputs: val.inputs.into_iter().map(|i| <_>::from(i)).collect(),
-            outputs: val.outputs.into_iter().map(|i| <_>::from(i)).collect(),
+            inputs: val.inputs.into_iter().map(<_>::from).collect(),
+            outputs: val.outputs.into_iter().map(<_>::from).collect(),
             fee: 0,
             ttl: val.ttl,
             certificates: None,
@@ -389,12 +388,12 @@ impl From<TransactionBody> for PallasTransactionBody {
             update: None,
             auxiliary_data_hash: None,
             validity_interval_start: val.validity_interval_start,
-            mint: val.mint.map(|m| PallasMultiasset::from(m)),
+            mint: val.mint.map(PallasMultiasset::from),
             script_data_hash: None,
             collateral: None,
             required_signers: val.required_signers.map(|rss| {
                 rss.into_iter()
-                    .map(|rs| PallasRequiredSigner::from(rs))
+                    .map(PallasRequiredSigner::from)
                     .collect::<Vec<_>>()
             }),
             network_id: None,
@@ -408,14 +407,14 @@ impl From<TransactionBody> for PallasTransactionBody {
 impl From<PallasTransactionBody> for TransactionBody {
     fn from(val: PallasTransactionBody) -> Self {
         Self {
-            inputs: val.inputs.into_iter().map(|i| Input::from(i)).collect(),
-            outputs: val.outputs.into_iter().map(|i| Output::from(i)).collect(),
+            inputs: val.inputs.into_iter().map(Input::from).collect(),
+            outputs: val.outputs.into_iter().map(Output::from).collect(),
             ttl: val.ttl,
             validity_interval_start: val.validity_interval_start,
-            mint: val.mint.map(|m| Multiasset::from(m)),
+            mint: val.mint.map(Multiasset::from),
             required_signers: val.required_signers.map(|rss| {
                 rss.into_iter()
-                    .map(|rs| RequiredSigner::from(rs))
+                    .map(RequiredSigner::from)
                     .collect::<Vec<_>>()
             }),
         }

@@ -293,7 +293,7 @@ where
                     .buffer
                     .to_vec()
                     .iter()
-                    .skip(if d.pos > 5 { d.pos - 5 } else { 0 })
+                    .skip(d.pos.saturating_sub(5))
                     .take(10)
                     .cloned()
                     .collect();
@@ -480,7 +480,7 @@ where
                     .buffer
                     .to_vec()
                     .iter()
-                    .skip(if d.pos > 5 { d.pos - 5 } else { 0 })
+                    .skip(d.pos.saturating_sub(5))
                     .take(10)
                     .cloned()
                     .collect();

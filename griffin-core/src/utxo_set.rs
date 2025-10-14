@@ -78,11 +78,11 @@ impl TransparentUtxoSet {
             some_key = sp_io::storage::next_key(&key);
         }
 
-        return outputs;
+        outputs
     }
 
     fn remove_utxo(input: &Input) {
-        let key = Self::add_utxo_prefix(&input);
+        let key = Self::add_utxo_prefix(input);
         sp_io::storage::clear(&key);
     }
 

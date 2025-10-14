@@ -44,25 +44,27 @@ pub fn babbage_tx_to_cbor(tx: &BabbageTx) -> Vec<u8> {
 }
 
 pub fn babbage_minted_tx_from_cbor_checked(tx_cbor: &[u8]) -> Result<BabbageMintedTx<'_>, Error> {
-    crate::pallas_codec::minicbor::decode::<BabbageMintedTx>(&tx_cbor[..])
+    crate::pallas_codec::minicbor::decode::<BabbageMintedTx>(tx_cbor)
 }
 
 pub fn babbage_minted_tx_from_cbor(tx_cbor: &[u8]) -> BabbageMintedTx<'_> {
-    crate::pallas_codec::minicbor::decode::<BabbageMintedTx>(&tx_cbor[..]).unwrap()
+    crate::pallas_codec::minicbor::decode::<BabbageMintedTx>(tx_cbor).unwrap()
 }
 
 pub fn conway_minted_tx_from_cbor(tx_cbor: &[u8]) -> ConwayMintedTx<'_> {
-    crate::pallas_codec::minicbor::decode::<ConwayMintedTx>(&tx_cbor[..]).unwrap()
+    crate::pallas_codec::minicbor::decode::<ConwayMintedTx>(tx_cbor).unwrap()
 }
+
+type OutputInfoList<'a> = [(
+    String, // address in string format
+    Value,
+    Option<MintedDatumOption<'a>>,
+    Option<CborWrap<MintedScriptRef<'a>>>,
+)];
 
 pub fn mk_utxo_for_babbage_tx<'a>(
     tx_body: &MintedTransactionBody,
-    tx_outs_info: &'a [(
-        String, // address in string format
-        Value,
-        Option<MintedDatumOption>,
-        Option<CborWrap<MintedScriptRef>>,
-    )],
+    tx_outs_info: &OutputInfoList<'a>,
 ) -> UTxOs<'a> {
     let mut utxos: UTxOs = UTxOs::new();
     for (tx_in, (addr, val, datum_opt, script_ref)) in zip(tx_body.inputs.clone(), tx_outs_info) {

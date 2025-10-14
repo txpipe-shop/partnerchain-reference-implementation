@@ -87,8 +87,8 @@ where
         Ok(())
     }
 
-    fn phase_two_checks(tx_cbor_bytes: &Vec<u8>, input_utxos: Vec<Output>) -> DispatchResult {
-        let conway_mtx: ConwayMintedTx = conway_minted_tx_from_cbor(&tx_cbor_bytes);
+    fn phase_two_checks(tx_cbor_bytes: &[u8], input_utxos: Vec<Output>) -> DispatchResult {
+        let conway_mtx: ConwayMintedTx = conway_minted_tx_from_cbor(tx_cbor_bytes);
         let pallas_input_utxos = input_utxos
             .iter()
             .map(|ri| TransactionOutput::from(ri.clone()))
@@ -162,7 +162,7 @@ where
         // Keep track of any missing inputs for use in the tagged transaction pool
         let mut missing_inputs = Vec::new();
         for input in transaction.transaction_body.inputs.iter() {
-            if let Some(u) = TransparentUtxoSet::peek_utxo(&input) {
+            if let Some(u) = TransparentUtxoSet::peek_utxo(input) {
                 tx_outs_info.push((
                     hex::encode(u.address.0.as_slice()),
                     PallasValue::from(u.clone().value),
@@ -413,7 +413,7 @@ where
 
         // Apply each extrinsic
         for extrinsic in block.extrinsics() {
-            match Self::apply_griffin_transaction(&extrinsic) {
+            match Self::apply_griffin_transaction(extrinsic) {
                 Ok(()) => debug!(
                     target: LOG_TARGET,
                     "Successfully executed extrinsic: {:?}", extrinsic

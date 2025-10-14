@@ -34,7 +34,6 @@ pub type OpaqueHash = <Hash as HashT>::Output;
 pub type BlockNumber = u32;
 /// Because all griffin chains use the same Blocknumber and Hash types,
 /// they also use the same concrete header type.
-
 pub type Header = sp_runtime::generic::Header<BlockNumber, Hash>;
 
 pub type Block = sp_runtime::generic::Block<Header, Transaction>;
@@ -330,6 +329,7 @@ pub struct Redeemer {
 /// Fragment of a Cardano witness set.
 #[derive(
     Serialize,
+    Default,
     Deserialize,
     Encode,
     Decode,
@@ -345,16 +345,6 @@ pub struct WitnessSet {
     pub vkeywitness: Option<Vec<VKeyWitness>>,
     pub redeemer: Option<Vec<Redeemer>>,
     pub plutus_script: Option<Vec<PlutusScript>>,
-}
-
-impl Default for WitnessSet {
-    fn default() -> Self {
-        Self {
-            vkeywitness: None,
-            plutus_script: None,
-            redeemer: None,
-        }
-    }
 }
 
 impl From<Vec<VKeyWitness>> for WitnessSet {
@@ -966,7 +956,7 @@ impl<T: Clone> From<&Multiasset<T>> for Vec<(PolicyId, AssetName, T)> {
         let mut res = Vec::<(PolicyId, AssetName, T)>::new();
         for (pol, names) in ma.0.iter() {
             for (name, amount) in names.0.iter() {
-                res.push((pol.clone(), name.clone(), amount.clone()));
+                res.push((*pol, name.clone(), amount.clone()));
             }
         }
 

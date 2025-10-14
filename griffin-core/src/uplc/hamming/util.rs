@@ -9,14 +9,14 @@ pub unsafe fn align_to<T, U>(x: &[T]) -> (&[T], &[U], &[T]) {
     let orig_size = mem::size_of::<T>();
     let size = mem::size_of::<U>();
 
-    debug_assert!(orig_size < size && size % orig_size == 0);
+    debug_assert!(orig_size < size && size.is_multiple_of(orig_size));
     let size_ratio = size / orig_size;
 
     let alignment = mem::align_of::<U>();
 
     let ptr = x.as_ptr() as usize;
     // round up to the nearest multiple
-    let aligned = (ptr + alignment - 1) / alignment * alignment;
+    let aligned = ptr.div_ceil(alignment) * alignment;
     let byte_distance = aligned - ptr;
 
     // can't fit a single U in
@@ -26,7 +26,7 @@ pub unsafe fn align_to<T, U>(x: &[T]) -> (&[T], &[U], &[T]) {
 
     let (head, middle) = x.split_at(byte_distance / orig_size);
 
-    assert!(middle.as_ptr() as usize % alignment == 0);
+    assert!((middle.as_ptr() as usize).is_multiple_of(alignment));
     let cast_middle = slice::from_raw_parts(middle.as_ptr() as *const U, middle.len() / size_ratio);
     let tail = &middle[cast_middle.len() * size_ratio..];
 
