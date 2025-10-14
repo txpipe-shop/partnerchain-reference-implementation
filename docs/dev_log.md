@@ -11,10 +11,10 @@ This version of the node includes the most basic features of a Substrate node.
 ### :computer: Rust setup & dependencies:
 
 Check out Polkadot's official [installation instructions](https://docs.polkadot.com/develop/parachains/install-polkadot-sdk/) to install Rust and the additional dependencies needed for your system. 
-Usually, it will be necessary to add the `wasm32-unknown-unknown` target, and the `rust-src` component, both of which can be installed, for example in Linux by executing the following commands:
+Usually, it will be necessary to add the `wasm32v1-none` target, and the `rust-src` component, both of which can be installed, for example in Linux by executing the following commands:
 
 ```bash
-$ rustup target add wasm32-unknown-unknown --toolchain stable-x86_64-unknown-linux-gnu
+$ rustup target add wasm32v1-none --toolchain stable-x86_64-unknown-linux-gnu
 $ rustup component add rust-src --toolchain stable-x86_64-unknown-linux-gnu
 ```
 
@@ -36,21 +36,66 @@ The node, also known as the client, is the core component responsible for execut
 - *Consensus mechanism:* Ensures agreement on the blockchain state across nodes.
 - *RPC services:* Provides external interfaces for applications and users to interact with the node.
 
-## :eagle: Include Griffin
+## :paintbrush: Substrate customizations
+
+### :eagle: Include Griffin and Grandpa
 
 As part of the Substrate customizations that can be done, we can modify the ledger model and the storage structure. This is where [Griffin](github.com/txpipe/griffin) comes in. Griffin is a Substrate-based clone of a Cardano node. It incorporates a simplified eUTxO ledger and hosts a virtual machine capable of executing Plutus scripts for app-logic. This setup provides the essential primitives and logic required for our appchain nodes.
+
+Another modification to the minimal template is the choice of a consensus mechanism. For this example, we have chosen GRANDPA for the finality protocol. Block finality is obtained through consecutive rounds of voting by validator nodes.
+
+In the [Changes made to the template](#changes-made-to-the-template) section, we'll explain the modifications made to the template to add Griffin and Grandpa, but for your own choice of ledger and consensus mechanism the modifications can be made similarly.
 
 ### Griffin vs. Substrate
 
 A common Substrate node uses an account model ledger and its runtime is built with FRAME pallets, which are runtime "building blocks" or modules. In contrast, Griffin is designed for the UTxO model, making it incompatible with FRAME, as pallets inherently assume an account-oriented underlying model.
-
 This imposes a restriction on the design and implementation, opposed to usual Substrate app-chains. For developers coming from the Cardano ecosystem though, Griffin provides a familiar environment. We can think about decentralized applications in terms of validators and UTxOs, with the advantage of having a completely modifiable starting point as well.
+
+Another key difference between Griffin and other Polkadot-based projects is the chain specification and execution. In general, the chain specification holds the entire code for the node, which is the *genesis*, among other information that is used at boot time, and it is passed to the node executable as an argument. In Griffin, the node executable takes as argument a simple file that describes the initial set of UTxOs, and some other details.
 
 The original Griffin is a bit outdated, so to use it we updated some dependencies and made some minor compatibility changes, which will be detailed below. We encourage the use of the ad-hoc version provided in this repository at [griffin-core].
 
-### Changes made to the template to add Griffin
+### Changes made to Griffin
 
-Firstly, copy the source code for `griffin-core`, `griffin-rpc` and `griffin-wallet`. Then we have to add these packages as workspace members to the project manifest:  add the paths to the packages under the `[members]` section.
+As mentioned, the version of Griffin that we use for this project has some modifications compared to the original. Most of these changes are dependency upgrades, but below we'll go over other more interesting modifications:
+- [Authorities set function]: we re-implemented the authorities setting function to utilize the EUTxO model. The new function reads the authorities list from a UTxO that is set in the Genesis. A more detailed explanation on how it works and how to use it can be found in the respective readme.
+- [Griffin-RPC]: We extended the native node RPC with some queries to obtain UTxOs information through an output reference, an address, or an asset class. More over, we also added a method to submit a transaction in CBOR format. More information and usage examples can be found in the Griffin RPC [readme].
+- [Wallet]: The wallet was also improved on through the addition of new functionalities like the queries by address and asset. The `build-tx` command was also modified to take as input a whole json file, instead of many arguments for each component of the transaction.
+
+### Guide to Griffin
+
+#### Types
+
+Griffin is based on Cardano and the eUTxO model so it bears a lot of similarities, but there are some key differences that we will clarify here.  
+
+###### Addresses
+
+Griffin addresses are ed25519 keys. Public keys are prefixed by `61` and script addresses are prefixed by `70`. For simplicity, addresses don't have a staking part.
+
+###### Transactions
+
+Transactions don't pay fees. Staking, governance and delegation fields are included in the transaction body, but their functionalities are not supported.
+
+#### Wallet
+
+Griffin provides a CLI wallet to interact with the node. This wallet has helpful commands:
+`show-all-outputs`: Displays every UTxO in the chain with brief details about the owner, the coins and value.
+`show-outputs-at`: Displays UTxOs owned by the provided address.
+`show-outputs-with-asset`: Displays UTxOs that contain a certain token in its value.
+`insert-key`: Inserts a key into the wallets keystore.
+`generate-key`: Creates a new key and inserts it into the keystore. Also displays the details.
+`show-balance`: summarizes Value amounts for each address.
+`build-tx`: Transaction builder command, which takes as input a complete Griffin transaction in json. This transaction must be balanced manually. 
+
+More information can be found in the wallet [readme] and also there are some usage examples in the [examples folder].
+
+## Changes made to the template
+
+> **Polkadot-SDK**:
+>From this point on, we steer away from using `polkadot-sdk` as one big dependency. Instead, we pick and choose what we need from the Polkadot-SDK and set each as their own dependency. This might look more complicated in terms of mantaining but we pull each dependency from the regsitry and as long as we pull the same stable version for each package there should not be any conflicts. At the time of writing this we use the release `polkadot-stable2506-2`.
+>Having clarified this, it is necessary to add the dependencies in all `Cargo.toml` files, and also to modify the imports where used. To reduce clutter we won't be mentioning these steps while talking about the modifications.
+
+Firstly, copy the source code for `griffin-core`, `griffin-rpc`, `griffin-wallet` and `demo`. Then we have to add these packages as workspace members to the project manifest:  add the paths to the packages under the `[members]` section.
 
 To integrate Griffin into the node these are the necessary modifications:
 
@@ -67,10 +112,11 @@ In the [runtime library](../../runtime/src/lib.rs):
 - Import `TransparentUTxOSet` from Griffin.
 - Import `MILLI_SECS_PER_SLOT` from Griffin, which will be used to define the slot duration of the chain.
 - Import `GenesisConfig` from Griffin's config builder.
+- Import Authorities from `demo`, which holds custom `aura_authorities` and `grandpa_authorities` implementations.
 - Define `SessionKeys` struct within `impl_opaque_keys` macro, with fields for `Aura` and `Grandpa` public keys.
 - Remove `genesis_config_presets` mod definitions, since we are using our custom genesis.
+- Define `Transaction`, `Block`, `Executive` and `Output` using the imported types from Griffin.
 - Declare `Runtime` struct without FRAME pallets.
-- Implement custom `aura_authorities` and `grandpa_authorities` methods for Runtime. 
 - Remove all FRAME trait implementations for Runtime.
 
 ##### `impl_runtime_apis` macro
@@ -92,51 +138,39 @@ Runtime APIs are traits that are implemented in the runtime and provide both a r
 
 Add dependencies to the Cargo.toml:
 
+In [chain_spec](../node/src/chain_spec.rs), we redefine the functions that build the chain from the specification:
+- Import `get_genesis_config` from runtime genesis, and `WASM_BINARY ` from runtime.
+- Modify `development_chain_spec()` to take a String as an argument and add the logic that uses it. The name was changed to reflect the purpose of the function more accurately.
+- Add a new function for the configuration of a local test chain.
+
+In [cli](../node/src/cli.rs):
+- Add new `ExportChainSpec` command and add deprecated warning to `BuildSpec` command.
+
+In [command](../node/src/command.rs):
+- Modify chain name
+- Modify `load_spec` function to use the new config functions defined in `chain_spec.rs`.
+- Add new `ExportChainSpec` command and a deprecated warning to `BuildSpec`. 
+- Provide Griffin's `OpaqueBlock` type in `NetworkWorker`.
+
 In [service](../node/src/service.rs):
 
-- Import `GriffinGenesisBuilder` from Griffin genesis, and `OpaqueBlock`, from Griffin types, as `Block`.
-- Within `new_partial`, define `genesis_block_builder` from `GriffinGenesisBlockBuilder`.
+- Import `GriffinGenesisBlockBuilder` and `OpaqueBlock` as `Block` from Griffin.
+- Import `self` and `RuntimeApi` from our runtime (necessary if the runtime name changed).
+- Within `new_partial`:
+    - Define `genesis_block_builder` from `GriffinGenesisBlockBuilder`.
+    - Define a new backend using `sc_service::new_db_backend`.
+    - Modify the creation of the initial parts of the node to use our custom genesis block builder.
+    - Delete `offchain_worker` definition, as Griffin’s executive module doesn’t implement it.
+    - Define `chain_spec` and its new way of parsing the json.
+    - Define `zero_time` for the ledger.
+    - Sleep until reaching zero time for the genesis of the chain.
 
 In [rpc](../node/src/rpc.rs):
 
 - Import `CardanoRpc` and `CardanoRpcApiServer` from Cardano RPC within Griffin RPC.
 - Import `TransparentUtxoSetRpc` and `TransparentUtxoSetRpcApiServer` from RPC within Griffin RPC.
-
-Add the new RPC modules in the `create_full` function:
-
-### Changes made to Griffin
-
-As mentioned, the version of Griffin that we use for this project has some modifications compared to the original. Most of these changes are dependency upgrades, but below we'll go over other more interesting modifications:
-- [Authorities set function]: we re-implemented the authorities setting function to utilize the EUTxO model. The new function reads the authorities list from a UTxO that is set in the Genesis. A more detailed explanation on how it works and how to use it can be found in the respective readme.
-- [Griffin-RPC]: We extended the native node RPC with some queries to obtain UTxOs information through an output reference, an address, or an asset class. More over, we also added a method to submit a transaction in CBOR format. More information and usage examples can be found in the Griffin RPC [readme].
-- [Wallet]: The wallet was also improved on through the addition of new functionalities like the queries by address and asset. The `build-tx` command was also modified to take as input a whole json file, instead of many arguments for each component of the transaction.
-
-## Guide to Griffin
-
-### Types
-
-Griffin is based on Cardano and the eUTxO model so it bears a lot of similarities, but there are some key differences that we will clarify here.  
-
-##### Addresses
-
-Griffin addresses are ed25519 keys. Public keys are prefixed by `61` and script addresses are prefixed by `70`. For simplicity, addresses don't have a staking part.
-
-##### Transactions
-
-Transactions don't have fees.
-
-### Wallet
-
-Griffin provides a CLI wallet to interact with the node. This wallet has helpful commands:
-`show-all-outputs`: Displays every UTxO in the chain with brief details about the owner, the coins and value.
-`show-outputs-at`: Displays UTxOs owned by the provided address.
-`show-outputs-with-asset`: Displays UTxOs that contain a certain token in its value.
-`insert-key`: Inserts a key into the wallets keystore.
-`generate-key`: Creates a new key and inserts it into the keystore. Also displays the details.
-`show-balance`: summarizes Value amounts for each address.
-`build-tx`: Transaction builder command, which takes as input a complete Griffin transaction in json. This transaction must be balanced manually. 
-
-More information can be found in the wallet [readme] and also there are some usage examples in the [examples folder].
+- Add TransparentUtxoSetApi dependency to `create_full` function.
+- Add the new RPC modules in the `create_full` function:
 
 ## Troubleshooting
 
