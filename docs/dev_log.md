@@ -1,4 +1,4 @@
-# Dev activity log
+# Dev activity log: initial Substrate customizations
 
 This is a detailed log of the development activities that were required for the Substrate client customization. We’d like this log to serve as guidance for new developers wishing to understand the process with the goal of implementing their own versions.
 
@@ -97,26 +97,56 @@ More information can be found in the wallet [readme] and also there are some usa
 
 Firstly, copy the source code for `griffin-core`, `griffin-rpc`, `griffin-wallet` and `demo`. Then we have to add these packages as workspace members to the project manifest:  add the paths to the packages under the `[members]` section.
 
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/Cargo.toml#L11-L17
+
+And add the packages as workspace dependencies, so that they can be used by other modules:
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/Cargo.toml#L56-L59
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/Cargo.toml#L125
+
 To integrate Griffin into the node these are the necessary modifications:
 
 #### Runtime
 
+We can change the name of the runtime here:
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/Cargo.toml#L2
+
 Add dependencies to the Cargo.toml:
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/Cargo.toml#L11-L13
+
 
 Add a new [genesis](../../runtime/src/) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
 
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/genesis.rs#L57-L67
+
 In the [runtime library](../../runtime/src/lib.rs):
 
-- Import Griffin types for `Transaction`, `Block`, `Executive` and `Output`. These types are used to implement the types of the runtime.
 - Import Griffin types for  `Address`, `AssetName`, `Datum`, `Input` and `PolicyId`. These types will be used to implement the runtime apis necessary for Griffin RPC. 
 - Import `TransparentUTxOSet` from Griffin.
 - Import `MILLI_SECS_PER_SLOT` from Griffin, which will be used to define the slot duration of the chain.
 - Import `GenesisConfig` from Griffin's config builder.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L14-L18
+
 - Import Authorities from `demo`, which holds custom `aura_authorities` and `grandpa_authorities` implementations.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L34
+
 - Define `SessionKeys` struct within `impl_opaque_keys` macro, with fields for `Aura` and `Grandpa` public keys.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L44-L75
+
 - Remove `genesis_config_presets` mod definitions, since we are using our custom genesis.
 - Define `Transaction`, `Block`, `Executive` and `Output` using the imported types from Griffin.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L99-L102
+
 - Declare `Runtime` struct without FRAME pallets.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L105-L106
+
 - Remove all FRAME trait implementations for Runtime.
 
 ##### `impl_runtime_apis` macro
@@ -124,53 +154,133 @@ In the [runtime library](../../runtime/src/lib.rs):
 Runtime APIs are traits that are implemented in the runtime and provide both a runtime-side implementation and a client-side API for the node to interact with. To utilize Griffin we provide new implementations for the required traits.
 
 - Core: use Griffin’s `Executive::execute_block` and `Executive::open_block` in `execute_block` and `initialize_block` methods implementations.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L124-L136
 - Metadata: use trivial implementation.
+
 - BlockBuilder: call Griffin’s `Executive::apply_extrinsic` and `Executive::close_block` in `apply_extrinsic` and `finalize_block` methods, and provide trivial implementations of `inherent_extrinsics` and `check_inherents` methods.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L152-L163
+
 - TaggedTransactionQueue: use Griffin’s `Executive::validate_transaction`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L173-L181
+
 - SessionKeys: use the `generate` and `decode_into_raw_public_keys` methods of our defined `SessionKeys` type in `generate_session_keys` and `decode_session_keys` methods implementations.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L183-L193
+
 - GenesisBuilder: use Griffin’s `GriffinGenesisConfigBuilder::build` and `get_genesis_config` functions to implement `build_state` and `get_preset` methods. Give trivial implementation of `preset_names`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L232-L249
+
 - Include `sp_consensus_aura::AuraApi<Block, AuraId> `. Use custom `aura_authorities` implementation for `authorities` method. Use `SlotDuration::from_millis` from `sp_consensus_aura` with previously imported MILLI_SECS_PER_SLOT to define `slot_duration`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L195-L203
+
 - Include `sp_consensus_grandpa::GrandpaApi<Block>`. Use custom `grandpa_authorities` implementation for the homonymous function from the api. Give a trivial implementation for `current_set_id`, `submit_report_equivocation_unsigned_extrinsic` and `generate_key_ownership_proof`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L205-L222
+
 - Include `griffin_core::utxo_set::TransparentUtxoSetApi<Block>`. Use `peek_utxo`, `peek_utxo_from_address` and `peek_utxo_with_asset` from `TransparentUtxoSet` to implement `peek_utxo`, `peek_utxo_by_address` and `peek_utxo_with_asset` from the api, respectively.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L109-L121
+
 - Remove `OffchainWorkerApi`, `AccountNonceApi` and `TransactionPaymentApi` trait implementations.
 
 #### Node
 
 Add dependencies to the Cargo.toml:
 
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/Cargo.toml#L20-L22
+
 In [chain_spec](../node/src/chain_spec.rs), we redefine the functions that build the chain from the specification:
 - Import `get_genesis_config` from runtime genesis, and `WASM_BINARY ` from runtime.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L1-L2
+
 - Modify `development_chain_spec()` to take a String as an argument and add the logic that uses it. The name was changed to reflect the purpose of the function more accurately.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L8-L18
+
 - Add a new function for the configuration of a local test chain.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L20-L30
 
 In [cli](../node/src/cli.rs):
 - Add new `ExportChainSpec` command and add deprecated warning to `BuildSpec` command.
 
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/cli.rs#L45-L51
+
 In [command](../node/src/command.rs):
 - Modify chain name
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L10-L12
+
 - Modify `load_spec` function to use the new config functions defined in `chain_spec.rs`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L34-L44
+
 - Add new `ExportChainSpec` command and a deprecated warning to `BuildSpec`. 
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L70-L73
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L53-L57
+
 - Provide Griffin's `OpaqueBlock` type in `NetworkWorker`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L132-L137
 
 In [service](../node/src/service.rs):
 
 - Import `GriffinGenesisBlockBuilder` and `OpaqueBlock` as `Block` from Griffin.
 - Import `self` and `RuntimeApi` from our runtime (necessary if the runtime name changed).
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L4-L5
+
 - Within `new_partial`:
-    - Define `genesis_block_builder` from `GriffinGenesisBlockBuilder`.
     - Define a new backend using `sc_service::new_db_backend`.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L51
+
+    - Define `genesis_block_builder` from `GriffinGenesisBlockBuilder`.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L52-L57
+
     - Modify the creation of the initial parts of the node to use our custom genesis block builder.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L59-L67
+
     - Delete `offchain_worker` definition, as Griffin’s executive module doesn’t implement it.
+
+Within `new_full`:    
     - Define `chain_spec` and its new way of parsing the json.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L168-L170
+
     - Define `zero_time` for the ledger.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L171-L173
+
     - Sleep until reaching zero time for the genesis of the chain.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L204-L212
 
 In [rpc](../node/src/rpc.rs):
 
 - Import `CardanoRpc` and `CardanoRpcApiServer` from Cardano RPC within Griffin RPC.
 - Import `TransparentUtxoSetRpc` and `TransparentUtxoSetRpcApiServer` from RPC within Griffin RPC.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L8-L9
+
 - Add TransparentUtxoSetApi dependency to `create_full` function.
-- Add the new RPC modules in the `create_full` function:
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L41-L43
+
+- Add the new RPC modules in the `create_full` function.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L46-L50
+
 
 ## Troubleshooting
 
