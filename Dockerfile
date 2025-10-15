@@ -1,44 +1,54 @@
-FROM docker.io/paritytech/ci-unified:latest AS builder
+# Build stage
+FROM rust:1.90-bullseye AS builder
 
-WORKDIR /polkadot
-COPY . /polkadot
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    clang \
+    curl \
+    libssl-dev \
+    llvm \
+    libudev-dev \
+    protobuf-compiler \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN cargo fetch
-RUN cargo build --workspace --locked --release
+# Configure Rust toolchain
+RUN rustup default 1.90 && \
+    rustup update && \
+    rustup target add wasm32v1-none --toolchain 1.90 && \
+    rustup component add rust-src --toolchain 1.90
 
-RUN mv /polkadot/target/release/wbuild/minimal-template-runtime/minimal_template_runtime.wasm /polkadot/
-RUN mv /polkadot/target/release/minimal-template-node /polkadot/
-RUN rm -rf /polkadot/target/
+# Create and set working directory
+WORKDIR /reference-impl
 
-FROM docker.io/paritytech/ci-unified:latest AS chain_spec_builder
+# Copy only necessary project files
+COPY Cargo.toml Cargo.lock ./
+COPY node/ node/
+COPY runtime/ runtime/
+COPY griffin-core/ griffin-core/
+COPY griffin-rpc/ griffin-rpc/
+COPY demo/ demo/
+COPY wallet/ wallet/
 
-WORKDIR /polkadot
+# Build the node
+RUN cargo build --release -p griffin-partner-chains-node
+RUN cargo build --release -p griffin-wallet
 
-COPY --from=builder  /polkadot .
-RUN cargo fetch
-RUN cargo install staging-chain-spec-builder
+# Final stage
+FROM debian:bullseye-slim
 
-RUN /usr/local/cargo/bin/chain-spec-builder create --relay-chain "dev" --para-id 1000 --runtime minimal_template_runtime.wasm named-preset development
+# Install runtime dependencies and curl
+RUN apt-get update && \
+apt-get install -y \
+curl \
+--no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
-FROM docker.io/parity/base-bin:latest
+COPY --from=builder /reference-impl/target/release/griffin-partner-chains-node /usr/local/bin
+COPY --from=builder /reference-impl/target/release/griffin-wallet /usr/local/bin
+COPY docker/genesis.json .
+COPY docker/examples/ /examples
 
-COPY --from=builder /polkadot/minimal-template-node /usr/local/bin
-COPY --from=builder /polkadot/dev_chain_spec.json /polkadot/
-COPY --from=chain_spec_builder /polkadot/chain_spec.json /polkadot/
-
-USER root
-RUN useradd -m -u 1001 -U -s /bin/sh -d /polkadot polkadot && \
-	mkdir -p /data /polkadot/.local/share && \
-	chown -R polkadot:polkadot /data && \
-	ln -s /data /polkadot/.local/share/polkadot && \
-# unclutter and minimize the attack surface
-	rm -rf /usr/bin /usr/sbin && \
-# check if executable works in this container
-	/usr/local/bin/minimal-template-node --version
-
-USER polkadot
-
-EXPOSE 30333 9933 9944 9615
-VOLUME ["/data"]
-
-ENTRYPOINT ["/usr/local/bin/minimal-template-node"]
+# Create directory for chain data
+RUN mkdir -p /data

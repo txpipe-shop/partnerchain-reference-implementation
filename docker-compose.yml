@@ -1,0 +1,51 @@
+name: gpc
+services:
+  node-1:
+    build: .
+    ports:
+      - "30333:30333"
+      - "9944:9944"
+    command: >
+      griffin-partner-chains-node
+      --base-path /data/node-1
+      --chain genesis.json
+      --alice
+      --port 30333
+      --rpc-port 9944
+      --node-key 0000000000000000000000000000000000000000000000000000000000000001
+      --validator
+      --rpc-methods unsafe
+      --rpc-cors all
+    healthcheck:
+      test: ["CMD", "curl", "-H", "Content-Type: application/json", "-d", '{"id":1, "jsonrpc":"2.0", "method": "system_health"}', "http://localhost:9944"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
+
+  node-2:
+    build: .
+    ports:
+      - "30334:30334"
+      - "9945:9945"
+    depends_on:
+      node-1:
+        condition: service_healthy
+    command: >
+      griffin-partner-chains-node
+      --base-path /data/node-2
+      --chain genesis.json
+      --bob
+      --port 30334
+      --rpc-port 9945
+      --node-key 0000000000000000000000000000000000000000000000000000000000000002
+      --validator
+      --rpc-methods unsafe
+      --rpc-cors all
+      --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
+    healthcheck:
+      test: ["CMD", "curl", "-H", "Content-Type: application/json", "-d", '{"id":1, "jsonrpc":"2.0", "method": "system_health"}', "http://localhost:9945"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
