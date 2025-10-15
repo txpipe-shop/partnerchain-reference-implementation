@@ -47,3 +47,26 @@ To run use:
 target/release/griffin-partner-chains-node --dev --alice
 ```
 With this command you can start a local development chain that will use predefined account Alice's keys, which are set in the runtime genesis as the authority keys.
+
+#### Build and run with docker
+
+🐳 Build the docker image which builds the `griffin-partner-chains-node` and `griffin-wallet` packages:
+
+```sh
+docker compose build
+```
+Then run using:
+
+```sh
+docker compose up -d
+```
+(-d hides Docker logs, it is more convenient to use other tools, like `lazydocker`, to visualize these logs)
+
+This creates two containers that each run a node. Both containers have the `griffin-wallet` binary available.
+
+##### Interacting with the nodes
+
+You can interact with the nodes through the wallet command using `docker exec`. This command takes as arguments the container name and the command to run, here is an example:
+```sh
+docker exec gpc-node-1-1 griffin-wallet -e http://localhost:9944 show-all-outputs
+```
