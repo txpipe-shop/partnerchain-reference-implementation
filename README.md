@@ -8,7 +8,11 @@ This repository will contain a reference implementation of a Substrate partnerch
 
 - [Getting Started](#getting-started)
 
-- [Starting a local chain](#starting-a-local-chain)
+- [Starting a chain](#starting-a-local-chain)
+
+  - [Local chain](#build-your-artifacts)
+
+  - [Start a chain with docker](#build-and-run-with-docker)
 
 ## Documentation
 
@@ -35,6 +39,8 @@ $ rustup component add rust-src --toolchain stable-x86_64-unknown-linux-gnu
 
 ## Starting a local Chain
 
+### Build your artifacts
+
 You can build all of the artifacts like the node and the wallet:
 
 ```sh
@@ -48,25 +54,33 @@ target/release/griffin-partner-chains-node --dev --alice
 ```
 With this command you can start a local development chain that will use predefined account Alice's keys, which are set in the runtime genesis as the authority keys.
 
-#### Build and run with docker
+### Interacting with the node
 
-🐳 Build the docker image which builds the `griffin-partner-chains-node` and `griffin-wallet` packages:
+You can follow the instructions at [wallet](/wallet/README.md) to interact with the node using the Griffin wallet.
+
+### Build and run with docker
+
+:whale: Build the docker images that hold the node and wallet binaries compiled from the source code:
 
 ```sh
-docker compose build
+docker compose build 
 ```
 Then run using:
 
 ```sh
 docker compose up -d
 ```
-(-d hides Docker logs, it is more convenient to use other tools, like `lazydocker`, to visualize these logs)
 
-This creates two containers that each run a node. Both containers have the `griffin-wallet` binary available.
+This command initiates two containers that each run a validator node, using Alice and Bob predefined accounts. 
+The docker utilizes a different `genesis` that sets these two accounts as authorities, because of this the resulting UTxOs change and so do the examples. In the [docker](/docker/) folder you can find the genesis that is used and the modified examples for testing. The examples are present in the docker containers.
 
-##### Interacting with the nodes
 
-You can interact with the nodes through the wallet command using `docker exec`. This command takes as arguments the container name and the command to run, here is an example:
+### Interacting with the nodes through Docker
+
+Similarly to the local chain, you can use Griffin wallet to interact with the node using `docker-exec`:
+
 ```sh
-docker exec gpc-node-1-1 griffin-wallet -e http://localhost:9944 show-all-outputs
+docker exec gpc-node-1-1 griffin-wallet -e http://localhost:9944 show-all-outputs 
 ```
+
+Make sure that the endpoint you are connecting to matches the node's being run in the container.
