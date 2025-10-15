@@ -10,8 +10,6 @@ This repository will contain a reference implementation of a Substrate partnerch
 
 - [Starting a local chain](#starting-a-local-chain)
 
-  - [Minimal Template Node](#minimal-template-node)
-
 ## Documentation
 
 In the [docs](./docs/) folder you can find important information such as the [contribution guidelines](./docs/CONTRIBUTING.md) and the procedure for [releases](./docs/release_procedure.md). You can also find a document briefly explaining the [project structure](./docs/project_structure.md).
@@ -48,5 +46,4 @@ To run use:
 ```sh
 target/release/griffin-partner-chains-node --dev --alice
 ```
-With this command you can start a local development chain that will use predfined account Alice's keys, which are set in the runtime genesis as the authority keys.  
-
+With this command you can start a local development chain that will use predefined account Alice's keys, which are set in the runtime genesis as the authority keys.

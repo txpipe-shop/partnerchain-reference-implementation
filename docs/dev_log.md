@@ -40,7 +40,7 @@ The node, also known as the client, is the core component responsible for execut
 
 ### :eagle: Include Griffin and Grandpa
 
-As part of the Substrate customizations that can be done, we can modify the ledger model and the storage structure. This is where [Griffin](github.com/txpipe/griffin) comes in. Griffin is a Substrate-based clone of a Cardano node. It incorporates a simplified eUTxO ledger and hosts a virtual machine capable of executing Plutus scripts for app-logic. This setup provides the essential primitives and logic required for our appchain nodes.
+As part of the Substrate customizations that can be done, we can modify the ledger model and the storage structure. This is where [Griffin](https://github.com/txpipe/griffin) comes in. Griffin is a Substrate-based clone of a Cardano node. It incorporates a simplified eUTxO ledger and hosts a virtual machine capable of executing Plutus scripts for app-logic. This setup provides the essential primitives and logic required for our appchain nodes.
 
 Another modification to the minimal template is the choice of a consensus mechanism. For this example, we have chosen GRANDPA for the finality protocol. Block finality is obtained through consecutive rounds of voting by validator nodes.
 
@@ -79,13 +79,13 @@ Transactions don't pay fees. Staking, governance and delegation fields are inclu
 #### Wallet
 
 Griffin provides a CLI wallet to interact with the node. This wallet has helpful commands:
-`show-all-outputs`: Displays every UTxO in the chain with brief details about the owner, the coins and value.
-`show-outputs-at`: Displays UTxOs owned by the provided address.
-`show-outputs-with-asset`: Displays UTxOs that contain a certain token in its value.
-`insert-key`: Inserts a key into the wallets keystore.
-`generate-key`: Creates a new key and inserts it into the keystore. Also displays the details.
-`show-balance`: summarizes Value amounts for each address.
-`build-tx`: Transaction builder command, which takes as input a complete Griffin transaction in json. This transaction must be balanced manually. 
+- `show-all-outputs`: Displays every UTxO in the chain with brief details about the owner, the coins and value.
+- `show-outputs-at`: Displays UTxOs owned by the provided address.
+- `show-outputs-with-asset`: Displays UTxOs that contain a certain token in its value.
+- `insert-key`: Inserts a key into the wallet's keystore.
+- `generate-key`: Creates a new key and inserts it into the keystore. Also displays the details.
+- `show-balance`: summarizes Value amounts for each address.
+- `build-tx`: Transaction builder command, which takes as input a complete Griffin transaction in json. This transaction must be balanced manually.
 
 More information can be found in the wallet [readme] and also there are some usage examples in the [examples folder].
 
@@ -117,7 +117,7 @@ Add dependencies to the Cargo.toml:
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/Cargo.toml#L11-L13
 
 
-Add a new [genesis](../../runtime/src/) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
+Add a new [genesis](../runtime/src/genesis.rs) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/genesis.rs#L57-L67
 
@@ -253,7 +253,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
     - Delete `offchain_worker` definition, as Griffin’s executive module doesn’t implement it.
 
-Within `new_full`:    
+- Within `new_full`:    
     - Define `chain_spec` and its new way of parsing the json.
 
     https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L168-L170
@@ -298,4 +298,3 @@ happen commonly when using std crates in a non-std environment, like Substrate's
 ### `Alloc` feature
 
 When trying to use `alloc` features like `vec`, you might run into the trouble that the compiler can't find the `alloc` crate. This feature can be imported from various dependencies like `serde` and `serde_json`. To use it make sure to add `extern crate alloc;` at the top of your file.
-
