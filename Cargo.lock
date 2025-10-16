@@ -3019,7 +3019,7 @@ dependencies = [
 
 [[package]]
 name = "griffin-partner-chains-node"
-version = "0.2.0"
+version = "0.0.2"
 dependencies = [
  "clap",
  "docify",
@@ -3053,7 +3053,7 @@ dependencies = [
 
 [[package]]
 name = "griffin-partner-chains-runtime"
-version = "0.2.0"
+version = "0.0.2"
 dependencies = [
  "demo-authorities",
  "griffin-core",
