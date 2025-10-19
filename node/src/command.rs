@@ -1,6 +1,6 @@
 use crate::{
     chain_spec,
-    cli::{Cli, Subcommand},
+    cli::{Cli, Subcommand, WizardBindings},
     service,
 };
 use sc_cli::SubstrateCli;
@@ -50,6 +50,17 @@ pub fn run() -> sc_cli::Result<()> {
 
     match &cli.subcommand {
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),
+        Some(Subcommand::PartnerChains(cmd)) => {
+            partner_chains_node_commands::run::<
+                // _,
+                griffin_core::types::OpaqueBlock,
+                // _,
+                // _,
+                // BlockProducerMetadataType,
+                WizardBindings,
+                // AccountId32,
+            >(cmd.clone())
+        }
         #[allow(deprecated)]
         Some(Subcommand::BuildSpec(cmd)) => {
             let runner = cli.create_runner(cmd)?;

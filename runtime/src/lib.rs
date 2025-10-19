@@ -43,6 +43,7 @@ use sp_version::{runtime_version, RuntimeVersion};
 /// to even the core data structures.
 pub mod opaque {
     use super::*;
+    use authority_selection_inherents::MaybeFromCandidateKeys;
     use sp_core::{ed25519, sr25519};
 
     // This part is necessary for generating session keys in the runtime
@@ -120,6 +121,8 @@ pub mod opaque {
             }
         }
     }
+
+    impl MaybeFromCandidateKeys for SessionKeys {}
 
     impl_opaque_keys! {
         pub struct CrossChainKey {

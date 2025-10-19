@@ -41,6 +41,9 @@ sp-io = { workspace = true }
 sp-timestamp = { workspace = true }
 sp-runtime = { workspace = true }
 
+partner-chains-node-commands = { workspace = true }
+partner-chains-cli = { workspace = true }
+
 [build-dependencies]
 substrate-build-script-utils = { workspace = true, default-features = true }
 

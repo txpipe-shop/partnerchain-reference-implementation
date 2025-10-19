@@ -3548,6 +3548,8 @@ dependencies = [
  "griffin-partner-chains-runtime",
  "griffin-rpc",
  "jsonrpsee",
+ "partner-chains-cli",
+ "partner-chains-node-commands",
  "sc-basic-authorship",
  "sc-cli",
  "sc-client-api",
@@ -3574,6 +3576,7 @@ dependencies = [
 name = "griffin-partner-chains-runtime"
 version = "0.0.2"
 dependencies = [
+ "authority-selection-inherents",
  "demo-authorities",
  "griffin-core",
  "parity-scale-codec",
