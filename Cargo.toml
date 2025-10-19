@@ -15,7 +15,14 @@ members = [
     "node",
     "runtime",
     "wallet",
+    "toolkit/committee-selection/authority-selection-inherents",
+    "toolkit/committee-selection/primitives",
+    "toolkit/committee-selection/query",
+    "toolkit/committee-selection/selection",
     "toolkit/sidechain/domain",
+    "toolkit/sidechain/primitives",
+    "toolkit/sidechain/sidechain-block-search",
+    "toolkit/sidechain/sidechain-slots",
     "toolkit/utils/byte-string-derivation",
 	"toolkit/utils/plutus",
 	"toolkit/utils/plutus/plutus-datum-derive",
@@ -178,10 +185,13 @@ uplc = { version = "1.1.6" }
 
 raw-scripts = { git = "https://github.com/input-output-hk/partner-chains-smart-contracts.git", tag = "v7.2.2" }
 
-# Local dependencies
+# Local partner chain's dependencies
 
 # sidechain
+sidechain-block-search = { path = "toolkit/sidechain/sidechain-block-search", default-features = false }
 sidechain-domain = { path = "toolkit/sidechain/domain", default-features = false }
+sidechain-slots = { path = "toolkit/sidechain/sidechain-slots", default-features = false }
+sp-sidechain = { path = "toolkit/sidechain/primitives", default-features = false }
 
 # utils
 db-sync-sqlx = { path = "toolkit/utils/db-sync-sqlx" }
@@ -190,6 +200,12 @@ ogmios-client = { path = "toolkit/utils/ogmios-client", default-features = false
 plutus = { path = "toolkit/utils/plutus", default-features = false }
 plutus-datum-derive = { default-features = false, path = "toolkit/utils/plutus/plutus-datum-derive" }
 time-source = { path = "toolkit/utils/time-source" }
+
+# committee selection
+authority-selection-inherents = { path = "toolkit/committee-selection/authority-selection-inherents", default-features = false }
+selection = { path = "toolkit/committee-selection/selection", default-features = false }
+sp-session-validator-management = { path = "toolkit/committee-selection/primitives", default-features = false }
+sp-session-validator-management-query = { path = "toolkit/committee-selection/query", default-features = false }
 
 [profile.release]
 opt-level = 3
