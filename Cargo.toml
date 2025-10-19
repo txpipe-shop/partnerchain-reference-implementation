@@ -15,18 +15,24 @@ members = [
     "node",
     "runtime",
     "wallet",
+    "toolkit/partner-chains-cli",
+    "toolkit/cli/commands",
+    "toolkit/cli/node-commands",
     "toolkit/committee-selection/authority-selection-inherents",
     "toolkit/committee-selection/primitives",
     "toolkit/committee-selection/query",
     "toolkit/committee-selection/selection",
+    "toolkit/smart-contracts/commands",
+    "toolkit/smart-contracts/offchain",
+    "toolkit/smart-contracts/plutus-data",
     "toolkit/sidechain/domain",
     "toolkit/sidechain/primitives",
     "toolkit/sidechain/sidechain-block-search",
     "toolkit/sidechain/sidechain-slots",
     "toolkit/utils/byte-string-derivation",
+	"toolkit/utils/ogmios-client",
 	"toolkit/utils/plutus",
 	"toolkit/utils/plutus/plutus-datum-derive",
-	"toolkit/utils/ogmios-client",
 	"toolkit/utils/time-source",
 ]
 resolver = "2"
@@ -182,16 +188,34 @@ time = { version = "0.3.36", default-features = false }
 tokio = { version = "1.46", features = ["rt-multi-thread", "macros"] }
 tokio-retry = { version = "0.3" }
 uplc = { version = "1.1.6" }
+once_cell = { version = "1.21.3", default-features = false }
+assert_cmd = "2.0.14"
 
-raw-scripts = { git = "https://github.com/input-output-hk/partner-chains-smart-contracts.git", tag = "v7.2.2" }
+raw-scripts = { git = "https://github.com/input-output-hk/partner-chains-smart-contracts.git", tag = "v8.1.0" }
 
 # Local partner chain's dependencies
+
+# cli
+partner-chains-cli = { path = "toolkit/partner-chains-cli", default-features = false }
+cli-commands = { path = "toolkit/cli/commands" }
+partner-chains-node-commands = { path = "toolkit/cli/node-commands" }
+
+# committee selection
+authority-selection-inherents = { path = "toolkit/committee-selection/authority-selection-inherents", default-features = false }
+selection = { path = "toolkit/committee-selection/selection", default-features = false }
+sp-session-validator-management = { path = "toolkit/committee-selection/primitives", default-features = false }
+sp-session-validator-management-query = { path = "toolkit/committee-selection/query", default-features = false }
 
 # sidechain
 sidechain-block-search = { path = "toolkit/sidechain/sidechain-block-search", default-features = false }
 sidechain-domain = { path = "toolkit/sidechain/domain", default-features = false }
 sidechain-slots = { path = "toolkit/sidechain/sidechain-slots", default-features = false }
 sp-sidechain = { path = "toolkit/sidechain/primitives", default-features = false }
+
+# smart contracts
+partner-chains-smart-contracts-commands = { default-features = false, path = "toolkit/smart-contracts/commands"}
+partner-chains-cardano-offchain = { default-features = false, path = "toolkit/smart-contracts/offchain"}
+partner-chains-plutus-data = { default-features = false, path = "toolkit/smart-contracts/plutus-data"}
 
 # utils
 db-sync-sqlx = { path = "toolkit/utils/db-sync-sqlx" }
@@ -201,11 +225,6 @@ plutus = { path = "toolkit/utils/plutus", default-features = false }
 plutus-datum-derive = { default-features = false, path = "toolkit/utils/plutus/plutus-datum-derive" }
 time-source = { path = "toolkit/utils/time-source" }
 
-# committee selection
-authority-selection-inherents = { path = "toolkit/committee-selection/authority-selection-inherents", default-features = false }
-selection = { path = "toolkit/committee-selection/selection", default-features = false }
-sp-session-validator-management = { path = "toolkit/committee-selection/primitives", default-features = false }
-sp-session-validator-management-query = { path = "toolkit/committee-selection/query", default-features = false }
 
 [profile.release]
 opt-level = 3
