@@ -5,6 +5,8 @@ use crate::runtime_bindings::PartnerChainRuntime;
 use crate::{config::config_fields, CmdRun};
 use anyhow::anyhow;
 use authority_selection_inherents::MaybeFromCandidateKeys;
+use griffin_core::genesis::config_builder::GenesisConfig;
+use partner_chains_plutus_data::permissioned_candidates::permissioned_candidates_to_plutus_data;
 use sidechain_domain::{AssetName, MainchainAddress, PolicyId, UtxoId};
 use sp_runtime::DeserializeOwned;
 use std::marker::PhantomData;
@@ -21,12 +23,32 @@ pub struct CreateChainSpecCmd<T: PartnerChainRuntime> {
 impl<T: PartnerChainRuntime> CmdRun for CreateChainSpecCmd<T> {
     fn run<C: IOContext>(&self, context: &C) -> anyhow::Result<()> {
         let config = CreateChainSpecConfig::load(context)?;
-        context.print("This wizard will create a chain spec JSON file according to the provided configuration, using WASM runtime code from the compiled node binary.");
+        context.print("This wizard will create a genesis.json to use as chain spec, using the candidates found in the the provided configuration");
+        context.print(
+                "If the chain includes registered candidates, you need to obtain their keys and add them to the permissioned candidates list in the configuration as well, to set up the genesis accordingly. You need to have all the candidate's keys before moving on, or else they won't be able to participate in the chain.",
+            );
         Self::print_config(context, &config);
         if context.prompt_yes_no("Do you want to continue?", true) {
-            let content = T::create_chain_spec(&config);
-            context.write_file("chain-spec.json", &serde_json::to_string_pretty(&content)?);
-            context.print("chain-spec.json file has been created.");
+            let initial_permissioned_candidates_data: &Vec<
+                sidechain_domain::PermissionedCandidateData,
+            > = &config
+                .initial_permissioned_candidates_parsed
+                .iter()
+                .map(From::from)
+                .collect::<Vec<sidechain_domain::PermissionedCandidateData>>();
+            let encoded_authorities =
+                permissioned_candidates_to_plutus_data(initial_permissioned_candidates_data)
+                    .to_hex();
+            let mut genesis: GenesisConfig = serde_json::from_str(GENESIS_DEFAULT_JSON)?;
+            genesis.outputs[0].datum = Some(encoded_authorities);
+            context.write_file(
+                "new-genesis.json",
+                serde_json::to_string_pretty(&genesis)?.as_str(),
+            );
+            context.print("genesis.json file has been created.");
+            context.print(format!("Committee candidates will be found at {}, with the corresponding Authorities token", genesis.outputs[0].address).as_str());
+            context
+                .print("The rest of the UTxOs can be modified to have the genesis set you need.");
             context.print(
                 "If you are the governance authority, you can distribute it to the validators.",
             );
@@ -42,62 +64,11 @@ impl<T: PartnerChainRuntime> CreateChainSpecCmd<T> {
     fn print_config<C: IOContext>(context: &C, config: &CreateChainSpecConfig<T::Keys>) {
         context.print("Chain parameters:");
         context.print(format!("- Genesis UTXO: {}", config.genesis_utxo).as_str());
-        context.print("SessionValidatorManagement Main Chain Configuration:");
-        context.print(
-            format!(
-                "- committee_candidate_address: {}",
-                config.committee_candidate_address
-            )
-            .as_str(),
-        );
-        context.print(
-            format!(
-                "- d_parameter_policy_id: {}",
-                config.d_parameter_policy_id.to_hex_string()
-            )
-            .as_str(),
-        );
-        context.print(
-            format!(
-                "- permissioned_candidates_policy_id: {}",
-                config.permissioned_candidates_policy_id.to_hex_string()
-            )
-            .as_str(),
-        );
-        context.print("Bridge Configuration (unused if empty):");
-        context.print(&format!(
-            "- asset name: {}",
-            config.bridge_token_asset_name.to_hex_string()
-        ));
-        context.print(&format!(
-            "- asset policy ID: {}",
-            config.bridge_token_policy.to_hex_string()
-        ));
-        context.print(&format!(
-            "- illiquid circulation supply validator address: {}",
-            config.illiquid_circulation_supply_validator_address
-        ));
-        context.print("Governed Map Configuration:");
-        context.print(&format!(
-            "- validator address: {}",
-            config
-                .governed_map_validator_address
-                .clone()
-                .unwrap_or_default()
-        ));
-        context.print(&format!(
-            "- asset policy ID: {}",
-            config
-                .governed_map_asset_policy_id
-                .clone()
-                .unwrap_or_default()
-                .to_hex_string()
-        ));
         use colored::Colorize;
         if config.initial_permissioned_candidates_parsed.is_empty() {
-            context.print("WARNING: The list of initial permissioned candidates is empty. Generated chain spec will not allow the chain to start.".red().to_string().as_str());
+            context.print("WARNING: The list of candidates is empty. Generated chain spec will not allow the chain to start.".red().to_string().as_str());
             let update_msg = format!(
-				"Update 'initial_permissioned_candidates' field of {} file with keys of initial committee.",
+				"Update 'initial_permissioned_candidates' field of {} file with keys of the committee.",
 				context
 					.config_file_path(config_fields::INITIAL_PERMISSIONED_CANDIDATES.config_file)
 			);
@@ -109,7 +80,7 @@ impl<T: PartnerChainRuntime> CreateChainSpecCmd<T> {
                     .as_str(),
             );
         } else {
-            context.print("Initial permissioned candidates:");
+            context.print("Candidates:");
             for candidate in config.initial_permissioned_candidates_raw.iter() {
                 context.print(format!("- {}", candidate).as_str());
             }
@@ -214,3 +185,45 @@ pub const INITIAL_PERMISSIONED_CANDIDATES_EXAMPLE: &str = r#"Example of 'initial
 		}
 	}
 ]"#;
+
+pub const GENESIS_DEFAULT_JSON: &str = r#"
+{
+    "zero_time": 1747081100000,
+    "zero_slot": 0,
+    "outputs": [
+        {
+            "address": "0000000000000000000000000000000000000000000000000000000000",
+            "coin": 314150000,
+            "value": [
+                    {
+                        "policy": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005",
+                        "assets": [ ["Authorities", 300000000]]
+                    }
+                    ],
+            "datum": ""
+        },
+        {
+            "address": "6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4",
+            "coin": 314000000,
+            "value": [
+                    {
+                        "policy": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005",
+                        "assets": [ ["tokenA", 271000000], ["tokenB", 1123581321] ]
+                    }
+                    ],
+            "datum": "820080"
+        },
+        {
+            "address": "61547932e40a24e2b7deb41f31af21ed57acd125f4ed8a72b626b3d7f6",
+            "coin": 314150000,
+            "value": [
+                    {
+                        "policy": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005",
+                        "assets": [ ["tokenA", 300000000], ["tokenB", 2000000000] ]
+                    }
+                    ],
+            "datum": "820080"
+        }
+    ]
+}
+"#;

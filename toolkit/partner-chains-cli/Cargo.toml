@@ -41,6 +41,8 @@ ed25519-zebra = { workspace = true }
 sp-session-validator-management = { workspace = true, features = ["std"] }
 sidechain-slots = { workspace = true }
 authority-selection-inherents = { workspace = true, features = ["std"] }
+griffin-core = { workspace = true }
+partner-chains-plutus-data = { workspace = true }
 
 [dev-dependencies]
 frame-system = { workspace = true }

@@ -19,6 +19,9 @@ impl PartnerChainRuntime for WizardBindings {
         vec![AURA, GRANDPA]
     }
 
+    // This function is required by the PartnerChainsRuntime trait
+    // Leaving it empty won't work as it parses for the ChainSpec structure whichever it might be
+    // We give an implementation using the default genesis
     fn create_chain_spec(
         _config: &partner_chains_cli::CreateChainSpecConfig<SessionKeys>,
     ) -> serde_json::Value {
