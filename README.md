@@ -84,3 +84,11 @@ docker exec gpc-node-1-1 griffin-wallet -e http://localhost:9944 show-all-output
 ```
 
 Make sure that the endpoint you are connecting to matches the node's being run in the container.
+
+## Devnet with Docker
+
+To set up a partner-chain node, we need to have local instances of several services, namely: Ogmios, Db-sync, PostgreSQL and a Cardano node. For testing purposes we include a docker configuration that sets up this stack with a custom configuration for the Cardano node. This means that with the docker we can have a node of a local testnet available ready for setting up the partner-chain.
+
+The stack can be found in [dev/local-environment](./dev/local-environment/). Here we have configuration files for the testnet and keys to setup partner chain nodes. We include the docker compose file that sets up the stack, but you can also run `bash setup.sh` to configure things like the PostgreSQL password, the ports for the services, and the memory and CPU limits for the services. 
+
+
