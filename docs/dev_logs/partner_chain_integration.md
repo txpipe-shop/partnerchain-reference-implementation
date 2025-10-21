@@ -220,7 +220,7 @@ Let’s get started with the modifications:
 
     1. Add dependencies to the node:
 
-            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/node/Cargo.toml#L44-L45
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/node/Cargo.toml#L44-L45
 
     2. In cli:
 
