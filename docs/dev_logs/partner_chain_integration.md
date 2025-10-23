@@ -10,32 +10,32 @@ Let’s get started with the modifications:
 
 1. Add `sidechain-domain` and `utils` from Partner-chains SDK `toolkit`. Add as workspace members and as workspace dependencies. Add additional dependencies.
 
-    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/Cargo.toml#L211
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L211
 
-    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/Cargo.toml#L220-L226
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L220-L226
 
-    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/Cargo.toml#L28-L37
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L28-L37
 
 2. Add crosschain Key implementation to runtime:
     1. Add deps to Cargo.toml
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/runtime/Cargo.toml#L31-L33
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L31-L33
 
     2. Import KeyTypeId from sp_core
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/runtime/src/lib.rs#L25
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L25
 
     3. Implement CrossChain App in Opaque module.
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/runtime/src/lib.rs#L80-L123
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L80-L123
 
 3. Add `authoritiy_selection_inherents`, `primitives`, `query`, `selection` from `CommitteeSelection`. Add `primitives`, `block-search` and `slots` from `sidechain`.
 
-    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/Cargo.toml#L203-L213
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L203-L213
 
 4. Add `partner-chains-cli`.
 
-    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/Cargo.toml#L198-L199
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L198-L199
 
     Here we modified some things, namely the removal of references to pallets.
 
@@ -156,7 +156,7 @@ Let’s get started with the modifications:
 
 5. Add `offchain`, `commands` and `plutus-data` from `smart-contracts`.
 
-    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/Cargo.toml#L215-L218
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L215-L218
 
     Here we also needed to remove some things for some functionalities that we won’t support. There are many changes to the original SDK here so if you’re following our pallet-less approach it might be more convenient to just copy from our source code, but the modifications are detailed below anyways:
 
@@ -168,7 +168,7 @@ Let’s get started with the modifications:
 
 6. Add `node-commands` and `commands` from `cli`.
 
-    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/Cargo.toml#L200-L201
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L200-L201
 
     Again some modules were removed as they don’t fit our implementation.
 
@@ -220,56 +220,56 @@ Let’s get started with the modifications:
 
     1. Add dependencies to the node:
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/node/Cargo.toml#L44-L45
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/Cargo.toml#L44-L45
 
     2. In cli:
 
         1. Imports
 
-            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/node/src/cli.rs#L1-L3
+            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/cli.rs#L1-L3
 
         2. Define PartnerChainRuntime’s WizardBindings:
 
-            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/node/src/cli.rs#L12-L13
+            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/cli.rs#L12-L13
 
         3. Add PartnerChains command
 
-            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/node/src/cli.rs#L101-L109
+            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/cli.rs#L101-L109
 
     3. In command:
 
         1. In run function add parsing and implementation for PartnerChain command.
 
-            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/node/src/command.rs#L47-L63
+            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/command.rs#L47-L63
         
 8. Add From SessionKeys for MaybeAuthorities
 
     1. Add authority-selection-inherents dependency on runtime.
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/runtime/Cargo.toml#L34
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L34
 
         add also as STD Feature:
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/runtime/Cargo.toml#L39-L42
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L39-L42
 
     2. Add MaybeFromCandidateKeys for SessionKeys in opaque.
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/runtime/src/lib.rs#L124-L126
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L124-L126
 
 9. Create-chain-spec: The command was modified to generate the genesis.json file that we need for Griffin. 
     1. Imports in Cargo.toml:
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/toolkit/partner-chains-cli/Cargo.toml#L44-L45
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/toolkit/partner-chains-cli/Cargo.toml#L44-L45
 
     2. In create_chain_spec/mod:
         1. Add imports
 
-            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L8-L9
+            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L8-L9
 
         2. Modify main function.
         3. Add constant default genesis to build from.
 
-            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/c4bf41c11ab089a7b27a4cc0f82511d84dfc731d/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L189-L229
+            https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L189-L229
 
 
 
