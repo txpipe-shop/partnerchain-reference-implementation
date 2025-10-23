@@ -4,6 +4,7 @@ description = "Demo implementation for authorities setup using the UTxO model."
 version = "0.1.0"
 repository.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
