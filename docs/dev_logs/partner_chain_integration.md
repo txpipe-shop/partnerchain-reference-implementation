@@ -19,7 +19,7 @@ Let’s get started with the modifications:
 2. Add crosschain Key implementation to runtime:
     1. Add deps to Cargo.toml
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L31-L33
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L32-L34
 
     2. Import KeyTypeId from sp_core
 
@@ -220,7 +220,7 @@ Let’s get started with the modifications:
 
     1. Add dependencies to the node:
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/Cargo.toml#L44-L45
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/Cargo.toml#L45-L46
 
     2. In cli:
 
@@ -246,11 +246,11 @@ Let’s get started with the modifications:
 
     1. Add authority-selection-inherents dependency on runtime.
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L34
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L35
 
         add also as STD Feature:
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L39-L42
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L40-L43
 
     2. Add MaybeFromCandidateKeys for SessionKeys in opaque.
 
