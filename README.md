@@ -14,11 +14,13 @@ This repository will contain a reference implementation of a Substrate partnerch
 
   - [Start a chain with docker](#build-and-run-with-docker)
 
+- [Setting up a partner chain](#setting-up-a-partner-chain)
+
 ## Documentation
 
 In the [docs](./docs/) folder you can find important information such as the [contribution guidelines](./docs/CONTRIBUTING.md) and the procedure for [releases](./docs/release_procedure.md). You can also find a document briefly explaining the [project structure](./docs/project_structure.md).
 
-Here you can also find the [dev activity log](./docs/dev_log.md), a document that thoroughly explains the project and each step taken to modify the original template. This document includes installation and running instructions, explanations on every component and a detailed walk through on each modification to the original node template.
+Here you can also find the [dev activity logs](./docs/dev_logs/). The [initial_customizations](./docs/dev_logs/initial_customizations.md) document thoroughly explains the project and each step taken to modify the original template. It includes installation and running instructions, explanations on every component and a detailed walk through on each modification to the original node template. The [partner_chain_integration](./docs/dev_logs/partner_chain_integration.md) document explains the modifications made to include the partner-chain features, modifications on the partner-chain features themselves, and a step-by-step guide on how to use the commands to set up the governance UTxOs on the Cardano side, using a local development testnet. 
 
 ## Getting Started
 
@@ -85,10 +87,12 @@ docker exec gpc-node-1-1 griffin-wallet -e http://localhost:9944 show-all-output
 
 Make sure that the endpoint you are connecting to matches the node's being run in the container.
 
+## Setting up a Partner Chain
+
+The project includes the `partner-chains-cli` from IOG's [Partner Chain SDK](https://github.com/input-output-hk/partner-chains). This `CLI` allows us to set up governance UTxOs on the Cardano side for the partner chain. An extensive explanation on the integration and usage of the CLI can be found at the previously mentioned [partner_chain_integration](./docs/dev_logs/partner_chain_integration.md) document.
+
 ## Devnet with Docker
 
 To set up a partner-chain node, we need to have local instances of several services, namely: Ogmios, Db-sync, PostgreSQL and a Cardano node. For testing purposes we include a docker configuration that sets up this stack with a custom configuration for the Cardano node. This means that with the docker we can have a node of a local testnet available ready for setting up the partner-chain.
 
 The stack can be found in [dev/local-environment](./dev/local-environment/). Here we have configuration files for the testnet and keys to setup partner chain nodes. We include the docker compose file that sets up the stack, but you can also run `bash setup.sh` to configure things like the PostgreSQL password, the ports for the services, and the memory and CPU limits for the services. 
-
-
