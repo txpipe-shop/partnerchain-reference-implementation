@@ -16,18 +16,22 @@ Let’s get started with the modifications:
 
     https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/Cargo.toml#L28-L37
 
-2. Add crosschain Key implementation to runtime:
-    1. Add deps to Cargo.toml
+2. Add `CrossChainKey` implementation to runtime:
+    1. Add deps to `Cargo.toml`.
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L32-L34
 
-    2. Import KeyTypeId from sp_core
+    2. Import `KeyTypeId` from `sp_core`.
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L25
 
-    3. Implement CrossChain App in Opaque module.
+    3. Implement `cross_chain_app` in `opaque` module.
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L80-L123
+
+    4. Define `CrossChainKey` within `impl_opaque_keys` macro.
+
+        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L127-L131
 
 3. Add `authoritiy_selection_inherents`, `primitives`, `query`, `selection` from `CommitteeSelection`. Add `primitives`, `block-search` and `slots` from `sidechain`.
 
@@ -39,7 +43,7 @@ Let’s get started with the modifications:
 
     Here we modified some things, namely the removal of references to pallets.
 
-    1. In Cargo.toml: remove pallets as dependencies.
+    1. In `Cargo.toml`: remove pallets as dependencies.
 
         ```rust
         # pallet-session-validator-management = { workspace = true, features = ["std"] }
@@ -51,7 +55,7 @@ Let’s get started with the modifications:
         # sp-governed-map = { workspace = true, features = ["std"] }
         ```
 
-    2. In create_chain_spec, remove the following lines:
+    2. In `create_chain_spec`, remove the following lines:
 
         ```rust
         use sp_core::ecdsa;
@@ -177,91 +181,91 @@ Let’s get started with the modifications:
         1. Remove imports
 
             1. `authority-selection-inherent` import
-            2. `address_association_signatures` and `block_producer_metadata_signatures` from cli-commands
-            3. Decode encode
-            4. sc_service::task manager
-            5. use sp_api::ProvideRuntimeApi;
-            6. use sp_blockchain::HeaderBackend;
-            7. use sp_runtime::AccountId32;
-            8. use sp_runtime::DeserializeOwned;
-            9. use sp_runtime::Serialize;
-            10. use sp_session_validator_management::CommitteeMember as CommitteeMemberT;
-            11. use sp_session_validator_management::SessionValidatorManagementApi;
-            12. use sp_session_validator_management_query::SessionValidatorManagementQuery;
-            13. use sp_session_validator_management_query::commands::*;
-            14. use sp_sidechain::{GetGenesisUtxo, GetSidechainStatus};
-            15. use std::sync::Arc;
-            16. Future
-            17. SubstrateCli from sc_cli;
+            2. `address_association_signatures` and `block_producer_metadata_signatures` from `cli-commands`
+            3. `Decode, Encode`
+            4. `sc_service::task_manager;`
+            5. `use sp_api::ProvideRuntimeApi;`
+            6. `use sp_blockchain::HeaderBackend;`
+            7. `use sp_runtime::AccountId32;`
+            8. `use sp_runtime::DeserializeOwned;`
+            9. `use sp_runtime::Serialize;`
+            10. `use sp_session_validator_management::CommitteeMember as CommitteeMemberT;`
+            11. `use sp_session_validator_management::SessionValidatorManagementApi;`
+            12. `use sp_session_validator_management_query::SessionValidatorManagementQuery;`
+            13. `use sp_session_validator_management_query::commands::*;`
+            14. `use sp_sidechain::{GetGenesisUtxo, GetSidechainStatus};`
+            15. `use std::sync::Arc;`
+            16. `Future`
+            17. `SubstrateCli` from `sc_cli`
 
-        2. In PartnerChains SubCommand remove the following:
+        2. In `SubCommand::PartnerChains` remove the following:
 
-            1. PartnerChainsAddress type parameter
-            2. SidechainParams
-            3. RegistrationStatus
-            4. AriadneParameters
-            5. SignAddressAssociation
-            6. SignBlockProducerMetadata
+            1. `PartnerChainsAddress` type parameter
+            2. `SidechainParams`
+            3. `RegistrationStatus`
+            4. `AriadneParameters`
+            5. `SignAddressAssociation`
+            6. `SignBlockProducerMetadata`
 
-        3. Remove REGISTRATION_STATUS_AFTER_HELP.
+        3. Remove `REGISTRATION_STATUS_AFTER_HELP`.
 
-        4. In run:
+        4. In `run`:
 
-            1. Remove Cli, CommitteeMember, Client, BlockProducerMetadata,PartnerchainAddress type parameters, and its respective constraints on the function.
+            1. Remove `Cli`, `CommitteeMember`, `Client`, `BlockProducerMetadata`, `PartnerchainAddress` type parameters, and its respective constraints on the function.
             2. Remove `cli` and `get_deps` function parameters.
-            3. Remove `SidechainParams`, `RegistrationStatus`, `AriadneParameters`, `SignAddressAssociation` and `SignBlockProducerMetadata` command
-            4. Remove `print_Result` (optional but it will cause an _unused_ warning)
+            3. Remove `SidechainParams`, `RegistrationStatus`, `AriadneParameters`, `SignAddressAssociation` and `SignBlockProducerMetadata` command.
+            4. Remove `print_Result` (optional but it will cause an _unused_ warning).
 
     2. `commands`:
 
         1. `address_association_signatures`, `get_genesis_utxo` and `block_producer_metadata_signatures` mod inclusions and their respective files.
 
-7. Add partner-chains command to the node.
+7. Add `partner-chains` command to the node.
 
     1. Add dependencies to the node:
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/Cargo.toml#L45-L46
 
-    2. In cli:
+    2. In `cli`:
 
         1. Imports
 
             https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/cli.rs#L1-L3
 
-        2. Define PartnerChainRuntime’s WizardBindings:
+        2. Define `PartnerChainRuntime`’s `WizardBindings`:
 
             https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/cli.rs#L12-L13
 
-        3. Add PartnerChains command
+        3. Add `PartnerChains` command.
 
             https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/cli.rs#L101-L109
 
-    3. In command:
+    3. In `command`:
 
-        1. In run function add parsing and implementation for PartnerChain command.
+        1. In run function add parsing and implementation for `PartnerChain` command.
 
             https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/command.rs#L47-L63
         
-8. Add From SessionKeys for MaybeAuthorities
+8. Add `From SessionKeys` for `MaybeAuthorities`.
 
-    1. Add authority-selection-inherents dependency on runtime.
+    1. Add `authority-selection-inherents` dependency on runtime.
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L35
 
-        add also as STD Feature:
+        add also as `std` feature:
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L40-L43
 
-    2. Add MaybeFromCandidateKeys for SessionKeys in opaque.
+    2. Add `MaybeFromCandidateKeys` for `SessionKeys` in `opaque`.
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L124-L126
 
-9. Create-chain-spec: The command was modified to generate the genesis.json file that we need for Griffin. 
-    1. Imports in Cargo.toml:
+9. `create-chain-spec`: The command was modified to generate the `genesis.json` file that we need for Griffin.
+    1. Imports in `Cargo.toml`:
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/toolkit/partner-chains-cli/Cargo.toml#L44-L45
 
-    2. In create_chain_spec/mod:
+    2. In `create_chain_spec/mod`:
         1. Add imports
 
             https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L8-L9
@@ -306,7 +310,7 @@ This command creates three keys: a partner-chain key, a grandpa key and an aura 
 
 _This command requires Ogmios so make sure to have that service on before running it._
 
-This wizard sets up the initial governance UTxO and also fills the pc-chain-config.json file.
+This wizard sets up the initial governance UTxO and also fills the `pc-chain-config.json` file.
 Once you start the wizard:
 
 ```bash
@@ -317,9 +321,9 @@ It will prompt you to fill out some information:
 1. Update the bootnodes and provide the public IP or host name for your node.
 2. Provide the information to connect to the Ogmios instance.
 3. Provide the required keys and select a UTxO that will be used to initialize the chain.
-4. Provide and confirm initial multisig governance authorities. This can be skipped and confirmed later using other commands, but we    won’t document this approach.
+4. Provide and confirm initial multisig governance authorities. This can be skipped and confirmed later using other commands, but we won’t document this approach.
 5. Configure native token. Native tokens aren’t supported, so anything set here won’t have any impact on the sidechain.
-6. Store the main chain configuration, this is, the pc-chain-config.json.
+6. Store the main chain configuration, this is, the `pc-chain-config.json`.
 
 After the wizard finishes, you need to include the permissioned candidates on the `initial_permissioned_candidates` field of the aforementioned file. Here you may include the keys that were generated in the previous step, for example. But you might also need to gather the keys of the other permissioned candidates of the chain. Once the file has been adequately modified, you may move on to the next step.
 
@@ -339,7 +343,7 @@ After this is finished, the DParam will be set on the mainchain.
 
 #### Create-chain-spec
 
-This command is different from the original Partner Chain’s one, as we’ve modified it to build the chain specification that we need for Griffin. The functionality is similar in that it reads the pc-chain-config file to obtain the chain information and builds the chain specification, which in our case is the set of genesis UTxOs. Before running this step we need to have the registered candidates’ keys as well, and they need to be added to the permissioned candidate field on the configuration file.
+This command is different from the original Partner Chain’s one, as we’ve modified it to build the chain specification that we need for Griffin. The functionality is similar in that it reads the `pc-chain-config.json` file to obtain the chain information and builds the chain specification, which in our case is the set of genesis UTxOs. Before running this step we need to have the registered candidates’ keys as well, and they need to be added to the permissioned candidate field on the configuration file.
 
 ```bash
 ./griffin-partner-chains-node wizards create-chain-spec
@@ -350,7 +354,7 @@ After reading the candidates list from the configuration, it will prompt you to 
 
 ### Example with Devnet
 
-Before starting testing on Cardano, you might find it useful to follow these previous steps connecting with a local devnet, using test keys. The stack comes with both Substrate and Main chain keys for 5 nodes, but in this example we will be using only 3 of them. 
+Before starting testing on Cardano, you might find it useful to follow these previous steps connecting with a local devnet, using test keys. The stack comes with both Substrate and Main chain keys for 5 nodes, but in this example we will be using only 3 of them.
 For this walkthrough we will be using Docker to set up a stack of utilities needed for the setup. We need to have a functioning instance of a Cardano node, connected to DB-sync and PostgreSQL instances, along with an Ogmios instance.
 
 To initialize the stack, you need to navigate to the `dev/local-environment`.
@@ -360,7 +364,7 @@ cd dev/local-environment/
 Here we can do `docker compose up -d`; this might take some time the first time you run it. After it finishes pulling the images and starting the services, it will take a bit to correctly initialize every service. 
 Once every service is initialized, we can start configuring the chain.
 
-We will be starting 3 nodes. The first one will correspond to the chain builder, and the other two will be other permissioned candidates. 
+We will be starting 3 nodes. The first one will correspond to the chain builder, and the other two will be other permissioned candidates.
 
 #### Setup
 
@@ -393,13 +397,13 @@ As the other nodes will be permissioned they won’t need to sign any transactio
 
 #### 1. Generate-keys
 
-Run the generate-keys command within each node’s sub folder:
+Run the `generate-keys` command within each node’s sub folder:
 ```bash
 cd node1/
 ./griffin-partner-chains-node wizards generate-keys
 ```
 
-Then make sure to appropriately point to the node directory as base path (./):
+Then make sure to appropriately point to the node directory as base path (`./`):
 
 ```console
 This 🧙 wizard will generate the following keys and save them to your node's keystore:
@@ -426,13 +430,13 @@ After repeating this step for each node, we will have the set of keys needed for
 
 #### 2. Prepare configuration
 
-This step must be run within our chain builder’s node folder, in this case node1.
+This step must be run within our chain builder’s node folder, in this case `node1`.
 We also need to have Ogmios available so if you haven’t initialized the stack yet, it’s time to do so with `docker compose up -d` on the `dev/local-environment` folder.
 Once Ogmios is ready to receive connections we can run the wizard:
 ```bash
 ./griffin-partner-chains-node wizards prepare-configuration
 ```
-First we configure the bootnode and its access point. Make sure to select this directory as the node base path (./).
+First we configure the bootnode and its access point. Make sure to select this directory as the node base path (`./`).
 
 ```console
 This 🧙 wizard will:
@@ -717,7 +721,7 @@ If you wish to scrub the previous chain, you can use the `purge-chain` command:
 ```bash
 ./griffin-partner-chains-node purge-chain -d .
 ```
-This command removes the database stored at chains/local_testnet located in the current directory.
+This command removes the database stored at `chains/local_testnet` located in the current directory.
 
 ```console
 ./griffin-partner-chains-node purge-chain -d . 
