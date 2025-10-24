@@ -4,7 +4,7 @@
 
 The first step of the process is to include the relevant code  modifications.
 
-The Substrate node uses IOG’s Partner Chain SDK to connect with Cardano. This SDK provides a lot of utilities for the node but most of them are implemented using the account model, so we decided on not using those features. We exclusively use the `partner-chains-cli` which is meant for the creation of the partner chain, the initial set up of candidates, and the registration of candidates. Moreover, we’ve modified some parts to better adjust to our needs.
+The Substrate node uses IOG’s Partner Chain SDK to connect with Cardano. This SDK provides a wide variety of utilities for the node. We are not using all of the functionalities provided (many of them are oriented to the account-model), but the part of them that is both important for the partner chains creation/usage and generic in the ledger model: the `partner-chains-cli` module, along with the `cli`, which are meant for the creation of the partner chain, the initial set up of candidates, and the registration of candidates. Moreover, we’ve modified some parts to better adjust to our needs.
 
 Let’s get started with the modifications:
 
