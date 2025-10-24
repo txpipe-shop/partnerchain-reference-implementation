@@ -246,7 +246,7 @@ Let’s get started with the modifications:
 
             https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/node/src/command.rs#L47-L63
         
-8. Add `From SessionKeys` for `MaybeAuthorities`.
+8. Add `MaybeFromCandidateKeys` trait implementation for `SessionKeys`.
 
     1. Add `authority-selection-inherents` dependency on runtime.
 
@@ -256,7 +256,7 @@ Let’s get started with the modifications:
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/Cargo.toml#L40-L43
 
-    2. Add `MaybeFromCandidateKeys` for `SessionKeys` in `opaque`.
+    2. Implement trait in `opaque`.
 
         https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L124-L126
 
