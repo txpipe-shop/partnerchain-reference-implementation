@@ -1,0 +1,10 @@
+[package]
+name = "game"
+version = "0.1.0"
+repository.workspace = true
+edition.workspace = true
+
+[dependencies]
+griffin-core = { workspace = true }
+hex ={ workspace = true }
+sp-core = { workspace = true }
