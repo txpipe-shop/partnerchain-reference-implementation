@@ -34,6 +34,8 @@ mod tests {
 
     #[test]
     fn test_gather_fuel() {
+        use griffin_core::pallas_primitives::conway::BoundedBytes;
+
         let ship_script = PlutusScript(hex::decode(SHIP_SCRIPT_HEX).unwrap());
         let pellet_script = PlutusScript(hex::decode(PELLET_SCRIPT_HEX).unwrap());
 
@@ -89,21 +91,46 @@ mod tests {
             },
         ];
 
-        let pellet_datum_hex =
-            "d8799f2703581c7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4ff";
-        let ship_datum_hex = "d8799f27034553484950304650494c4f54301b000001906ffb2b50ff";
+        let pellet_datum = PallasPlutusData::from(
+            PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(-8)))),
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(3)))),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(ship_policy.0.to_vec())),
+                    ].to_vec(),
+                ),
+            })
+        );
+        let ship_datum = PallasPlutusData::from(
+            PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(-8)))),
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(3)))),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(ship_name.0.clone().into())),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(pilot_name.0.clone().into())),
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(1696059091))))
+                    ].to_vec(),
+                ),
+            })
+        );
         let resolved_inputs = vec![
             Output {
                 address: pellet_address.clone(),
                 value: Value::from((314, fuel_policy, fuel_name.clone(), 50))
                     + Value::from((admin_policy, admin_name.clone(), 1)),
-                datum_option: Some(Datum(hex::decode(pellet_datum_hex).unwrap())),
+                datum_option: Some(Datum(PlutusData::from(pellet_datum.clone()).0)),
             },
             Output {
                 address: ship_address.clone(),
                 value: Value::from((2000, ship_policy, ship_name.clone(), 1))
                     + Value::from((fuel_policy, fuel_name.clone(), 25)),
-                datum_option: Some(Datum(hex::decode(ship_datum_hex).unwrap())),
+                datum_option: Some(Datum(PlutusData::from(ship_datum.clone()).0)),
             },
             Output {
                 address: wallet_address.clone(),
@@ -117,13 +144,13 @@ mod tests {
                 address: pellet_address.clone(),
                 value: Value::from((314, fuel_policy, fuel_name.clone(), 30))
                     + Value::from((1, admin_policy, admin_name, 1)),
-                datum_option: Some(Datum(hex::decode(pellet_datum_hex).unwrap())),
+                datum_option: Some(Datum(PlutusData::from(pellet_datum.clone()).0)),
             },
             Output {
                 address: ship_address.clone(),
                 value: Value::from((2000, ship_policy, ship_name, 1))
                     + Value::from((fuel_policy, fuel_name.clone(), 45)),
-                datum_option: Some(Datum(hex::decode(ship_datum_hex).unwrap())),
+                datum_option: Some(Datum(PlutusData::from(ship_datum.clone()).0)),
             },
         ];
 
