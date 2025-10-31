@@ -21,6 +21,10 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
                     {
                         "policy": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005",
                         "assets": [ ["tokenA", 271000000], ["tokenB", 1123581321] ]
+                    },
+                    {
+                        "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
+                        "assets": [ ["PILOT0", 1] ]
                     }
                     ],
             "datum": "820080"
