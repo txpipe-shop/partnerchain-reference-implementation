@@ -705,6 +705,228 @@ mod tests {
         .unwrap();
         assert_eq!(redeemers.len(), 2);
     }
+
+    #[test]
+    fn test_create_ship() {
+        use super::*;
+        use core::str::FromStr;
+        use griffin_core::checks_interface::conway_minted_tx_from_cbor;
+        use griffin_core::h224::H224;
+        use griffin_core::pallas_codec::minicbor;
+        use griffin_core::pallas_codec::utils::{
+            Int,
+            MaybeIndefArray::{Indef},
+        };
+        use griffin_core::pallas_crypto::hash::Hash;
+        use griffin_core::pallas_primitives::conway::{
+            BigInt, BoundedBytes, Constr, MintedTx as ConwayMintedTx,
+            PlutusData as PallasPlutusData, TransactionInput, TransactionOutput,
+        };
+        use griffin_core::types::{
+            compute_plutus_v2_script_hash, Address, AssetName, Multiasset, Output,
+            PlutusData, PlutusScript, Redeemer, RedeemerTag, Value,
+        };
+        use griffin_core::uplc::tx::{
+            eval_phase_two, ResolvedInput,
+        };
+
+
+        // PARSE SCRIPTS
+        let spacetime_script = PlutusScript(hex::decode(SHIP_SCRIPT_HEX).unwrap());
+        let spacetime_hash = compute_plutus_v2_script_hash(spacetime_script.clone());
+        let asteria_script = PlutusScript(hex::decode(ASTERIA_SCRIPT_HEX).unwrap());
+        let asteria_hash = compute_plutus_v2_script_hash(asteria_script.clone());
+        let pellet_script = PlutusScript(hex::decode(PELLET_SCRIPT_HEX).unwrap());
+        let pellet_policy = compute_plutus_v2_script_hash(pellet_script.clone());
+        let admin_policy = H224::from(
+            Hash::from_str("516238dd0a79bac4bebe041c44bad8bf880d74720733d2fc0d255d28").unwrap(),
+        );
+
+        // Asset Names
+        let admin_name = AssetName::from("asteriaAdmin".to_string());
+        let ship_name = AssetName::from("SHIP1".to_string());
+        let pilot_name = AssetName::from("PILOT1".to_string());
+        let fuel_name = AssetName::from("FUEL".to_string());
+
+        // BURNS
+        let mint = Some(
+            Multiasset::from((spacetime_hash, ship_name.clone(), 1)) +
+            Multiasset::from((spacetime_hash, pilot_name.clone(), 1)) +
+            Multiasset::from((pellet_policy, fuel_name.clone(), 30,))
+        );
+
+        // BUILD REDEEMERS
+        let asteria_redeemer = Redeemer {
+            tag: RedeemerTag::Spend,
+            index: 0,
+            data: PlutusData::from(
+                PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [].to_vec(),
+                ),
+            })
+            ),
+        };
+        let ship_mint_redeemer = Redeemer {
+            tag: RedeemerTag::Mint,
+            index: 0,
+            data: PlutusData::from(
+                PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [].to_vec(),
+                ),
+            })
+            ),
+        };
+        let pellet_mint_redeemer = Redeemer {
+            tag: RedeemerTag::Mint,
+            index: 1,
+            data: PlutusData::from(
+                PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [].to_vec(),
+                ),
+            })
+            ),
+        };
+
+        // BUILD DATUMS
+        let asteria_input_datum = PallasPlutusData::from(
+                PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(1)))),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(spacetime_hash.0.to_vec()))
+                    ].to_vec(),
+                ),
+            })
+        );
+
+        let asteria_output_datum = PallasPlutusData::from(
+                PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(2)))),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(spacetime_hash.0.to_vec()))
+                    ].to_vec(),
+                ),
+            })
+        );
+
+        let ship_datum = PallasPlutusData::from(
+                PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(4)))),
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(6)))),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(ship_name.0.clone().into())),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(pilot_name.0.clone().into())),
+                        PallasPlutusData::BigInt(BigInt::BigUInt(BoundedBytes(1747081220000_u64.to_be_bytes().to_vec())))
+                    ].to_vec(),
+                ),
+            })
+        );
+
+        // BUILD INPUTS
+        let asteria_input_tx_id = "1db6b873171ab706a18dd970e4518a06772cc4a0c8b96beeb4062b8e8974ab4c";
+        let asteria_input_index = 0;
+        let asteria_input = make_input(asteria_input_tx_id, asteria_input_index);
+
+        let inputs = vec![asteria_input];
+        let resolved_inputs = vec![
+            Output {
+                address: Address(
+                    hex::decode("70".to_owned() + &hex::encode(asteria_hash)).unwrap(),
+                ),
+                value: Value::Coin(500000000) + Value::from((1, admin_policy, admin_name.clone(), 1)),
+                datum_option: Some(Datum(PlutusData::from(asteria_input_datum.clone()).0)),
+            },
+        ];
+
+        let pallas_inputs = inputs
+            .iter()
+            .map(|i| TransactionInput::from(i.clone()))
+            .collect::<Vec<_>>();
+        let pallas_resolved_inputs = resolved_inputs
+            .iter()
+            .map(|ri| TransactionOutput::from(ri.clone()))
+            .collect::<Vec<_>>();
+
+        let mut transaction = Transaction::from((Vec::new(), Vec::new()));
+        for input in inputs {
+            transaction.transaction_body.inputs.push(input.clone());
+        }
+
+        let outputs = vec![
+            Output {
+                address: Address(
+                    hex::decode("70".to_owned() + &hex::encode(asteria_hash)).unwrap(),
+                ),
+                value: Value::Coin(503000000) + Value::from((1, admin_policy, admin_name.clone(), 1)),
+                datum_option: Some(Datum(PlutusData::from(asteria_output_datum.clone()).0)),
+            },
+            Output {
+                address: Address(
+                    hex::decode("70".to_owned() + &hex::encode(spacetime_hash)).unwrap(),
+                ),
+                value: Value::Coin(314150000) + 
+                    Value::from((1, spacetime_hash, ship_name.clone(), 1)) +
+                    Value::from((1, pellet_policy, fuel_name.clone(), 30)),
+                datum_option: Some(Datum(PlutusData::from(ship_datum.clone()).0)),
+            },
+        ];
+
+        for output in outputs {
+            transaction.transaction_body.outputs.push(output.clone());
+        }
+
+        transaction.transaction_body.mint = mint;
+        transaction.transaction_body.validity_interval_start = Some(0);
+        transaction.transaction_body.ttl = Some(40);
+        transaction.transaction_witness_set.redeemer = Some(vec![
+            asteria_redeemer, ship_mint_redeemer, pellet_mint_redeemer
+        ]);
+        transaction.transaction_witness_set.plutus_script = Some(vec![
+            asteria_script, spacetime_script, pellet_script
+        ]);
+
+        let pallas_tx: BabbageTx = <_>::from(transaction.clone());
+        let cbor_bytes: Vec<u8> = babbage_tx_to_cbor(&pallas_tx);
+        let mtx: ConwayMintedTx = conway_minted_tx_from_cbor(&cbor_bytes);
+
+        let input_utxos: Vec<ResolvedInput> = pallas_inputs
+            .iter()
+            .zip(pallas_resolved_inputs.iter())
+            .map(|(input, output)| ResolvedInput {
+                input: input.clone(),
+                output: output.clone(),
+            })
+            .collect();
+
+        let redeemers = eval_phase_two(
+            &mtx,
+            &input_utxos,
+            None,
+            None,
+            &SLOT_CONFIG,
+            false,
+            |_| (),
+        )
+        .unwrap();
+        assert_eq!(redeemers.len(), 3);
+    }
 }
 
 const SLOT_CONFIG: SlotConfig = SlotConfig {
