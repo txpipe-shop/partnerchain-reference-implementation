@@ -119,6 +119,7 @@ the Git tag for release `polkadot-stable2506-2` (click to see the rather long di
 
 <details>
 	<summary>
+
 ``` diff
  docify = { version = "0.2.9" }
  futures = { version = "0.3.31" }
@@ -131,6 +132,7 @@ the Git tag for release `polkadot-stable2506-2` (click to see the rather long di
 +sc-basic-authorship = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
 ```
 	</summary>
+
 ``` diff
 # ... continued ...
 +sc-cli = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
