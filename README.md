@@ -14,6 +14,8 @@ This repository will contain a reference implementation of a Substrate partnerch
 
   - [Start a chain with docker](#build-and-run-with-docker)
 
+- [Use-case: Asteria game]()
+
 - [Setting up a partner chain](#setting-up-a-partner-chain)
 
 ## Documentation
@@ -86,6 +88,11 @@ docker exec gpc-node-1-1 griffin-wallet -e http://localhost:9944 show-all-output
 ```
 
 Make sure that the endpoint you are connecting to matches the node's being run in the container.
+
+## Use-case: Asteria game
+
+As the result of the discovery process, after surveying many developers, it was decided that the use case for the partnerchain reference implementation would be a game. We chose the game Asteria which consists of ships moving across a board to find the Asteria prize and collect a portion of it.
+In this repository we include the [on-chain code](./game/onchain/), which comes with a [design document](./game/onchain/docs/design/design.md) that thoroughly explains the transactions involved in the game.
 
 ## Setting up a Partner Chain
 
