@@ -118,7 +118,7 @@ we pick and choose what we need from the Polkadot-SDK and set each as their own 
 the Git tag for release `polkadot-stable2506-2` (click to see the rather long diff):
 
 <details>
-	<summary>
+  <summary>
 
 ``` diff
  docify = { version = "0.2.9" }
@@ -131,7 +131,7 @@ the Git tag for release `polkadot-stable2506-2` (click to see the rather long di
 +polkadot-sdk-frame = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
 +sc-basic-authorship = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
 ```
-	</summary>
+  </summary>
 
 ``` diff
 # ... continued ...
