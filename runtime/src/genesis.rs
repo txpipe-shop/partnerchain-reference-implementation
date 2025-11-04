@@ -24,7 +24,7 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
                     },
                     {
                         "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                        "assets": [ ["PILOT0", 1] ]
+                        "assets": [ ["PILOT0", 1], ["PILOT1", 1] ]
                     }
                     ],
             "datum": "820080"
@@ -50,10 +50,10 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
                     },
                     {
                         "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                        "assets": [ ["SHIP0", 1] ]
+                        "assets": [ ["SHIP1", 1] ]
                     }
                     ],
-            "datum": "D8799F00004553484950304650494C4F54301B00000196C625FAE0FF"
+            "datum": "D8799F00004553484950314650494C4F54311B00000196C625FAE0FF"
         },
         {
             "address": "706a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
