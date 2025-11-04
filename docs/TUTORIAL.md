@@ -295,7 +295,783 @@ and for the runtime:
 
 #### Runtime sources
 
+Setting up UTxO logic on top of a Polkadot/Substrate node requires extensive changes to the
+runtime. We will highlight below some of the steps involved.
+
+##### Genesis
+
+Add a new [genesis](../runtime/src/genesis.rs) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/genesis.rs#L57-L67
+
+##### Runtime library
+
+Edit the [runtime library](../../runtime/src/lib.rs) as indicated:
+
+- Import Griffin types for  `Address`, `AssetName`, `Datum`, `Input` and `PolicyId`. These types will be used to implement the runtime apis necessary for Griffin RPC. 
+- Import `TransparentUTxOSet` from Griffin.
+- Import `MILLI_SECS_PER_SLOT` from Griffin, which will be used to define the slot duration of the chain.
+- Import `GenesisConfig` from Griffin's config builder.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L14-L18
+
+- Import Authorities from `demo`, which holds custom `aura_authorities` and `grandpa_authorities` implementations.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L34
+
+- Define `SessionKeys` struct within `impl_opaque_keys` macro, with fields for `Aura` and `Grandpa` public keys.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L44-L75
+
+- Remove `genesis_config_presets` mod definitions, since we are using our custom genesis.
+- Define `Transaction`, `Block`, `Executive` and `Output` using the imported types from Griffin.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L99-L102
+
+- Declare `Runtime` struct without FRAME pallets.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L105-L106
+
+- Remove all FRAME trait implementations for Runtime.
+
+##### `impl_runtime_apis` macro
+
+Runtime APIs are traits that are implemented in the runtime and provide both a runtime-side implementation and a client-side API for the node to interact with. To utilize Griffin we provide new implementations for the required traits.
+
+- Core: use Griffin’s `Executive::execute_block` and `Executive::open_block` in `execute_block` and `initialize_block` methods implementations.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L124-L136
+- Metadata: use trivial implementation.
+
+- BlockBuilder: call Griffin’s `Executive::apply_extrinsic` and `Executive::close_block` in `apply_extrinsic` and `finalize_block` methods, and provide trivial implementations of `inherent_extrinsics` and `check_inherents` methods.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L152-L163
+
+- TaggedTransactionQueue: use Griffin’s `Executive::validate_transaction`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L173-L181
+
+- SessionKeys: use the `generate` and `decode_into_raw_public_keys` methods of our defined `SessionKeys` type in `generate_session_keys` and `decode_session_keys` methods implementations.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L183-L193
+
+- GenesisBuilder: use Griffin’s `GriffinGenesisConfigBuilder::build` and `get_genesis_config` functions to implement `build_state` and `get_preset` methods. Give trivial implementation of `preset_names`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L232-L249
+
+- Include `sp_consensus_aura::AuraApi<Block, AuraId> `. Use custom `aura_authorities` implementation for `authorities` method. Use `SlotDuration::from_millis` from `sp_consensus_aura` with previously imported MILLI_SECS_PER_SLOT to define `slot_duration`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L195-L203
+
+- Include `sp_consensus_grandpa::GrandpaApi<Block>`. Use custom `grandpa_authorities` implementation for the homonymous function from the api. Give a trivial implementation for `current_set_id`, `submit_report_equivocation_unsigned_extrinsic` and `generate_key_ownership_proof`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L205-L222
+
+- Include `griffin_core::utxo_set::TransparentUtxoSetApi<Block>`. Use `peek_utxo`, `peek_utxo_from_address` and `peek_utxo_with_asset` from `TransparentUtxoSet` to implement `peek_utxo`, `peek_utxo_by_address` and `peek_utxo_with_asset` from the api, respectively.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L109-L121
+
+- Remove `OffchainWorkerApi`, `AccountNonceApi` and `TransactionPaymentApi` trait implementations.
+
+The complete diff can be seen below
+
+<details>
+  <summary>
+
+``` diff
+--- a/runtime/src/lib.rs
++++ b/runtime/src/lib.rs
+@@ -25,325 +8,243 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
+ 
+ extern crate alloc;
+ 
+-use alloc::vec::Vec;
+-use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
+-use polkadot_sdk::{
+-	polkadot_sdk_frame::{
+-		self as frame,
+-		deps::sp_genesis_builder,
+-		runtime::{apis, prelude::*},
+-	},
+-	*,
++pub mod genesis;
++
++use alloc::{string::ToString, vec, vec::Vec};
++use griffin_core::genesis::config_builder::GenesisConfig;
++use griffin_core::types::{Address, AssetName, Input, PolicyId};
++use griffin_core::utxo_set::TransparentUtxoSet;
++use griffin_core::MILLI_SECS_PER_SLOT;
++pub use opaque::SessionKeys;
+```
+  </summary>
+
+``` diff
+--- a/runtime/src/lib.rs
++++ b/runtime/src/lib.rs
+@@ -1,21 +1,4 @@
+-// This file is part of Substrate.
+-
+-// Copyright (C) Parity Technologies (UK) Ltd.
+-// SPDX-License-Identifier: Apache-2.0
+-
+-// Licensed under the Apache License, Version 2.0 (the "License");
+-// you may not use this file except in compliance with the License.
+-// You may obtain a copy of the License at
+-//
+-// 	http://www.apache.org/licenses/LICENSE-2.0
+-//
+-// Unless required by applicable law or agreed to in writing, software
+-// distributed under the License is distributed on an "AS IS" BASIS,
+-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-// See the License for the specific language governing permissions and
+-// limitations under the License.
+-
+-//! A minimal runtime that includes the template [`pallet`](`pallet_minimal_template`).
++//! The runtime contains the core logic of the ledger run by the Griffin node.
+ 
+ #![cfg_attr(not(feature = "std"), no_std)]
+ 
+@@ -25,325 +8,243 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
+ 
+ extern crate alloc;
+ 
+-use alloc::vec::Vec;
+-use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
+-use polkadot_sdk::{
+-	polkadot_sdk_frame::{
+-		self as frame,
+-		deps::sp_genesis_builder,
+-		runtime::{apis, prelude::*},
+-	},
+-	*,
++pub mod genesis;
++
++use alloc::{string::ToString, vec, vec::Vec};
++use griffin_core::genesis::config_builder::GenesisConfig;
++use griffin_core::types::{Address, AssetName, Input, PolicyId};
++use griffin_core::utxo_set::TransparentUtxoSet;
++use griffin_core::MILLI_SECS_PER_SLOT;
++pub use opaque::SessionKeys;
++
++use parity_scale_codec::{Decode, Encode};
++use polkadot_sdk_frame::runtime::apis;
++use scale_info::TypeInfo;
++use sp_api::impl_runtime_apis;
++use sp_consensus_aura::sr25519::AuthorityId as AuraId;
++use sp_core::OpaqueMetadata;
++use sp_inherents::InherentData;
++use sp_runtime::{
++    impl_opaque_keys,
++    traits::Block as BlockT,
++    transaction_validity::{TransactionSource, TransactionValidity},
++    ApplyExtrinsicResult, BoundToRuntimeAppPublic,
+ };
+ 
+-/// Provides getters for genesis configuration presets.
+-pub mod genesis_config_presets {
+-	use super::*;
+-	use crate::{
+-		interface::{Balance, MinimumBalance},
+-		sp_keyring::Sr25519Keyring,
+-		BalancesConfig, RuntimeGenesisConfig, SudoConfig,
+-	};
+-
+-	use alloc::{vec, vec::Vec};
+-	use serde_json::Value;
+-
+-	/// Returns a development genesis config preset.
+-	pub fn development_config_genesis() -> Value {
+-		let endowment = <MinimumBalance as Get<Balance>>::get().max(1) * 1000;
+-		frame_support::build_struct_json_patch!(RuntimeGenesisConfig {
+-			balances: BalancesConfig {
+-				balances: Sr25519Keyring::iter()
+-					.map(|a| (a.to_account_id(), endowment))
+-					.collect::<Vec<_>>(),
+-			},
+-			sudo: SudoConfig { key: Some(Sr25519Keyring::Alice.to_account_id()) },
+-		})
+-	}
+-
+-	/// Get the set of the available genesis config presets.
+-	pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
+-		let patch = match id.as_ref() {
+-			sp_genesis_builder::DEV_RUNTIME_PRESET => development_config_genesis(),
+-			_ => return None,
+-		};
+-		Some(
+-			serde_json::to_string(&patch)
+-				.expect("serialization to json is expected to work. qed.")
+-				.into_bytes(),
+-		)
+-	}
+-
+-	/// List of supported presets.
+-	pub fn preset_names() -> Vec<PresetId> {
+-		vec![PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET)]
+-	}
++use demo_authorities as Authorities;
++
++#[cfg(feature = "std")]
++use sp_version::NativeVersion;
++use sp_version::{runtime_version, RuntimeVersion};
++
++/// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
++/// the specifics of the runtime. They can then be made to be agnostic over specific formats
++/// of data like extrinsics, allowing for them to continue syncing the network through upgrades
++/// to even the core data structures.
++pub mod opaque {
++    use super::*;
++    use sp_core::{ed25519, sr25519};
++
++    // This part is necessary for generating session keys in the runtime
++    impl_opaque_keys! {
++        pub struct SessionKeys {
++            pub aura: AuraAppPublic,
++            pub grandpa: GrandpaAppPublic,
++        }
++    }
++    impl From<(sr25519::Public, ed25519::Public)> for SessionKeys {
++        fn from((aura, grandpa): (sr25519::Public, ed25519::Public)) -> Self {
++            Self {
++                aura: aura.into(),
++                grandpa: grandpa.into(),
++            }
++        }
++    }
++    // Typically these are not implemented manually, but rather for the pallet associated with the
++    // keys. Here we are not using the pallets, and these implementations are trivial, so we just
++    // re-write them.
++    pub struct AuraAppPublic;
++    impl BoundToRuntimeAppPublic for AuraAppPublic {
++        type Public = AuraId;
++    }
++
++    pub struct GrandpaAppPublic;
++    impl BoundToRuntimeAppPublic for GrandpaAppPublic {
++        type Public = sp_consensus_grandpa::AuthorityId;
++    }
+ }
+ 
+ /// The runtime version.
+ #[runtime_version]
+ pub const VERSION: RuntimeVersion = RuntimeVersion {
+-	spec_name: alloc::borrow::Cow::Borrowed("minimal-template-runtime"),
+-	impl_name: alloc::borrow::Cow::Borrowed("minimal-template-runtime"),
+-	authoring_version: 1,
+-	spec_version: 0,
+-	impl_version: 1,
+-	apis: RUNTIME_API_VERSIONS,
+-	transaction_version: 1,
+-	system_version: 1,
++    spec_name: alloc::borrow::Cow::Borrowed("griffin-solochain-runtime"),
++    impl_name: alloc::borrow::Cow::Borrowed("griffin-solochain-runtime"),
++    authoring_version: 1,
++    spec_version: 0,
++    impl_version: 1,
++    apis: RUNTIME_API_VERSIONS,
++    transaction_version: 1,
++    system_version: 1,
+ };
+ 
+ /// The version information used to identify this runtime when compiled natively.
+ #[cfg(feature = "std")]
+ pub fn native_version() -> NativeVersion {
+-	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
+-}
+-
+-/// The transaction extensions that are added to the runtime.
+-type TxExtension = (
+-	// Checks that the sender is not the zero address.
+-	frame_system::CheckNonZeroSender<Runtime>,
+-	// Checks that the runtime version is correct.
+-	frame_system::CheckSpecVersion<Runtime>,
+-	// Checks that the transaction version is correct.
+-	frame_system::CheckTxVersion<Runtime>,
+-	// Checks that the genesis hash is correct.
+-	frame_system::CheckGenesis<Runtime>,
+-	// Checks that the era is valid.
+-	frame_system::CheckEra<Runtime>,
+-	// Checks that the nonce is valid.
+-	frame_system::CheckNonce<Runtime>,
+-	// Checks that the weight is valid.
+-	frame_system::CheckWeight<Runtime>,
+-	// Ensures that the sender has enough funds to pay for the transaction
+-	// and deducts the fee from the sender's account.
+-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+-	// Reclaim the unused weight from the block using post dispatch information.
+-	// It must be last in the pipeline in order to catch the refund in previous transaction
+-	// extensions
+-	frame_system::WeightReclaim<Runtime>,
+-);
+-
+-// Composes the runtime by adding all the used pallets and deriving necessary types.
+-#[frame_construct_runtime]
+-mod runtime {
+-	/// The main runtime type.
+-	#[runtime::runtime]
+-	#[runtime::derive(
+-		RuntimeCall,
+-		RuntimeEvent,
+-		RuntimeError,
+-		RuntimeOrigin,
+-		RuntimeFreezeReason,
+-		RuntimeHoldReason,
+-		RuntimeSlashReason,
+-		RuntimeLockId,
+-		RuntimeTask,
+-		RuntimeViewFunction
+-	)]
+-	pub struct Runtime;
+-
+-	/// Mandatory system pallet that should always be included in a FRAME runtime.
+-	#[runtime::pallet_index(0)]
+-	pub type System = frame_system::Pallet<Runtime>;
+-
+-	/// Provides a way for consensus systems to set and check the onchain time.
+-	#[runtime::pallet_index(1)]
+-	pub type Timestamp = pallet_timestamp::Pallet<Runtime>;
+-
+-	/// Provides the ability to keep track of balances.
+-	#[runtime::pallet_index(2)]
+-	pub type Balances = pallet_balances::Pallet<Runtime>;
+-
+-	/// Provides a way to execute privileged functions.
+-	#[runtime::pallet_index(3)]
+-	pub type Sudo = pallet_sudo::Pallet<Runtime>;
+-
+-	/// Provides the ability to charge for extrinsic execution.
+-	#[runtime::pallet_index(4)]
+-	pub type TransactionPayment = pallet_transaction_payment::Pallet<Runtime>;
+-
+-	/// A minimal pallet template.
+-	#[runtime::pallet_index(5)]
+-	pub type Template = pallet_minimal_template::Pallet<Runtime>;
+-}
+-
+-parameter_types! {
+-	pub const Version: RuntimeVersion = VERSION;
++    NativeVersion {
++        runtime_version: VERSION,
++        can_author_with: Default::default(),
++    }
+ }
+ 
+-/// Implements the types required for the system pallet.
+-#[derive_impl(frame_system::config_preludes::SolochainDefaultConfig)]
+-impl frame_system::Config for Runtime {
+-	type Block = Block;
+-	type Version = Version;
+-	// Use the account data from the balances pallet
+-	type AccountData = pallet_balances::AccountData<<Runtime as pallet_balances::Config>::Balance>;
+-}
+-
+-// Implements the types required for the balances pallet.
+-#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig)]
+-impl pallet_balances::Config for Runtime {
+-	type AccountStore = System;
+-}
+-
+-// Implements the types required for the sudo pallet.
+-#[derive_impl(pallet_sudo::config_preludes::TestDefaultConfig)]
+-impl pallet_sudo::Config for Runtime {}
+-
+-// Implements the types required for the sudo pallet.
+-#[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
+-impl pallet_timestamp::Config for Runtime {}
+-
+-// Implements the types required for the transaction payment pallet.
+-#[derive_impl(pallet_transaction_payment::config_preludes::TestDefaultConfig)]
+-impl pallet_transaction_payment::Config for Runtime {
+-	type OnChargeTransaction = pallet_transaction_payment::FungibleAdapter<Balances, ()>;
+-	// Setting fee as independent of the weight of the extrinsic for demo purposes
+-	type WeightToFee = NoFee<<Self as pallet_balances::Config>::Balance>;
+-	// Setting fee as fixed for any length of the call data for demo purposes
+-	type LengthToFee = FixedFee<1, <Self as pallet_balances::Config>::Balance>;
+-}
++pub type Transaction = griffin_core::types::Transaction;
++pub type Block = griffin_core::types::Block;
++pub type Executive = griffin_core::Executive;
++pub type Output = griffin_core::types::Output;
+ 
+-// Implements the types required for the template pallet.
+-impl pallet_minimal_template::Config for Runtime {}
+-
+-type Block = frame::runtime::types_common::BlockOf<Runtime, TxExtension>;
+-type Header = HeaderFor<Runtime>;
+-
+-type RuntimeExecutive =
+-	Executive<Runtime, Block, frame_system::ChainContext<Runtime>, Runtime, AllPalletsWithSystem>;
++/// The main struct in this module.
++#[derive(Encode, Decode, PartialEq, Eq, Clone, TypeInfo)]
++pub struct Runtime;
+ 
+ impl_runtime_apis! {
+-	impl apis::Core<Block> for Runtime {
+-		fn version() -> RuntimeVersion {
+-			VERSION
+-		}
+-
+-		fn execute_block(block: Block) {
+-			RuntimeExecutive::execute_block(block)
+-		}
+-
+-		fn initialize_block(header: &Header) -> ExtrinsicInclusionMode {
+-			RuntimeExecutive::initialize_block(header)
+-		}
+-	}
+-	impl apis::Metadata<Block> for Runtime {
+-		fn metadata() -> OpaqueMetadata {
+-			OpaqueMetadata::new(Runtime::metadata().into())
+-		}
+-
+-		fn metadata_at_version(version: u32) -> Option<OpaqueMetadata> {
+-			Runtime::metadata_at_version(version)
+-		}
+-
+-		fn metadata_versions() -> Vec<u32> {
+-			Runtime::metadata_versions()
+-		}
+-	}
+-
+-	impl apis::BlockBuilder<Block> for Runtime {
+-		fn apply_extrinsic(extrinsic: ExtrinsicFor<Runtime>) -> ApplyExtrinsicResult {
+-			RuntimeExecutive::apply_extrinsic(extrinsic)
+-		}
+-
+-		fn finalize_block() -> HeaderFor<Runtime> {
+-			RuntimeExecutive::finalize_block()
+-		}
+-
+-		fn inherent_extrinsics(data: InherentData) -> Vec<ExtrinsicFor<Runtime>> {
+-			data.create_extrinsics()
+-		}
+-
+-		fn check_inherents(
+-			block: Block,
+-			data: InherentData,
+-		) -> CheckInherentsResult {
+-			data.check_extrinsics(&block)
+-		}
+-	}
+-
+-	impl apis::TaggedTransactionQueue<Block> for Runtime {
+-		fn validate_transaction(
+-			source: TransactionSource,
+-			tx: ExtrinsicFor<Runtime>,
+-			block_hash: <Runtime as frame_system::Config>::Hash,
+-		) -> TransactionValidity {
+-			RuntimeExecutive::validate_transaction(source, tx, block_hash)
+-		}
+-	}
+-
+-	impl apis::OffchainWorkerApi<Block> for Runtime {
+-		fn offchain_worker(header: &HeaderFor<Runtime>) {
+-			RuntimeExecutive::offchain_worker(header)
+-		}
+-	}
+-
+-	impl apis::SessionKeys<Block> for Runtime {
+-		fn generate_session_keys(_seed: Option<Vec<u8>>) -> Vec<u8> {
+-			Default::default()
+-		}
+-
+-		fn decode_session_keys(
+-			_encoded: Vec<u8>,
+-		) -> Option<Vec<(Vec<u8>, apis::KeyTypeId)>> {
+-			Default::default()
+-		}
+-	}
+-
+-	impl apis::AccountNonceApi<Block, interface::AccountId, interface::Nonce> for Runtime {
+-		fn account_nonce(account: interface::AccountId) -> interface::Nonce {
+-			System::account_nonce(account)
+-		}
+-	}
+-
+-	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
+-		Block,
+-		interface::Balance,
+-	> for Runtime {
+-		fn query_info(uxt: ExtrinsicFor<Runtime>, len: u32) -> RuntimeDispatchInfo<interface::Balance> {
+-			TransactionPayment::query_info(uxt, len)
+-		}
+-		fn query_fee_details(uxt: ExtrinsicFor<Runtime>, len: u32) -> FeeDetails<interface::Balance> {
+-			TransactionPayment::query_fee_details(uxt, len)
+-		}
+-		fn query_weight_to_fee(weight: Weight) -> interface::Balance {
+-			TransactionPayment::weight_to_fee(weight)
+-		}
+-		fn query_length_to_fee(length: u32) -> interface::Balance {
+-			TransactionPayment::length_to_fee(length)
+-		}
+-	}
+-
+-	impl apis::GenesisBuilder<Block> for Runtime {
+-		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+-			build_state::<RuntimeGenesisConfig>(config)
+-		}
+-
+-		fn get_preset(id: &Option<PresetId>) -> Option<Vec<u8>> {
+-			get_preset::<RuntimeGenesisConfig>(id, self::genesis_config_presets::get_preset)
+-		}
+-
+-		fn preset_names() -> Vec<PresetId> {
+-			self::genesis_config_presets::preset_names()
+-		}
+-	}
+-}
+-
+-/// Some re-exports that the node side code needs to know. Some are useful in this context as well.
+-///
+-/// Other types should preferably be private.
+-// TODO: this should be standardized in some way, see:
+-// https://github.com/paritytech/substrate/issues/10579#issuecomment-1600537558
+-pub mod interface {
+-	use super::Runtime;
+-	use polkadot_sdk::{polkadot_sdk_frame as frame, *};
+-
+-	pub type Block = super::Block;
+-	pub use frame::runtime::types_common::OpaqueBlock;
+-	pub type AccountId = <Runtime as frame_system::Config>::AccountId;
+-	pub type Nonce = <Runtime as frame_system::Config>::Nonce;
+-	pub type Hash = <Runtime as frame_system::Config>::Hash;
+-	pub type Balance = <Runtime as pallet_balances::Config>::Balance;
+-	pub type MinimumBalance = <Runtime as pallet_balances::Config>::ExistentialDeposit;
++    impl griffin_core::utxo_set::TransparentUtxoSetApi<Block> for Runtime {
++        fn peek_utxo(input: &Input) -> Option<Output> {
++            TransparentUtxoSet::peek_utxo(input)
++        }
++
++        fn peek_utxo_by_address(addr: &Address) -> Vec<Output> {
++            TransparentUtxoSet::peek_utxos_from_address(addr)
++        }
++
++        fn peek_utxo_with_asset(asset_name: &AssetName, asset_policy: &PolicyId) -> Vec<Output> {
++            TransparentUtxoSet::peek_utxos_with_asset(asset_name, asset_policy)
++        }
++    }
++
++    // https://substrate.dev/rustdocs/master/sp_api/trait.Core.html
++    impl apis::Core<Block> for Runtime {
++        fn version() -> RuntimeVersion {
++            VERSION
++        }
++
++        fn execute_block(block: Block) {
++            Executive::execute_block(block)
++        }
++
++        fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
++            Executive::open_block(header)
++        }
++    }
++
++    impl apis::Metadata<Block> for Runtime {
++        fn metadata() -> OpaqueMetadata {
++            OpaqueMetadata::new(Vec::new())
++        }
++
++        fn metadata_at_version(_version: u32) -> Option<OpaqueMetadata> {
++            None
++        }
++
++        fn metadata_versions() -> alloc::vec::Vec<u32> {
++            Default::default()
++        }
++    }
++
++    impl apis::BlockBuilder<Block> for Runtime {
++        fn apply_extrinsic(extrinsic: <Block as BlockT>::Extrinsic) -> ApplyExtrinsicResult {
++            Executive::apply_extrinsic(extrinsic)
++        }
++
++        fn finalize_block() -> <Block as BlockT>::Header {
++            Executive::close_block()
++        }
++
++        fn inherent_extrinsics(_data: sp_inherents::InherentData) -> Vec<<Block as BlockT>::Extrinsic> {
++            Vec::new()
++        }
++
++        fn check_inherents(
++            _block: Block,
++            _data: InherentData
++        ) -> sp_inherents::CheckInherentsResult {
++            sp_inherents::CheckInherentsResult::new()
++        }
++    }
++
++    impl apis::TaggedTransactionQueue<Block> for Runtime {
++        fn validate_transaction(
++            source: TransactionSource,
++            tx: <Block as BlockT>::Extrinsic,
++            block_hash: <Block as BlockT>::Hash,
++        ) -> TransactionValidity {
++            Executive::validate_transaction(source, tx, block_hash)
++        }
++    }
++
++    impl apis::SessionKeys<Block> for Runtime {
++        fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
++            opaque::SessionKeys::generate(seed)
++        }
++
++        fn decode_session_keys(
++            encoded: Vec<u8>,
++        ) -> Option<Vec<(Vec<u8>, sp_core::crypto::KeyTypeId)>> {
++            opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
++        }
++    }
++
++    impl apis::AuraApi<Block, AuraId> for Runtime {
++        fn slot_duration() -> sp_consensus_aura::SlotDuration {
++            sp_consensus_aura::SlotDuration::from_millis(MILLI_SECS_PER_SLOT.into())
++        }
++
++        fn authorities() -> Vec<AuraId> {
++            Authorities::aura_authorities()
++        }
++    }
++
++    impl apis::GrandpaApi<Block> for Runtime {
++        fn grandpa_authorities() -> sp_consensus_grandpa::AuthorityList {
++            Authorities::grandpa_authorities()
++        }
++
++        fn current_set_id() -> sp_consensus_grandpa::SetId {
++            0u64
++        }
++
++        fn submit_report_equivocation_unsigned_extrinsic(
++            _equivocation_proof: sp_consensus_grandpa::EquivocationProof<
++                <Block as BlockT>::Hash,
++                sp_runtime::traits::NumberFor<Block>,
++            >,
++            _key_owner_proof: sp_consensus_grandpa::OpaqueKeyOwnershipProof,
++        ) -> Option<()> {
++            None
++        }
++
++        fn generate_key_ownership_proof(
++            _set_id: sp_consensus_grandpa::SetId,
++            _authority_id: sp_consensus_grandpa::AuthorityId,
++        ) -> Option<sp_consensus_grandpa::OpaqueKeyOwnershipProof> {
++            None
++        }
++    }
++
++    impl apis::GenesisBuilder<Block> for Runtime {
++        fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
++            let genesis_config = serde_json::from_slice::<GenesisConfig>(config.as_slice())
++                .map_err(|_| "The input JSON is not a valid genesis configuration.")?;
++
++            griffin_core::genesis::GriffinGenesisConfigBuilder::build(genesis_config)
++        }
++
++        fn get_preset(_id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
++            let genesis_config : &GenesisConfig = &genesis::get_genesis_config("".to_string());
++            Some(serde_json::to_vec(genesis_config)
++                 .expect("Genesis configuration is valid."))
++        }
++
++        fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
++            vec![]
++        }
++    }
+ }
+```
+</details>
+
 #### Node sources
+
+There are fewer modifications to the client, but distributed in several files.
+
+In [chain_spec](../node/src/chain_spec.rs), we redefine the functions that build the chain from the specification:
+- Import `get_genesis_config` from runtime genesis, and `WASM_BINARY ` from runtime.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L1-L2
+
+- Modify `development_chain_spec()` to take a String as an argument and add the logic that uses it. The name was changed to reflect the purpose of the function more accurately.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L8-L18
+
+- Add a new function for the configuration of a local test chain.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L20-L30
+
+In [cli](../node/src/cli.rs):
+- Add new `ExportChainSpec` command and add deprecated warning to `BuildSpec` command.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/cli.rs#L45-L51
+
+In [command](../node/src/command.rs):
+- Modify chain name
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L10-L12
+
+- Modify `load_spec` function to use the new config functions defined in `chain_spec.rs`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L34-L44
+
+- Add new `ExportChainSpec` command and a deprecated warning to `BuildSpec`. 
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L70-L73
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L53-L57
+
+- Provide Griffin's `OpaqueBlock` type in `NetworkWorker`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L132-L137
+
+In [service](../node/src/service.rs):
+
+- Import `GriffinGenesisBlockBuilder` and `OpaqueBlock` as `Block` from Griffin.
+- Import `self` and `RuntimeApi` from our runtime (necessary if the runtime name changed).
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L4-L5
+
+- Within `new_partial`:
+    - Define a new backend using `sc_service::new_db_backend`.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L51
+
+    - Define `genesis_block_builder` from `GriffinGenesisBlockBuilder`.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L52-L57
+
+    - Modify the creation of the initial parts of the node to use our custom genesis block builder.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L59-L67
+
+    - Delete `offchain_worker` definition, as Griffin’s executive module doesn’t implement it.
+
+- Within `new_full`:    
+    - Define `chain_spec` and its new way of parsing the json.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L168-L170
+
+    - Define `zero_time` for the ledger.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L171-L173
+
+    - Sleep until reaching zero time for the genesis of the chain.
+
+    https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L204-L212
+
+In [rpc](../node/src/rpc.rs):
+
+- Import `CardanoRpc` and `CardanoRpcApiServer` from Cardano RPC within Griffin RPC.
+- Import `TransparentUtxoSetRpc` and `TransparentUtxoSetRpcApiServer` from RPC within Griffin RPC.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L8-L9
+
+- Add TransparentUtxoSetApi dependency to `create_full` function.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L41-L43
+
+- Add the new RPC modules in the `create_full` function.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L46-L50
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->
