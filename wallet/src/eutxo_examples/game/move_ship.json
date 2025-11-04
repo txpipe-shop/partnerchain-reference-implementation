@@ -1,11 +1,11 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "4b9344dbb31516fda1aa73a3b662ef29c2785685fb56392757a03af87c4fc598",
+            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
             "index": 0
         },
         {
-            "tx_hash": "4b9344dbb31516fda1aa73a3b662ef29c2785685fb56392757a03af87c4fc598",
+            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
             "index": 2,
             "redeemer_cbor": "D87A9FD8799F0220FFFF"
         }
@@ -21,7 +21,7 @@
                 },
                 {
                     "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                    "assets": [ ["PILOT0", 1] ]
+                    "assets": [ ["PILOT0", 1], ["PILOT1", 1] ]
                 }
             ]
         },

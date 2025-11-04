@@ -1,19 +1,24 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
+            "tx_hash": "f0c03fa2a39ff3c35528167331651fb63d9c37c5b576f55f49f808be1f416f27",
             "index": 0
         },
         {
-            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
+            "tx_hash": "1aa20b201b7e21300315f48099a1fc76612b421fbe0fb7b3fde133ea205b0973",
             "index": 1,
-            "redeemer_cbor": "D87980"
+            "redeemer_cbor": "d87a80"
+        },
+        {
+            "tx_hash": "f0c03fa2a39ff3c35528167331651fb63d9c37c5b576f55f49f808be1f416f27",
+            "index": 1,
+            "redeemer_cbor": "d87a9fd87b80ff"
         }
     ],
     "outputs_info": [
         {
             "address": "6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4",
-            "coin": 309000000,
+            "coin": 562500000,
             "value": [
                 {
                     "policy": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005",
@@ -27,7 +32,7 @@
         },
         {
             "address": "70bac1753d5f7e3609c92776371fd0eafa753889e5712858f48fb83981",
-            "coin": 503000000,
+            "coin": 251500000,
             "value": [
                     {
                         "policy": "516238dd0a79bac4bebe041c44bad8bf880d74720733d2fc0d255d28",
@@ -35,33 +40,18 @@
                     }
                     ],
             "datum": "D8799F03581C7BA97FB6E48018EF131DD08916939350C0CE7050534F8E51B5E0E3A4FF"
-        },
-        {
-            "address": "707ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-            "coin": 2000000,
-            "value": [
-                    {
-                        "policy": "6a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
-                        "assets": [ ["FUEL", 30] ]
-                    },
-                    {
-                        "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                        "assets": [ ["SHIP2", 1] ]
-                    }
-                    ],
-            "datum": "D8799F04064553484950324650494C4F54321B00000196C627CFA0FF"
         }
     ],
     "mintings_info": [
         {
             "policy": "6a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
-            "assets": [ ["FUEL", 30] ],
-            "redeemer_cbor": "D87980"
+            "assets": [ ["FUEL", -39] ],
+            "redeemer_cbor": "d87a80"
         },
         {
             "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-            "assets": [ ["SHIP2", 1], ["PILOT2", 1] ],
-            "redeemer_cbor": "D87980"
+            "assets": [ ["SHIP2", -1] ],
+            "redeemer_cbor": "d87a80"
         }
     ],
     "scripts_info": [
@@ -81,6 +71,6 @@
     "required_signers": [
         "01e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4"
     ],
-    "validity_interval_start": 0,
-    "ttl": 40
+    "validity_interval_start": 120,
+    "ttl": null
 }

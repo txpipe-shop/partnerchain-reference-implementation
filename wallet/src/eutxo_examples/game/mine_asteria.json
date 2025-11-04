@@ -1,16 +1,16 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "4b9344dbb31516fda1aa73a3b662ef29c2785685fb56392757a03af87c4fc598",
+            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
             "index": 0
         },
         {
-            "tx_hash": "4b9344dbb31516fda1aa73a3b662ef29c2785685fb56392757a03af87c4fc598",
+            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
             "index": 1,
             "redeemer_cbor": "d87a80"
         },
         {
-            "tx_hash": "4b9344dbb31516fda1aa73a3b662ef29c2785685fb56392757a03af87c4fc598",
+            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
             "index": 3,
             "redeemer_cbor": "d87a9fd87b80ff"
         }
@@ -26,7 +26,7 @@
                 },
                 {
                     "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                    "assets": [ ["PILOT0", 1] ]
+                    "assets": [ ["PILOT0", 1], ["PILOT1", 1] ]
                 }
             ]
         },
@@ -39,7 +39,7 @@
                         "assets": [ ["asteriaAdmin", 1] ]
                     }
                     ],
-            "datum": "d8799f01581c7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4ff"
+            "datum": "d8799f02581c7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4ff"
         }
     ],
     "mintings_info": [
@@ -50,7 +50,7 @@
         },
         {
             "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-            "assets": [ ["SHIP0", -1] ],
+            "assets": [ ["SHIP1", -1] ],
             "redeemer_cbor": "d87a80"
         }
     ],
