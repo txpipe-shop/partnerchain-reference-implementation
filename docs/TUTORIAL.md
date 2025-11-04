@@ -59,6 +59,8 @@ wallet commands.
 
 #### Dependencies
 
+##### Workspace dependencies
+
 First, copy the directories [griffin-core](../griffin-core), [griffin-rpc](../griffin-rpc),
 [wallet](../wallet), and [demo](../demo) to the root of the Minimal Template. We add them to
 workspace. Since we are setting up an eUTxO model for the node's ledger (in contrast to Substrate's
@@ -106,16 +108,19 @@ We also add Griffin dependencies:
 +# demo implementations
 +demo-authorities = { path = "demo/authorities", default-features = false }
 +
-+
  [profile.release]
  opt-level = 3
  panic = "unwind"
 
 ```
 
-In this project we decided to steer away from using `polkadot-sdk` as one big dependency. Instead,
-we pick and choose what we need from the Polkadot-SDK and set each as their own dependency, using
-the Git tag for release `polkadot-stable2506-2` (click to see the rather long diff):
+> [!NOTE]
+>
+> In this project we decided to steer away from using `polkadot-sdk` as one big dependency. Instead,
+> we pick and choose what we need from the Polkadot-SDK and set each as their own dependency, using
+> the Git tag for release `polkadot-stable2506-2`.
+
+Click the block below to see the rather long diff:
 
 <details>
   <summary>
@@ -180,12 +185,117 @@ the Git tag for release `polkadot-stable2506-2` (click to see the rather long di
 +	"derive",
 +	"alloc",
 +] }
++thiserror = { version = "2.0", default-features = false }
  codec = { version = "3.7.4", default-features = false, package = "parity-scale-codec" }
  scale-info = { version = "2.11.6", default-features = false }
  serde_json = { version = "1.0.132", default-features = false }
 ```
 <details>
 
+##### Package dependencies
+
+This processes has to be repeated for all packages in the workspace. For the node,
+
+``` diff
+--- a/node/Cargo.toml
++++ b/node/Cargo.toml
+@@ -20,14 +20,33 @@ futures = { features = ["thread-pool"], workspace = true }
+ futures-timer = { workspace = true }
+ jsonrpsee = { features = ["server"], workspace = true }
+ minimal-template-runtime.workspace = true
+-polkadot-sdk = { workspace = true, features = ["experimental", "node"] }
++griffin-core = { workspace = true }
++griffin-rpc = { workspace = true }
++sc-basic-authorship = { workspace = true }
++sc-cli = { workspace = true }
++sc-client-api = { workspace = true }
++sc-consensus = { workspace = true }
++sc-consensus-manual-seal = { workspace = true }
++sc-executor = { workspace = true }
++sc-network = { workspace = true }
++sc-service = { workspace = true }
++sc-telemetry = { workspace = true }
++sc-transaction-pool = { workspace = true }
++sc-transaction-pool-api = { workspace = true }
++serde_json = { workspace = true }
++sp-api = { workspace = true }
++sp-block-builder = { workspace = true }
++sp-blockchain = { workspace = true }
++sp-genesis-builder = { workspace = true }
++sp-io = { workspace = true }
++sp-timestamp = { workspace = true }
++sp-runtime = { workspace = true }
+ 
+ [build-dependencies]
+-polkadot-sdk = { workspace = true, features = ["substrate-build-script-utils"] }
++substrate-build-script-utils = { workspace = true, default-features = true }
+ 
+ [features]
+ default = ["std"]
+ std = [
+ 	"minimal-template-runtime/std",
+-	"polkadot-sdk/std",
+ ]
+```
+and for the runtime:
+
+``` diff
+--- a/runtime/Cargo.toml
++++ b/runtime/Cargo.toml
+@@ -10,21 +10,41 @@ edition.workspace = true
+ publish = false
+ 
+ [dependencies]
+-codec = { workspace = true }
+-pallet-minimal-template.workspace = true
+-polkadot-sdk = { workspace = true, features = ["pallet-balances", "pallet-sudo", "pallet-timestamp", "pallet-transaction-payment", "pallet-transaction-payment-rpc-runtime-api", "runtime"] }
++demo-authorities = { workspace = true }
++griffin-core = { workspace = true }
++parity-scale-codec = { features = ["derive"], workspace = true }
++polkadot-sdk-frame = { features = ["runtime"], workspace = true }
+ scale-info = { workspace = true }
+ serde_json = { workspace = true, default-features = false, features = ["alloc"] }
++sp-api = { workspace = true }
++sp-application-crypto = { workspace = true }
++sp-block-builder = { workspace = true }
++sp-consensus-aura = { workspace = true }
++sp-consensus-grandpa = { workspace = true }
++sp-core = { workspace = true }
++sp-genesis-builder = { workspace = true }
++sp-inherents = { workspace = true }
++sp-runtime = { workspace = true }
++sp-session = { workspace = true }
++sp-transaction-pool = { workspace = true }
++sp-version = { workspace = true }
++
++serde = { workspace = true }
+ 
+ [build-dependencies]
+-polkadot-sdk = { optional = true, workspace = true, features = ["substrate-wasm-builder"] }
++substrate-wasm-builder = { optional = true, workspace = true, default-features = true }
+ 
+ [features]
+ default = ["std"]
+ std = [
+-	"codec/std",
+-	"pallet-minimal-template/std",
+-	"polkadot-sdk/std",
++	"griffin-core/std",
++	"polkadot-sdk-frame/std",
+ 	"scale-info/std",
+ 	"serde_json/std",
++	"sp-block-builder/std",
++	"sp-consensus-aura/std",
++	"sp-consensus-grandpa/std",
++	"sp-session/std",
++	"sp-transaction-pool/std",
++	"substrate-wasm-builder",
+ ]
+```
+
+#### Runtime sources
+
+#### Node sources
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->
