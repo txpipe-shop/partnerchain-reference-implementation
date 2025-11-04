@@ -190,7 +190,7 @@ Click the block below to see the rather long diff:
  scale-info = { version = "2.11.6", default-features = false }
  serde_json = { version = "1.0.132", default-features = false }
 ```
-<details>
+</details>
 
 ##### Package dependencies
 
