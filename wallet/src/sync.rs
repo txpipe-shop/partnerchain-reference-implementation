@@ -377,27 +377,27 @@ pub(crate) fn height(db: &Db) -> anyhow::Result<Option<u32>> {
 }
 
 /// Debugging use. Print the entire unspent outputs tree.
-pub(crate) fn print_unspent_tree(db: &Db) -> anyhow::Result<()> {
-    show_outputs_by(|_, _| true, db)?;
-    Ok(())
+pub(crate) fn print_unspent_tree(db: &Db) -> anyhow::Result<Vec<ResolvedInputInfo>> {
+    get_outputs_by(|_, _| true, db)
 }
 
 /// Print the unspent outputs at a specific address.
-pub(crate) fn show_outputs_at(db: &Db, args: crate::cli::ShowOutputsAtArgs) -> anyhow::Result<()> {
-    show_outputs_by(|owner, _| *owner == args.address, db)?;
-    Ok(())
+pub(crate) fn get_outputs_at(
+    db: &Db,
+    args: crate::cli::ShowOutputsAtArgs,
+) -> anyhow::Result<Vec<ResolvedInputInfo>> {
+    get_outputs_by(|owner, _| *owner == args.address, db)
 }
 
 /// Print the unspent outputs with a specific asset.
-pub(crate) fn show_outputs_with_asset(
+pub(crate) fn get_outputs_with_asset(
     db: &Db,
     args: crate::cli::ShowOutputsWithAssetArgs,
-) -> anyhow::Result<()> {
-    show_outputs_by(
+) -> anyhow::Result<Vec<ResolvedInputInfo>> {
+    get_outputs_by(
         |_, amount| amount.contains_asset(&AssetName::from(args.name.clone()), &args.policy),
         db,
-    )?;
-    Ok(())
+    )
 }
 
 /// Print the available orders.
@@ -470,31 +470,45 @@ pub(crate) fn get_balances(db: &Db) -> anyhow::Result<impl Iterator<Item = (Addr
     Ok(balances.into_iter())
 }
 
-/// Print the unspent outputs that satisfy the predicate `f`.
-fn show_outputs_by<F>(f: F, db: &Db) -> anyhow::Result<()>
+/// Print the unspent outputs info.
+pub fn show_outputs(outputs_info: Vec<ResolvedInputInfo>) {
+    for x in outputs_info.iter() {
+        let input_string = hex::encode(x.input.encode());
+        let datum_option_hex = x.datum_option.clone().map(|datum| hex::encode(datum.0));
+
+        println!(
+            "{}:\n address: {},\n datum: {:?},\n amount: {}",
+            input_string.bold(),
+            color_address(&x.address),
+            datum_option_hex,
+            x.value.normalize(),
+        );
+    }
+}
+
+/// Get the unspent outputs that satisfy the predicate `f`.
+fn get_outputs_by<F>(f: F, db: &Db) -> anyhow::Result<Vec<ResolvedInputInfo>>
 where
     F: Fn(&Address, &Value) -> bool,
 {
-    let wallet_unspent_tree = db.open_tree(UNSPENT)?;
-    for x in wallet_unspent_tree.iter() {
+    let mut result = Vec::new();
+    for x in db.open_tree(UNSPENT)?.iter() {
         let (input_ivec, owner_amount_datum_ivec) = x?;
-        let input = hex::encode(input_ivec);
+        let input = <Input>::decode(&mut &input_ivec[..])?;
         let (owner_pubkey, amount, datum_option) =
             <(Address, Value, Option<Datum>)>::decode(&mut &owner_amount_datum_ivec[..])?;
-        let datum_option_hex = datum_option.map(|datum| hex::encode(datum.0));
 
         if f(&owner_pubkey, &amount) {
-            println!(
-                "{}:\n address: {},\n datum: {:?},\n amount: {}",
-                input.bold(),
-                color_address(&owner_pubkey),
-                datum_option_hex,
-                amount.normalize(),
-            );
+            result.push(ResolvedInputInfo::from((
+                input,
+                owner_pubkey,
+                amount,
+                datum_option,
+            )))
         }
     }
 
-    Ok(())
+    Ok(result)
 }
 
 /// Color the address red if it's a script address (starts with "70"), green otherwise
@@ -503,5 +517,23 @@ fn color_address(address: &Address) -> colored::ColoredString {
         address.to_string().red()
     } else {
         address.to_string().green()
+    }
+}
+
+pub struct ResolvedInputInfo {
+    pub input: Input,
+    pub address: Address,
+    pub value: Value,
+    pub datum_option: Option<Datum>,
+}
+
+impl From<(Input, Address, Value, Option<Datum>)> for ResolvedInputInfo {
+    fn from((input, address, value, datum_option): (Input, Address, Value, Option<Datum>)) -> Self {
+        Self {
+            input,
+            address,
+            value,
+            datum_option,
+        }
     }
 }

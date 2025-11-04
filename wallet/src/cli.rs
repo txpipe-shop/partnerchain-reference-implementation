@@ -105,6 +105,8 @@ pub enum Command {
 
     /// Build a complete Griffin transaction from a JSON file containing all the necessary information.
     BuildTx(BuildTxArgs),
+
+    CreateShip(CreateShipArgs),
 }
 
 /// Arguments for building a complete Griffin transaction.
@@ -182,6 +184,45 @@ pub struct SpendValueArgs {
     /// How many tokens of the given asset should be included.
     #[arg(long, short, verbatim_doc_comment, action = Append, value_name = "AMOUNT")]
     pub token_amount: Vec<Coin>,
+}
+
+#[derive(Debug, Args)]
+pub struct CreateShipArgs {
+    /// An input to be consumed by this transaction. This argument may be specified multiple times.
+    #[arg(long, short, verbatim_doc_comment, value_parser = input_from_string, required = true, value_name = "WALLET_OUTPUT_REF")]
+    pub input: Input,
+
+    /// 32-byte H256 public key of an input owner.
+    /// Their pk/sk pair must be registered in the wallet's keystore.
+    #[arg(long, short, verbatim_doc_comment, value_parser = h256_from_string, default_value = SHAWN_PUB_KEY, value_name = "PUBLIC_KEY")]
+    pub witness: H256,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "POS_X"
+    )]
+    pub pos_x: i16,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "POS_Y"
+    )]
+    pub pos_y: i16,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "TIME_TO_LIVE"
+    )]
+    pub ttl: u64,
 }
 
 #[derive(Debug, Args)]

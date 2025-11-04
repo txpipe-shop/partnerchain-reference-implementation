@@ -37,6 +37,7 @@ use std::path::PathBuf;
 
 mod cli;
 mod command;
+mod game;
 mod keystore;
 mod order_book;
 mod rpc;
@@ -190,7 +191,7 @@ async fn main() -> anyhow::Result<()> {
         }
         Some(Command::ShowAllOutputs) => {
             println!("###### Unspent outputs ###########");
-            sync::print_unspent_tree(&db)?;
+            sync::show_outputs(sync::print_unspent_tree(&db)?);
             println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
             Ok(())
         }
@@ -199,7 +200,7 @@ async fn main() -> anyhow::Result<()> {
                 "###### Unspent outputs at address {} ###########",
                 args.address
             );
-            sync::show_outputs_at(&db, args)?;
+            sync::show_outputs(sync::get_outputs_at(&db, args)?);
             println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
             Ok(())
         }
@@ -208,7 +209,7 @@ async fn main() -> anyhow::Result<()> {
                 "###### Unspent outputs containing asset with name {} and policy ID {} ###########",
                 args.name, args.policy
             );
-            sync::show_outputs_with_asset(&db, args)?;
+            sync::show_outputs(sync::get_outputs_with_asset(&db, args)?);
             println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
             Ok(())
         }
@@ -218,6 +219,9 @@ async fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Some(cli::Command::BuildTx(args)) => command::build_tx(&db, &client, &keystore, args).await,
+        Some(cli::Command::CreateShip(args)) => {
+            game::create_ship(&db, &client, &keystore, args).await
+        }
         None => {
             log::info!("No Wallet Command invoked. Exiting.");
             Ok(())
