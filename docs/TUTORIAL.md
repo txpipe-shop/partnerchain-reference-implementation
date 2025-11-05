@@ -135,6 +135,7 @@ Click the block below to see the rather long diff:
 +frame-system = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
 +polkadot-sdk-frame = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
 +sc-basic-authorship = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
+# ... snip ...
 ```
   </summary>
 
@@ -298,6 +299,25 @@ and for the runtime:
 Setting up UTxO logic on top of a Polkadot/Substrate node requires extensive changes to the
 runtime. We will highlight below some of the steps involved.
 
+Recall that we took the approach of replacing `polkadot-sdk` by several smaller packages. This
+implies that some imports have to replaced by the corresponding replacements. For instance, at
+`build.rs` we have the following replacement:
+
+``` diff
+ fn main() {
+-	#[cfg(feature = "std")]
+-	{
+-		polkadot_sdk::substrate_wasm_builder::WasmBuilder::build_using_defaults();
+-	}
++    #[cfg(feature = "std")]
++    {
++        substrate_wasm_builder::WasmBuilder::build_using_defaults();
++    }
+ }
+```
+
+Similar edits have to be carried out throughout the sources, which we will omit henceforth.
+
 ##### Genesis
 
 Add a new [genesis](../runtime/src/genesis.rs) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
@@ -373,36 +393,9 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 - Remove `OffchainWorkerApi`, `AccountNonceApi` and `TransactionPaymentApi` trait implementations.
 
-The complete diff can be seen below
-
 <details>
   <summary>
-
-``` diff
---- a/runtime/src/lib.rs
-+++ b/runtime/src/lib.rs
-@@ -25,325 +8,243 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
- 
- extern crate alloc;
- 
--use alloc::vec::Vec;
--use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
--use polkadot_sdk::{
--	polkadot_sdk_frame::{
--		self as frame,
--		deps::sp_genesis_builder,
--		runtime::{apis, prelude::*},
--	},
--	*,
-+pub mod genesis;
-+
-+use alloc::{string::ToString, vec, vec::Vec};
-+use griffin_core::genesis::config_builder::GenesisConfig;
-+use griffin_core::types::{Address, AssetName, Input, PolicyId};
-+use griffin_core::utxo_set::TransparentUtxoSet;
-+use griffin_core::MILLI_SECS_PER_SLOT;
-+pub use opaque::SessionKeys;
-```
+  Complete diff (click to expand)
   </summary>
 
 ``` diff
@@ -1072,6 +1065,23 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 - Add the new RPC modules in the `create_full` function.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L46-L50
+
+## Troubleshooting
+
+These are some common errors that can happen when developing on Substrate:
+
+### STD related issues
+
+Errors like:
+
+- `Double lang item in crate <crate> (which `std`/ `serde` depends on):...` 
+- `Attempted to define built-in macro more than once`
+
+happen commonly when using std crates in a non-std environment, like Substrate's runtime. Std crates can't be used because we compile to WASM. If you run into an error like this and the crate you are using is no-std, make sure you are setting them up correctly. For example, make sure that the dependency is imported with `default-features = false` or that the std feature is set correctly in the respective `Cargo.toml`. If you are writing a new module, make sure that it is premised by ´#![cfg_attr(not(feature = "std"), no_std)]´.
+
+### `Alloc` feature
+
+When trying to use `alloc` features like `vec`, you might run into the trouble that the compiler can't find the `alloc` crate. This feature can be imported from various dependencies like `serde` and `serde_json`. To use it make sure to add `extern crate alloc;` at the top of your file.
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->
