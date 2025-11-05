@@ -395,7 +395,8 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 <details>
   <summary>
-  Complete diff (click to expand)
+
+**Complete `runtime/src/lib.rs` diff** (click to expand)
   </summary>
 
 ``` diff
@@ -996,11 +997,6 @@ In [cli](../node/src/cli.rs):
 - Add new `ExportChainSpec` command and add deprecated warning to `BuildSpec` command.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/cli.rs#L45-L51
-
-In [command](../node/src/command.rs):
-- Modify chain name
-
-https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L10-L12
 
 - Modify `load_spec` function to use the new config functions defined in `chain_spec.rs`.
 
