@@ -21,10 +21,13 @@ We hope that the guide presented here helps you to set your particular use-case.
 
 ### Index
 
-- [Installing the ledger](#installing-the-ledger) walks through the process of adding the Griffin
-  ledger. This requires extensive editing of the runtime, which is detailed in [Runtime
-  sources](#runtime-sources). The node client requires fewer modifications, which are detailed in
-  [Node Sources](#node-sources).
+- [Node customization](#node-customization) involves:
+  - [Installing the ledger](#installing-the-ledger) explains the process of adding the Griffin
+    ledger. This requires extensive editing of the runtime, which is detailed in [Runtime
+    sources](#runtime-sources). The node client requires fewer modifications, which are detailed in
+    [Node Sources](#node-sources).
+
+  - [Partnerchain integration](#partnerchain-integration).
 
 - [Troubleshooting](#troubleshooting) addresses some common pitfalls while editing and building
   Substrate nodes.
@@ -1454,6 +1457,12 @@ diff --git a/node/src/service.rs b/node/src/service.rs
              let params = sc_consensus_manual_seal::InstantSealParams {
 ```
 </details>
+
+
+### Partnerchain integration
+
+## Operating instructions
+
 ## Troubleshooting
 
 These are some common errors that can happen when developing on Substrate:
