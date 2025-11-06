@@ -19,6 +19,16 @@ template](https://github.com/paritytech/polkadot-sdk-minimal-template) and shows
 
 We hope that the guide presented here helps you to set your particular use-case.
 
+### Index
+
+- [Installing the ledger](#installing-the-ledger) walks through the process of adding the Griffin
+  ledger. This requires extensive editing of the runtime, which is detailed in [Runtime
+  sources](#runtime-sources). The node client requires fewer modifications, which are detailed in
+  [Node Sources](#node-sources).
+
+- [Troubleshooting](#troubleshooting) addresses some common pitfalls while editing and building
+  Substrate nodes.
+
 ## Node customization
 
 ### Requisites
@@ -1062,6 +1072,388 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/rpc.rs#L46-L50
 
+<details>
+  <summary>
+
+**Complete `node/` diff** (click to expand)
+  </summary>
+
+``` diff
+diff --git a/node/build.rs b/node/build.rs
+--- a/node/build.rs
++++ b/node/build.rs
+@@ -15,7 +15,7 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
+-use polkadot_sdk::substrate_build_script_utils::{generate_cargo_keys, rerun_if_git_head_changed};
++use substrate_build_script_utils::{generate_cargo_keys, rerun_if_git_head_changed};
+ 
+ fn main() {
+     generate_cargo_keys();
+diff --git a/node/src/chain_spec.rs b/node/src/chain_spec.rs
+--- a/node/src/chain_spec.rs
++++ b/node/src/chain_spec.rs
+@@ -15,31 +15,33 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
++use minimal_template_runtime::genesis::get_genesis_config;
+ use minimal_template_runtime::WASM_BINARY;
+-use polkadot_sdk::{
+-    sc_service::{ChainType, Properties},
+-    *,
+-};
++use sc_service::ChainType;
+ 
+ /// This is a specialization of the general Substrate ChainSpec type.
+ pub type ChainSpec = sc_service::GenericChainSpec;
+ 
+-fn props() -> Properties {
+-    let mut properties = Properties::new();
+-    properties.insert("tokenDecimals".to_string(), 0.into());
+-    properties.insert("tokenSymbol".to_string(), "MINI".into());
+-    properties
+-}
+-
+-pub fn development_chain_spec() -> Result<ChainSpec, String> {
++pub fn development_config(genesis_json: String) -> Result<ChainSpec, String> {
+     Ok(ChainSpec::builder(
+-        WASM_BINARY.expect("Development wasm not available"),
+-        Default::default(),
++        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
++        None,
+     )
+     .with_name("Development")
+     .with_id("dev")
+     .with_chain_type(ChainType::Development)
+-    .with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
+-    .with_properties(props())
++    .with_genesis_config_patch(serde_json::json!(get_genesis_config(genesis_json)))
++    .build())
++}
++
++pub fn local_testnet_config(genesis_json: String) -> Result<ChainSpec, String> {
++    Ok(ChainSpec::builder(
++        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
++        None,
++    )
++    .with_name("Local Testnet")
++    .with_id("local_testnet")
++    .with_chain_type(ChainType::Local)
++    .with_genesis_config_patch(serde_json::json!(get_genesis_config(genesis_json)))
+     .build())
+ }
+diff --git a/node/src/cli.rs b/node/src/cli.rs
+--- a/node/src/cli.rs
++++ b/node/src/cli.rs
+@@ -15,8 +15,6 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
+-use polkadot_sdk::{sc_cli::RunCmd, *};
+-
+ #[derive(Debug, Clone)]
+ pub enum Consensus {
+     ManualSeal(u64),
+@@ -49,7 +47,7 @@ pub struct Cli {
+     pub consensus: Consensus,
+ 
+     #[clap(flatten)]
+-    pub run: RunCmd,
++    pub run: sc_cli::RunCmd,
+ }
+ 
+ #[derive(Debug, clap::Subcommand)]
+@@ -59,8 +57,16 @@ pub enum Subcommand {
+     Key(sc_cli::KeySubcommand),
+ 
+     /// Build a chain specification.
++    /// DEPRECATED: `build-spec` command will be removed after 1/04/2026. Use `export-chain-spec`
++    /// command instead.
++    #[deprecated(
++        note = "build-spec command will be removed after 1/04/2026. Use export-chain-spec command instead"
++    )]
+     BuildSpec(sc_cli::BuildSpecCmd),
+ 
++    /// Export the chain specification.
++    ExportChainSpec(sc_cli::ExportChainSpecCmd),
++
+     /// Validate blocks.
+     CheckBlock(sc_cli::CheckBlockCmd),
+ 
+diff --git a/node/src/command.rs b/node/src/command.rs
+--- a/node/src/command.rs
++++ b/node/src/command.rs
+@@ -20,7 +20,8 @@ use crate::{
+     cli::{Cli, Subcommand},
+     service,
+ };
+-use polkadot_sdk::{sc_cli::SubstrateCli, sc_service::PartialComponents, *};
++use sc_cli::SubstrateCli;
++use sc_service::PartialComponents;
+ 
+ impl SubstrateCli for Cli {
+     fn impl_name() -> String {
+@@ -49,10 +50,13 @@ impl SubstrateCli for Cli {
+ 
+     fn load_spec(&self, id: &str) -> Result<Box<dyn sc_service::ChainSpec>, String> {
+         Ok(match id {
+-            "dev" => Box::new(chain_spec::development_chain_spec()?),
+-            path => Box::new(chain_spec::ChainSpec::from_json_file(
+-                std::path::PathBuf::from(path),
+-            )?),
++            "dev" => Box::new(chain_spec::development_config("".to_string())?),
++            "" | "local" => Box::new(chain_spec::local_testnet_config("".to_string())?),
++            path => {
++                let file_content =
++                    std::fs::read_to_string(path).expect("Unable to read the initialization file");
++                Box::new(chain_spec::local_testnet_config(file_content)?)
++            }
+         })
+     }
+ }
+@@ -63,6 +67,7 @@ pub fn run() -> sc_cli::Result<()> {
+ 
+     match &cli.subcommand {
+         Some(Subcommand::Key(cmd)) => cmd.run(&cli),
++        #[allow(deprecated)]
+         Some(Subcommand::BuildSpec(cmd)) => {
+             let runner = cli.create_runner(cmd)?;
+             runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
+@@ -79,6 +84,10 @@ pub fn run() -> sc_cli::Result<()> {
+                 Ok((cmd.run(client, import_queue), task_manager))
+             })
+         }
++        Some(Subcommand::ExportChainSpec(cmd)) => {
++            let chain_spec = cli.load_spec(&cmd.chain)?;
++            cmd.run(chain_spec)
++        }
+         Some(Subcommand::ExportBlocks(cmd)) => {
+             let runner = cli.create_runner(cmd)?;
+             runner.async_run(|config| {
+@@ -131,18 +140,21 @@ pub fn run() -> sc_cli::Result<()> {
+         }
+         Some(Subcommand::ChainInfo(cmd)) => {
+             let runner = cli.create_runner(cmd)?;
+-            runner.sync_run(|config| {
+-                cmd.run::<minimal_template_runtime::interface::OpaqueBlock>(&config)
+-            })
++            runner.sync_run(|config| cmd.run::<minimal_template_runtime::Block>(&config))
+         }
+         None => {
+             let runner = cli.create_runner(&cli.run)?;
+             runner.run_node_until_exit(|config| async move {
+-                match config.network.network_backend.unwrap_or_default() {
+-                    sc_network::config::NetworkBackendType::Libp2p => {
+-                        service::new_full::<sc_network::NetworkWorker<_, _>>(config, cli.consensus)
+-                            .map_err(sc_cli::Error::Service)
+-                    }
++                match config.network.network_backend {
++                    sc_network::config::NetworkBackendType::Libp2p => service::new_full::<
++                        sc_network::NetworkWorker<
++                            griffin_core::types::OpaqueBlock,
++                            <griffin_core::types::OpaqueBlock as sp_runtime::traits::Block>::Hash,
++                        >,
++                    >(
++                        config, cli.consensus
++                    )
++                    .map_err(sc_cli::Error::Service),
+                     sc_network::config::NetworkBackendType::Litep2p => service::new_full::<
+                         sc_network::Litep2pNetworkBackend,
+                     >(
+diff --git a/node/src/main.rs b/node/src/main.rs
+--- a/node/src/main.rs
++++ b/node/src/main.rs
+@@ -24,6 +24,6 @@ mod command;
+ mod rpc;
+ mod service;
+ 
+-fn main() -> polkadot_sdk::sc_cli::Result<()> {
++fn main() -> sc_cli::Result<()> {
+     command::run()
+ }
+diff --git a/node/src/rpc.rs b/node/src/rpc.rs
+--- a/node/src/rpc.rs
++++ b/node/src/rpc.rs
+@@ -22,13 +22,12 @@
+ 
+ #![warn(missing_docs)]
+ 
++use griffin_rpc::cardano_rpc::{CardanoRpc, CardanoRpcApiServer};
++use griffin_rpc::rpc::{TransparentUtxoSetRpc, TransparentUtxoSetRpcApiServer};
+ use jsonrpsee::RpcModule;
+-use minimal_template_runtime::interface::{AccountId, Nonce, OpaqueBlock};
+-use polkadot_sdk::{
+-    sc_transaction_pool_api::TransactionPool,
+-    sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata},
+-    *,
+-};
++use sc_transaction_pool_api::TransactionPool;
++use sp_block_builder::BlockBuilder;
++use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+ use std::sync::Arc;
+ 
+ /// Full client dependencies.
+@@ -48,19 +47,24 @@ where
+     C: Send
+         + Sync
+         + 'static
+-        + sp_api::ProvideRuntimeApi<OpaqueBlock>
+-        + HeaderBackend<OpaqueBlock>
+-        + HeaderMetadata<OpaqueBlock, Error = BlockChainError>
++        + sp_api::ProvideRuntimeApi<<P as sc_transaction_pool_api::TransactionPool>::Block>
++        + HeaderBackend<<P as sc_transaction_pool_api::TransactionPool>::Block>
++        + HeaderMetadata<
++            <P as sc_transaction_pool_api::TransactionPool>::Block,
++            Error = BlockChainError,
++        >
+         + 'static,
+-    C::Api: sp_block_builder::BlockBuilder<OpaqueBlock>,
+-    C::Api: substrate_frame_rpc_system::AccountNonceApi<OpaqueBlock, AccountId, Nonce>,
++    C::Api: BlockBuilder<<P as sc_transaction_pool_api::TransactionPool>::Block>,
++    C::Api: griffin_core::utxo_set::TransparentUtxoSetApi<
++        <P as sc_transaction_pool_api::TransactionPool>::Block,
++    >,
+     P: TransactionPool + 'static,
+ {
+-    use polkadot_sdk::substrate_frame_rpc_system::{System, SystemApiServer};
+     let mut module = RpcModule::new(());
+     let FullDeps { client, pool } = deps;
+ 
+-    module.merge(System::new(client.clone(), pool.clone()).into_rpc())?;
++    module.merge(CardanoRpc::new(client.clone(), pool.clone()).into_rpc())?;
++    module.merge(TransparentUtxoSetRpc::new(client.clone()).into_rpc())?;
+ 
+     Ok(module)
+ }
+diff --git a/node/src/service.rs b/node/src/service.rs
+--- a/node/src/service.rs
++++ b/node/src/service.rs
+@@ -16,18 +16,19 @@
+ // limitations under the License.
+ 
+ use crate::cli::Consensus;
+-use futures::FutureExt;
+-use minimal_template_runtime::{interface::OpaqueBlock as Block, RuntimeApi};
+-use polkadot_sdk::{
+-    sc_client_api::backend::Backend,
+-    sc_executor::WasmExecutor,
+-    sc_service::{error::Error as ServiceError, Configuration, TaskManager},
+-    sc_telemetry::{Telemetry, TelemetryWorker},
+-    sc_transaction_pool_api::OffchainTransactionPoolFactory,
+-    sp_runtime::traits::Block as BlockT,
+-    *,
++use griffin_core::{genesis::GriffinGenesisBlockBuilder, types::OpaqueBlock as Block};
++use minimal_template_runtime::{self, RuntimeApi};
++use sc_executor::WasmExecutor;
++use sc_network::peer_store::LOG_TARGET;
++use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
++use sc_telemetry::{log, Telemetry, TelemetryWorker};
++use sp_runtime::traits::Block as BlockT;
++use std::{
++    sync::Arc,
++    thread::sleep,
++    time::Duration,
++    time::{SystemTime, UNIX_EPOCH},
+ };
+-use std::sync::Arc;
+ 
+ type HostFunctions = sp_io::SubstrateHostFunctions;
+ 
+@@ -62,11 +63,22 @@ pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
+ 
+     let executor = sc_service::new_wasm_executor(&config.executor);
+ 
++    let backend = sc_service::new_db_backend(config.db_config())?;
++    let genesis_block_builder = GriffinGenesisBlockBuilder::new(
++        config.chain_spec.as_storage_builder(),
++        !config.no_genesis(),
++        backend.clone(),
++        executor.clone(),
++    )?;
++
+     let (client, backend, keystore_container, task_manager) =
+-        sc_service::new_full_parts::<Block, RuntimeApi, _>(
++        sc_service::new_full_parts_with_genesis_builder::<Block, RuntimeApi, _, _>(
+             config,
+             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+             executor,
++            backend,
++            genesis_block_builder,
++            false,
+         )?;
+     let client = Arc::new(client);
+ 
+@@ -153,29 +165,6 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
+             metrics,
+         })?;
+ 
+-    if config.offchain_worker.enabled {
+-        let offchain_workers =
+-            sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
+-                runtime_api_provider: client.clone(),
+-                is_validator: config.role.is_authority(),
+-                keystore: Some(keystore_container.keystore()),
+-                offchain_db: backend.offchain_storage(),
+-                transaction_pool: Some(OffchainTransactionPoolFactory::new(
+-                    transaction_pool.clone(),
+-                )),
+-                network_provider: Arc::new(network.clone()),
+-                enable_http_requests: true,
+-                custom_extensions: |_| vec![],
+-            })?;
+-        task_manager.spawn_handle().spawn(
+-            "offchain-workers-runner",
+-            "offchain-worker",
+-            offchain_workers
+-                .run(client.clone(), task_manager.spawn_handle())
+-                .boxed(),
+-        );
+-    }
+-
+     let rpc_extensions_builder = {
+         let client = client.clone();
+         let pool = transaction_pool.clone();
+@@ -191,6 +180,19 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
+ 
+     let prometheus_registry = config.prometheus_registry().cloned();
+ 
++    let chain_spec =
++        &serde_json::from_str::<serde_json::Value>(&config.chain_spec.as_json(false).unwrap())
++            .unwrap();
++    let zero_time = chain_spec["genesis"]["runtimeGenesis"]["patch"]["zero_time"]
++        .as_u64()
++        .unwrap();
++
++    log::warn!(
++        target: LOG_TARGET,
++        "Genesis posix time (milliseconds): {}",
++        zero_time
++    );
++
+     let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+         network,
+         client: client.clone(),
+@@ -214,6 +216,16 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
+         telemetry.as_ref().map(|x| x.handle()),
+     );
+ 
++    let now = SystemTime::now()
++        .duration_since(UNIX_EPOCH)
++        .unwrap()
++        .as_millis() as u64;
++
++    // Wait until genesis time
++    sleep(Duration::from_millis(
++        zero_time.checked_sub(now).unwrap_or(0),
++    ));
++
+     match consensus {
+         Consensus::InstantSeal => {
+             let params = sc_consensus_manual_seal::InstantSealParams {
+```
+</details>
 ## Troubleshooting
 
 These are some common errors that can happen when developing on Substrate:
