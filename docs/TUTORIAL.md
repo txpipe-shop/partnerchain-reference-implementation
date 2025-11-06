@@ -29,6 +29,8 @@ We hope that the guide presented here helps you to set your particular use-case.
 
   - [Partnerchain integration](#partnerchain-integration).
 
+- [Operating instructions](#operating-instructions).
+
 - [Troubleshooting](#troubleshooting) addresses some common pitfalls while editing and building
   Substrate nodes.
 
@@ -991,7 +993,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 #### Node sources
 
-There are fewer modifications to the client, but distributed in several files.
+There are fewer modifications to the client, but distributed across several files.
 
 In [chain_spec](../node/src/chain_spec.rs), we redefine the functions that build the chain from the specification:
 - Import `get_genesis_config` from runtime genesis, and `WASM_BINARY ` from runtime.
@@ -1467,14 +1469,14 @@ diff --git a/node/src/service.rs b/node/src/service.rs
 
 These are some common errors that can happen when developing on Substrate:
 
-### STD related issues
+### `std` related issues
 
 Errors like:
 
-- `Double lang item in crate <crate> (which `std`/ `serde` depends on):...` 
-- `Attempted to define built-in macro more than once`
+- ``Double lang item in crate <crate> (which `std`/ `serde` depends on):...``
+- `Attempted to define built-in macro more than once`,
 
-happen commonly when using std crates in a non-std environment, like Substrate's runtime. Std crates can't be used because we compile to WASM. If you run into an error like this and the crate you are using is no-std, make sure you are setting them up correctly. For example, make sure that the dependency is imported with `default-features = false` or that the std feature is set correctly in the respective `Cargo.toml`. If you are writing a new module, make sure that it is premised by ´#![cfg_attr(not(feature = "std"), no_std)]´.
+happen commonly when using std crates in a non-std environment, like Substrate's runtime. `std` crates can't be used because we compile to WASM. If you run into an error like this and the crate you are using is no-std, make sure you are setting them up correctly. For example, make sure that the dependency is imported with `default-features = false` or that the `std` feature is set correctly in the respective `Cargo.toml`. If you are writing a new module, make sure that it is premised by `#![cfg_attr(not(feature = "std"), no_std)]`.
 
 ### `Alloc` feature
 
