@@ -4,8 +4,8 @@ In this Tutorial, we will walk you through all the steps necessary to customize 
 node into a Partnerchain node with use-case specific features.
  
 The material presented here is a streamlined version of the info detailed at the [Dev Activity
-Logs](dev_logs/) ([node customization](dev_logs/initial_customizations.md), [Partner Chains SDK
-integration](dev-logs/partner_chain_integration.md)).
+Logs](../dev_logs/) ([node customization](../dev_logs/initial_customizations.md), [Partner Chains SDK
+integration](../dev-logs/partner_chain_integration.md)).
 
 ## Summary
 
@@ -59,15 +59,15 @@ with the corresponding tested versions.
    SDK](https://github.com/input-output-hk/partner-chains/tree/master) at [release
    `v1.8.0`](https://github.com/input-output-hk/partner-chains/releases/tag/v1.8.0).
 5. The modified [Griffin](https://github.com/txpipe/griffin/releases/tag/catalyst-ms5/) sources at
-   this repo (comprising the directories [griffin-core](../griffin-core),
-   [griffin-rpc](../griffin-rpc), [wallet](../wallet), and [demo](../demo)).
+   this repo (comprising the directories [griffin-core](../../griffin-core),
+   [griffin-rpc](../../griffin-rpc), [wallet](../../wallet), and [demo](../../demo)).
 
 For a quick summary of the Substrate Node components, check [this Section of the
-dev-logs](dev_logs/initial_customizations.md#book-understand-substrate).
+dev-logs](../dev_logs/initial_customizations.md#book-understand-substrate).
 
-[Here](dev_logs/initial_customizations.md#griffin-vs-substrate) you can find an introduction to
-Griffin, the [changes and updates](dev_logs/initial_customizations.md#changes-made-to-griffin) to
-it, and a [brief reference](dev_logs/initial_customizations.md#guide-to-griffin) to its types and
+[Here](../dev_logs/initial_customizations.md#griffin-vs-substrate) you can find an introduction to
+Griffin, the [changes and updates](../dev_logs/initial_customizations.md#changes-made-to-griffin) to
+it, and a [brief reference](../dev_logs/initial_customizations.md#guide-to-griffin) to its types and
 wallet commands.
 
 ### Installing the ledger
@@ -76,8 +76,8 @@ wallet commands.
 
 ##### Workspace dependencies
 
-First, copy the directories [griffin-core](../griffin-core), [griffin-rpc](../griffin-rpc),
-[wallet](../wallet), and [demo](../demo) to the root of the Minimal Template. We add them to
+First, copy the directories [griffin-core](../../griffin-core), [griffin-rpc](../../griffin-rpc),
+[wallet](../../wallet), and [demo](../../demo) to the root of the Minimal Template. We add them to
 workspace. Since we are setting up an eUTxO model for the node's ledger (in contrast to Substrate's
 default account model), FRAME pallets are not to be used, and we also remove them:
 
@@ -335,13 +335,13 @@ Similar edits have to be carried out throughout the sources, which we will omit 
 
 ##### Genesis
 
-Add a new [genesis](../runtime/src/genesis.rs) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
+Add a new [genesis](../../runtime/src/genesis.rs) file that includes the information for the initial set of UTxOs and a `get_genesis_config` function to build the genesis in the runtime.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/genesis.rs#L57-L67
 
 ##### Runtime library
 
-Edit the [runtime library](../../runtime/src/lib.rs) as indicated:
+Edit the [runtime library](../../../runtime/src/lib.rs) as indicated:
 
 - Import Griffin types for  `Address`, `AssetName`, `Datum`, `Input` and `PolicyId`. These types will be used to implement the runtime apis necessary for Griffin RPC. 
 - Import `TransparentUTxOSet` from Griffin.
@@ -995,7 +995,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 There are fewer modifications to the client, but distributed across several files.
 
-In [chain_spec](../node/src/chain_spec.rs), we redefine the functions that build the chain from the specification:
+In [chain_spec](../../node/src/chain_spec.rs), we redefine the functions that build the chain from the specification:
 - Import `get_genesis_config` from runtime genesis, and `WASM_BINARY ` from runtime.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L1-L2
@@ -1008,7 +1008,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/chain_spec.rs#L20-L30
 
-In [cli](../node/src/cli.rs):
+In [cli](../../node/src/cli.rs):
 - Add new `ExportChainSpec` command and add deprecated warning to `BuildSpec` command.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/cli.rs#L45-L51
@@ -1027,7 +1027,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/command.rs#L132-L137
 
-In [service](../node/src/service.rs):
+In [service](../../node/src/service.rs):
 
 - Import `GriffinGenesisBlockBuilder` and `OpaqueBlock` as `Block` from Griffin.
 - Import `self` and `RuntimeApi` from our runtime (necessary if the runtime name changed).
@@ -1062,7 +1062,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
     https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/node/src/service.rs#L204-L212
 
-In [rpc](../node/src/rpc.rs):
+In [rpc](../../node/src/rpc.rs):
 
 - Import `CardanoRpc` and `CardanoRpcApiServer` from Cardano RPC within Griffin RPC.
 - Import `TransparentUtxoSetRpc` and `TransparentUtxoSetRpcApiServer` from RPC within Griffin RPC.
