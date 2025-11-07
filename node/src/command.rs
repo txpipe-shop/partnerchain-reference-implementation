@@ -5,6 +5,7 @@ use crate::{
 };
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
+use tokio::runtime::Runtime;
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
@@ -50,6 +51,10 @@ pub fn run() -> sc_cli::Result<()> {
 
     match &cli.subcommand {
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),
+        Some(Subcommand::Game(cmd)) => {
+            let rt = Runtime::new().unwrap();
+            rt.block_on(cmd.run())
+        },
         Some(Subcommand::PartnerChains(cmd)) => {
             partner_chains_node_commands::run::<
                 // _,

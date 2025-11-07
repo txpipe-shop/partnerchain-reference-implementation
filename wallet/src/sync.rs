@@ -167,7 +167,7 @@ pub(crate) async fn synchronize_helper(db: &Db, client: &HttpClient) -> anyhow::
 /// Gets the owner and amount associated with an input from the unspent table
 ///
 /// Some if the input exists, None if it doesn't
-pub(crate) fn get_unspent(
+pub fn get_unspent(
     db: &Db,
     input: &Input,
 ) -> anyhow::Result<Option<(Address, Value, Option<Datum>)>> {
@@ -382,7 +382,7 @@ pub(crate) fn print_unspent_tree(db: &Db) -> anyhow::Result<Vec<ResolvedInputInf
 }
 
 /// Print the unspent outputs at a specific address.
-pub(crate) fn get_outputs_at(
+pub fn get_outputs_at(
     db: &Db,
     args: crate::cli::ShowOutputsAtArgs,
 ) -> anyhow::Result<Vec<ResolvedInputInfo>> {

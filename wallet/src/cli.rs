@@ -3,17 +3,18 @@
 use std::path::PathBuf;
 
 use crate::{
-    address_from_string, h224_from_string, h256_from_string, input_from_string,
+    utils::{address_from_string, h224_from_string, h256_from_string, input_from_string},
     keystore::{SHAWN_ADDRESS, SHAWN_PUB_KEY},
-    DEFAULT_ENDPOINT, H256,
+    context::DEFAULT_ENDPOINT,
 };
 use clap::{ArgAction::Append, Args, Parser, Subcommand};
 use griffin_core::types::{Address, Coin, Input, PolicyId};
+use sp_core::H256;
 
 /// The wallet's main CLI struct
 #[derive(Debug, Parser)]
 #[command(about, version)]
-pub struct Cli {
+pub struct Cli<T: clap::Subcommand + clap::FromArgMatches> {
     #[arg(long, short, default_value_t = DEFAULT_ENDPOINT.to_string())]
     /// RPC endpoint of the node that this wallet will connect to.
     pub endpoint: String,
@@ -42,7 +43,7 @@ pub struct Cli {
     pub purge_db: bool,
 
     #[command(subcommand)]
-    pub command: Option<Command>,
+    pub command: Option<T>,
 }
 
 /// The tasks supported by the wallet
@@ -105,8 +106,6 @@ pub enum Command {
 
     /// Build a complete Griffin transaction from a JSON file containing all the necessary information.
     BuildTx(BuildTxArgs),
-
-    CreateShip(CreateShipArgs),
 }
 
 /// Arguments for building a complete Griffin transaction.
@@ -184,45 +183,6 @@ pub struct SpendValueArgs {
     /// How many tokens of the given asset should be included.
     #[arg(long, short, verbatim_doc_comment, action = Append, value_name = "AMOUNT")]
     pub token_amount: Vec<Coin>,
-}
-
-#[derive(Debug, Args)]
-pub struct CreateShipArgs {
-    /// An input to be consumed by this transaction. This argument may be specified multiple times.
-    #[arg(long, short, verbatim_doc_comment, value_parser = input_from_string, required = true, value_name = "WALLET_OUTPUT_REF")]
-    pub input: Input,
-
-    /// 32-byte H256 public key of an input owner.
-    /// Their pk/sk pair must be registered in the wallet's keystore.
-    #[arg(long, short, verbatim_doc_comment, value_parser = h256_from_string, default_value = SHAWN_PUB_KEY, value_name = "PUBLIC_KEY")]
-    pub witness: H256,
-
-    #[arg(
-        long,
-        short,
-        verbatim_doc_comment,
-        required = true,
-        value_name = "POS_X"
-    )]
-    pub pos_x: i16,
-
-    #[arg(
-        long,
-        short,
-        verbatim_doc_comment,
-        required = true,
-        value_name = "POS_Y"
-    )]
-    pub pos_y: i16,
-
-    #[arg(
-        long,
-        short,
-        verbatim_doc_comment,
-        required = true,
-        value_name = "TIME_TO_LIVE"
-    )]
-    pub ttl: u64,
 }
 
 #[derive(Debug, Args)]

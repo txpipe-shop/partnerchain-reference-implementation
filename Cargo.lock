@@ -3322,6 +3322,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "game"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "griffin-core",
+ "griffin-wallet",
+ "hex",
+ "jsonrpsee",
+ "log",
+ "parity-scale-codec",
+ "sc-cli",
+ "sc-keystore",
+ "sled",
+ "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3544,6 +3563,7 @@ dependencies = [
  "docify",
  "futures",
  "futures-timer",
+ "game",
  "griffin-core",
  "griffin-partner-chains-runtime",
  "griffin-rpc",
@@ -3570,6 +3590,7 @@ dependencies = [
  "sp-runtime",
  "sp-timestamp",
  "substrate-build-script-utils",
+ "tokio",
 ]
 
 [[package]]

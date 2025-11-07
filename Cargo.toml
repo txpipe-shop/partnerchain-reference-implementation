@@ -15,6 +15,7 @@ members = [
     "node",
     "runtime",
     "wallet",
+    "game",
     "toolkit/partner-chains-cli",
     "toolkit/cli/commands",
     "toolkit/cli/node-commands",
@@ -76,6 +77,8 @@ zero-prefixed-literal = { level = "allow", priority = 2 }            # 00_1000_0
 griffin-core = { default-features = false, path = "griffin-core" }
 griffin-partner-chains-runtime = { path = "./runtime", default-features = false }
 griffin-rpc = { default-features = false, path = "griffin-rpc" }
+griffin-wallet = { default-features = false, path = "wallet" }
+game = { default-features = false, path = "game" }
 clap = { version = "4.5.13" }
 derive-new = { version = "0.7.0" }
 docify = { version = "0.2.9" }

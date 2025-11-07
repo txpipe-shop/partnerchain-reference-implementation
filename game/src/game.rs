@@ -1,7 +1,3 @@
-use crate::{
-    cli::{CreateShipArgs, ShowOutputsAtArgs},
-    sync, H224,
-};
 use anyhow::anyhow;
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
@@ -9,6 +5,7 @@ use griffin_core::{
         minicbor,
         utils::{Int, MaybeIndefArray::Indef},
     },
+    h224::H224,
     pallas_crypto::hash::Hash as PallasHash,
     pallas_primitives::babbage::{
         BigInt, BoundedBytes, Constr, MintedTx, PlutusData as PallasPlutusData,
@@ -20,12 +17,14 @@ use griffin_core::{
         PlutusData, PlutusScript, PolicyId, Redeemer, RedeemerTag, Transaction, VKeyWitness, Value,
     },
 };
+use griffin_wallet::{cli::ShowOutputsAtArgs, keystore, sync};
 use jsonrpsee::{core::client::ClientT, http_client::HttpClient, rpc_params};
 use parity_scale_codec::Encode;
 use sc_keystore::LocalKeystore;
 use sled::Db;
 use sp_core::ed25519::Public;
 use sp_runtime::traits::{BlakeTwo256, Hash};
+use crate::CreateShipArgs;
 
 const SHIP_FEE: Coin = 3000000;
 
@@ -205,7 +204,7 @@ pub async fn create_ship(
             let vkey: Vec<u8> = Vec::from(args.witness.0);
             let public = Public::from_h256(args.witness);
             let signature: Vec<u8> =
-                Vec::from(crate::keystore::sign_with(keystore, &public, tx_hash)?.0);
+                Vec::from(keystore::sign_with(keystore, &public, tx_hash)?.0);
             transaction.transaction_witness_set =
                 <_>::from(vec![VKeyWitness::from((vkey, signature))]);
 

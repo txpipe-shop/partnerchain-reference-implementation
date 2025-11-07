@@ -22,111 +22,36 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
-use clap::Parser;
+use alloc::{string::String};
 use griffin_core::{
-    h224::H224,
     pallas_crypto::hash::Hasher as PallasHasher,
-    types::{Address, Input, Value},
+    types::Value,
 };
 use hex::FromHex;
-use jsonrpsee::http_client::{HttpClient, HttpClientBuilder};
-use parity_scale_codec::{Decode, Encode};
-use sp_core::H256;
-use std::path::PathBuf;
+use parity_scale_codec::{Encode};
 
 mod cli;
 mod command;
-mod game;
 mod keystore;
 mod order_book;
 mod rpc;
 mod sync;
+mod context;
+mod utils;
 
-use cli::{Cli, Command};
-
-/// The default RPC endpoint for the wallet to connect to
-const DEFAULT_ENDPOINT: &str = "http://localhost:9944";
+use cli::{Command};
+use context::{Context};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-
-    // Parse command line args
-    let cli = Cli::parse();
-
-    // If the user specified --tmp or --dev, then use a temporary directory.
-    let tmp = cli.tmp || cli.dev;
-
-    // Setup the data paths.
-    let data_path = match tmp {
-        true => temp_dir(),
-        _ => cli.base_path.unwrap_or_else(default_data_path),
-    };
-    let keystore_path = data_path.join("keystore");
-    let db_path = data_path.join("wallet_database");
-
-    // Setup the keystore
-    let keystore = sc_keystore::LocalKeystore::open(keystore_path.clone(), None)?;
-
-    if cli.dev {
-        // Insert the example Shawn key so example transactions can be signed.
-        crate::keystore::insert_development_key_for_this_session(&keystore)?;
-    }
-
-    // Setup jsonrpsee and endpoint-related information.
-    // https://github.com/paritytech/jsonrpsee/blob/master/examples/examples/http.rs
-    let client = HttpClientBuilder::default().build(cli.endpoint)?;
-
-    // Read node's genesis block.
-    let node_genesis_hash = rpc::node_get_block_hash(0, &client)
-        .await?
-        .expect("node should be able to return some genesis hash");
-    let node_genesis_block = rpc::node_get_block(node_genesis_hash, &client)
-        .await?
-        .expect("node should be able to return some genesis block");
-    log::debug!("Node's Genesis block::{:?}", node_genesis_hash);
-
-    if cli.purge_db {
-        std::fs::remove_dir_all(db_path.clone()).map_err(|e| {
-            log::warn!(
-                "Unable to remove database directory at {}\nPlease remove it manually.",
-                db_path.to_string_lossy()
-            );
-            e
-        })?;
-    }
-
-    // Open the local database
-    let db = sync::open_db(db_path, node_genesis_hash, node_genesis_block.clone())?;
-
-    let num_blocks =
-        sync::height(&db)?.expect("db should be initialized automatically when opening.");
-    log::info!("Number of blocks in the db: {num_blocks}");
-
-    if !sled::Db::was_recovered(&db) {
-        sync::apply_block(&db, node_genesis_block, node_genesis_hash).await?;
-    }
-
-    // Synchronize the wallet with attached node unless instructed otherwise.
-    if cli.no_sync {
-        log::warn!("Skipping sync with node. Using previously synced information.")
-    } else {
-        sync::synchronize(&db, &client).await?;
-
-        log::info!(
-            "Wallet database synchronized with node to height {:?}",
-            sync::height(&db)?.expect("We just synced, so there is a height available")
-        );
-    }
-
+    let Context {cli, client, db, keystore, data_path, keystore_path } = Context::<Command>::load_context().await.unwrap();
     // Dispatch to proper subcommand
     match cli.command {
         Some(Command::VerifyUtxo { input }) => {
             println!("Details of coin {}:", hex::encode(input.encode()));
 
             // Print the details from storage
-            let coin_from_storage = get_coin_from_storage(&input, &client).await?;
+            let coin_from_storage = utils::get_coin_from_storage(&input, &client).await?;
             print!("Found in storage.  Value: {:?}, ", coin_from_storage);
 
             // Print the details from the local db
@@ -144,13 +69,13 @@ async fn main() -> anyhow::Result<()> {
         Some(cli::Command::SpendValue(args)) => {
             command::spend_value(&db, &client, &keystore, args).await
         }
-        Some(Command::InsertKey { seed }) => crate::keystore::insert_key(&keystore, &seed),
+        Some(Command::InsertKey { seed }) => keystore::insert_key(&keystore, &seed),
         Some(Command::GenerateKey { password }) => {
-            crate::keystore::generate_key(&keystore, password)?;
+            keystore::generate_key(&keystore, password)?;
             Ok(())
         }
         Some(Command::ShowKeys) => {
-            crate::keystore::get_keys(&keystore)?.for_each(|pubkey| {
+            keystore::get_keys(&keystore)?.for_each(|pubkey| {
                 let pk_str: &str = &hex::encode(pubkey);
                 let hash: String =
                     PallasHasher::<224>::hash(&<[u8; 32]>::from_hex(pk_str).unwrap()).to_string();
@@ -170,7 +95,7 @@ async fn main() -> anyhow::Result<()> {
                 .expect("Failed to read line");
 
             if confirmation.trim() == "proceed" {
-                crate::keystore::remove_key(&keystore_path, &pub_key)
+                keystore::remove_key(&keystore_path, &pub_key)
             } else {
                 println!("Deletion aborted. That was close.");
                 Ok(())
@@ -219,16 +144,13 @@ async fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Some(cli::Command::BuildTx(args)) => command::build_tx(&db, &client, &keystore, args).await,
-        Some(cli::Command::CreateShip(args)) => {
-            game::create_ship(&db, &client, &keystore, args).await
-        }
         None => {
             log::info!("No Wallet Command invoked. Exiting.");
             Ok(())
         }
     }?;
 
-    if tmp {
+    if cli.tmp || cli.dev {
         // Cleanup the temporary directory.
         std::fs::remove_dir_all(data_path.clone()).map_err(|e| {
             log::warn!(
@@ -240,87 +162,4 @@ async fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
-}
-
-/// Parse a string into an H256 that represents a public key
-pub(crate) fn h256_from_string(s: &str) -> anyhow::Result<H256> {
-    let s = strip_0x_prefix(s);
-
-    let mut bytes: [u8; 32] = [0; 32];
-    hex::decode_to_slice(s, &mut bytes as &mut [u8])
-        .map_err(|_| clap::Error::new(clap::error::ErrorKind::ValueValidation))?;
-    Ok(H256::from(bytes))
-}
-
-/// Parse a string into an H224 that represents a policy ID.
-pub(crate) fn h224_from_string(s: &str) -> anyhow::Result<H224> {
-    let s = strip_0x_prefix(s);
-
-    let mut bytes: [u8; 28] = [0; 28];
-    hex::decode_to_slice(s, &mut bytes as &mut [u8])
-        .map_err(|_| clap::Error::new(clap::error::ErrorKind::ValueValidation))?;
-    Ok(H224::from(bytes))
-}
-
-/// Parse a string into an Address that represents a public key
-pub(crate) fn address_from_string(s: &str) -> anyhow::Result<Address> {
-    let s = strip_0x_prefix(s);
-
-    let mut bytes: [u8; 29] = [0; 29];
-    hex::decode_to_slice(s, &mut bytes as &mut [u8])
-        .map_err(|_| clap::Error::new(clap::error::ErrorKind::ValueValidation))?;
-    Ok(Address(Vec::from(bytes)))
-}
-
-/// Parse an output ref from a string
-fn input_from_string(s: &str) -> Result<Input, clap::Error> {
-    let s = strip_0x_prefix(s);
-    let bytes =
-        hex::decode(s).map_err(|_| clap::Error::new(clap::error::ErrorKind::ValueValidation))?;
-
-    Input::decode(&mut &bytes[..])
-        .map_err(|_| clap::Error::new(clap::error::ErrorKind::ValueValidation))
-}
-
-/// Takes a string and checks for a 0x prefix. Returns a string without a 0x prefix.
-fn strip_0x_prefix(s: &str) -> &str {
-    if &s[..2] == "0x" {
-        &s[2..]
-    } else {
-        s
-    }
-}
-
-/// Generate a plaform-specific temporary directory for the wallet
-fn temp_dir() -> PathBuf {
-    // Since it is only used for testing purpose, we don't need a secure temp dir, just a unique one.
-    std::env::temp_dir().join(format!(
-        "griffin-wallet-{}",
-        std::time::UNIX_EPOCH.elapsed().unwrap().as_millis(),
-    ))
-}
-
-/// Generate the platform-specific default data path for the wallet
-fn default_data_path() -> PathBuf {
-    // This uses the directories crate.
-    // https://docs.rs/directories/latest/directories/struct.ProjectDirs.html
-
-    // Application developers may want to put actual qualifiers or organization here
-    let qualifier = "";
-    let organization = "";
-    let application = env!("CARGO_PKG_NAME");
-
-    directories::ProjectDirs::from(qualifier, organization, application)
-        .expect("app directories exist on all supported platforms; qed")
-        .data_dir()
-        .into()
-}
-
-/// Given an output ref, fetch the details about its value from the node's
-/// storage.
-async fn get_coin_from_storage(input: &Input, client: &HttpClient) -> anyhow::Result<Value> {
-    let utxo = rpc::fetch_storage(input, client).await?;
-    let coin_in_storage: Value = utxo.value;
-
-    Ok(coin_in_storage)
 }
