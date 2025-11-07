@@ -5,7 +5,7 @@ use griffin_core::types::Input;
 use griffin_wallet::{context::Context, keystore, utils};
 use sp_core::H256;
 
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
 pub enum GameCommand {
     /// Create a ship to play the Asteria game
     CreateShip(CreateShipArgs),
@@ -27,7 +27,7 @@ impl GameCommand {
     }
 }
 
-#[derive(Debug, Args)]
+#[derive(Debug, Args, Clone)]
 pub struct CreateShipArgs {
     /// An input to be consumed by this transaction. This argument may be specified multiple times.
     #[arg(long, short, verbatim_doc_comment, value_parser = utils::input_from_string, required = true, value_name = "WALLET_OUTPUT_REF")]

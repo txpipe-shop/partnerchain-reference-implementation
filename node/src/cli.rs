@@ -104,8 +104,8 @@ pub enum Subcommand {
     /// Key management cli utilities
     #[command(subcommand)]
     Key(sc_cli::KeySubcommand),
-    
-    #[command(subcommand)]
+
+    #[clap(flatten)]
     Game(GameCommand),
 
     #[clap(flatten)]
