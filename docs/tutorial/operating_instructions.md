@@ -1,15 +1,13 @@
 # Operating instructions
 
-<p align="right">
+| **Previous:** [Partnerchain integration](partnerchain_integration.md) | **Next:** [Troubleshooting](troubleshooting.md) | **Back to:** [Tutorial root](README.md) |
 
-**Previous:** [Partnerchain integration](partnerchain_integration.md)
+---
 
-**Back to:** [Tutorial root](README.md)
-</p>
+| **Previous:** [Partnerchain integration](partnerchain_integration.md) | **Next:** [Troubleshooting](troubleshooting.md) | **Back to:** [Tutorial root](README.md) |
 
-<hrule>
-
-<p align="right">
-
-**Next:** [Troubleshooting](troubleshooting.md)
-</p>
+<!-- Local Variables: -->
+<!-- mode: Markdown -->
+<!-- ispell-local-dictionary: "american" -->
+<!-- fill-column: 100 -->
+<!-- End: -->

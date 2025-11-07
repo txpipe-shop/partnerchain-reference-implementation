@@ -1,16 +1,13 @@
 # Partnerchain integration
 
-<p align="right">
+| **Previous:** [Node customization](node_customization.md) | **Next:** [Operating instructions](operating_instructions.md) | **Back to:** [Tutorial root](README.md) |
 
-**Previous:** [Node customization](node_customization.md)
+---
 
-**Back to:** [Tutorial root](README.md)
-</p>
+| **Previous:** [Node customization](node_customization.md) | **Next:** [Operating instructions](operating_instructions.md) | **Back to:** [Tutorial root](README.md) |
 
-
-<hrule>
-
-<p align="right">
-
-**Next:** [Operating instructions](operating_instructions.md)
-</p>
+<!-- Local Variables: -->
+<!-- mode: Markdown -->
+<!-- ispell-local-dictionary: "american" -->
+<!-- fill-column: 100 -->
+<!-- End: -->

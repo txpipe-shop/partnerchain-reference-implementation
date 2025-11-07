@@ -34,9 +34,10 @@ We hope that the guide presented here helps you to set your particular use-case.
 - [Troubleshooting](troubleshooting.md) addresses some common pitfalls while editing and building
   Substrate nodes.
 
-<hrule>
+|  | **Next:** [Node customization](node_customization.md)|
 
-<p align="right">
-
-**Next:** [Node customization](node_customization.md)
-</p>
+<!-- Local Variables: -->
+<!-- mode: Markdown -->
+<!-- ispell-local-dictionary: "american" -->
+<!-- fill-column: 100 -->
+<!-- End: -->
