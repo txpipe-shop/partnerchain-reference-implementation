@@ -1,9 +1,9 @@
 # Node customization
 
-<p align="right">
+<div style="text-align: right">
 
 **Previous:** [Tutorial root](README.md)
-</p>
+</div>
 
 
 The customization of the Substrate node involves:
