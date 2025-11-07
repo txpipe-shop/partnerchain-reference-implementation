@@ -1,10 +1,14 @@
 # Partnerchain integration
 
-| **Previous:** [Node customization](node_customization.md) | **Next:** [Operating instructions](operating_instructions.md) | **Back to:** [Tutorial root](README.md) |
+| Previous                                    | Next                                                | Up                         |
+|---------------------------------------------|-----------------------------------------------------|----------------------------|
+| [Node customization](node_customization.md) | [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) |
 
 ---
 
-| **Previous:** [Node customization](node_customization.md) | **Next:** [Operating instructions](operating_instructions.md) | **Back to:** [Tutorial root](README.md) |
+| Previous                                    | Next                                                | Up                         |
+|---------------------------------------------|-----------------------------------------------------|----------------------------|
+| [Node customization](node_customization.md) | [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) |
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->

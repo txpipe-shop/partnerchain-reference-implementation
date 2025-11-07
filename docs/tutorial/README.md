@@ -34,7 +34,9 @@ We hope that the guide presented here helps you to set your particular use-case.
 - [Troubleshooting](troubleshooting.md) addresses some common pitfalls while editing and building
   Substrate nodes.
 
-|  | **Next:** [Node customization](node_customization.md)|
+| Next                                        |
+|---------------------------------------------|
+| [Node customization](node_customization.md) |
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->

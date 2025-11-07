@@ -1,6 +1,7 @@
 # Node customization
-
-| **Previous:** [Tutorial root](README.md) | **Next:** [Partnerchain integration](partnerchain_integration.md) | **Back to:** [Tutorial root](README.md) |
+| Previous                   | Next                                                    | Up                         |
+|----------------------------|---------------------------------------------------------|----------------------------|
+| [Tutorial root](README.md) | [Partnerchain integration](partnerchain_integration.md) | [Tutorial root](README.md) |
 
 The customization of the Substrate node involves:
 - [Installing the ledger](#installing-the-ledger) explains the process of adding the Griffin
@@ -1434,7 +1435,9 @@ diff --git a/node/src/service.rs b/node/src/service.rs
 ```
 </details>
 
-| **Previous:** [Tutorial root](README.md) | **Next:** [Partnerchain integration](partnerchain_integration.md) | **Back to:** [Tutorial root](README.md) |
+| Previous                   | Next                                                    | Up                         |
+|----------------------------|---------------------------------------------------------|----------------------------|
+| [Tutorial root](README.md) | [Partnerchain integration](partnerchain_integration.md) | [Tutorial root](README.md) |
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->
