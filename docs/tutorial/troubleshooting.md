@@ -1,0 +1,22 @@
+# Troubleshooting
+
+These are some common errors that can happen when developing on Substrate:
+
+### `std` related issues
+
+Errors like:
+
+- ``Double lang item in crate <crate> (which `std`/ `serde` depends on):...``
+- `Attempted to define built-in macro more than once`,
+
+happen commonly when using std crates in a non-std environment, like Substrate's runtime. `std` crates can't be used because we compile to WASM. If you run into an error like this and the crate you are using is no-std, make sure you are setting them up correctly. For example, make sure that the dependency is imported with `default-features = false` or that the `std` feature is set correctly in the respective `Cargo.toml`. If you are writing a new module, make sure that it is premised by `#![cfg_attr(not(feature = "std"), no_std)]`.
+
+### `alloc` feature
+
+When trying to use `alloc` features like `vec`, you might run into the trouble that the compiler can't find the `alloc` crate. This feature can be imported from various dependencies like `serde` and `serde_json`. To use it make sure to add `extern crate alloc;` at the top of your file.
+
+<!-- Local Variables: -->
+<!-- mode: Markdown -->
+<!-- ispell-local-dictionary: "american" -->
+<!-- fill-column: 100 -->
+<!-- End: -->
