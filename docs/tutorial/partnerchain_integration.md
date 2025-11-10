@@ -330,9 +330,9 @@ diff --git a/toolkit/partner-chains-cli/Cargo.toml b/toolkit/partner-chains-cli/
 
 We need to modify the `create_chain_spec` module, obtaining the authorities from the Genesis:
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/9bafbcac2b3fe483e6fb70faa443942c6f281b9c/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L31-L47
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/9bafbcac2b3fe483e6fb70faa443942c6f281b9c/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L31-L47
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/9bafbcac2b3fe483e6fb70faa443942c6f281b9c/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L189-L229
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/9bafbcac2b3fe483e6fb70faa443942c6f281b9c/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs#L189-L229
 
 We also have to remove references to FRAME pallets, and add necessary deps:
 
@@ -532,6 +532,7 @@ diff --git a/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs b/toolkit/p
 
 We also fine-tuned some of CLI messages (click to expand)
   </summary>
+
 ``` diff
 diff --git a/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs b/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs
 --- a/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs
@@ -576,17 +577,15 @@ diff --git a/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs b/toolkit/p
 
 At the runtime lib, we need to import `KeyTypeId` from `sp_core`,
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L25
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L25
 
 implement `cross_chain_app` in `opaque` module
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L80-L123
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L80-L123
 
 (note that `MaybeFromCandidateKeys` in that implementation belongs to the `authority-selection-inherents` package), define `CrossChainKey` within `impl_opaque_keys` macro, and finally add the `CrossChainPublic` type alias:
 
-        https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L127-L134
-
-
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/38773809024d12f643407f6e2e845bb359e5a16d/runtime/src/lib.rs#L127-L134
 
 | Previous                                    | Next                                                | Up                         |
 |---------------------------------------------|-----------------------------------------------------|----------------------------|
