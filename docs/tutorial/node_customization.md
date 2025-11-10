@@ -284,7 +284,7 @@ and for the runtime:
  ]
 ```
 
-### Runtime sources
+### Modifications at the runtime sources
 
 Setting up UTxO logic on top of a Polkadot/Substrate node requires extensive changes to the
 runtime. We will highlight below some of the steps involved.
@@ -966,7 +966,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 ```
 </details>
 
-### Node sources
+### Modifications at the node (client) sources
 
 There are fewer modifications to the client, but distributed across several files.
 
