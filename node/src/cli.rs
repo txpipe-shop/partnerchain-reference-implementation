@@ -2,6 +2,7 @@ use griffin_partner_chains_runtime::opaque::SessionKeys;
 use partner_chains_cli::{KeyDefinition, AURA, GRANDPA};
 use partner_chains_node_commands::{PartnerChainRuntime, PartnerChainsSubcommand};
 use game::GameCommand;
+use griffin_wallet::cli::WalletCommand;
 
 #[derive(Debug, Clone)]
 pub enum Consensus {
@@ -104,7 +105,11 @@ pub enum Subcommand {
     /// Key management cli utilities
     #[command(subcommand)]
     Key(sc_cli::KeySubcommand),
-
+    
+    #[clap(flatten)]
+    Wallet(WalletCommand),
+    
+    /// Commands to play the Asteria game
     #[clap(flatten)]
     Game(GameCommand),
 

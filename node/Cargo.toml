@@ -21,6 +21,7 @@ futures-timer = { workspace = true }
 griffin-core = { workspace = true }
 griffin-partner-chains-runtime = { workspace = true }
 griffin-rpc = { workspace = true }
+griffin-wallet = { workspace = true }
 game = { workspace = true }
 jsonrpsee = { features = ["server"], workspace = true }
 sc-basic-authorship = { workspace = true }

@@ -7,7 +7,13 @@ use sp_core::H256;
 
 #[derive(Clone, Debug, Subcommand)]
 pub enum GameCommand {
-    /// Create a ship to play the Asteria game
+    #[command(subcommand)]
+    Game(Command),
+}
+
+#[derive(Clone, Debug, Subcommand)]
+pub enum Command {
+    /// Create a ship to enter the game
     CreateShip(CreateShipArgs),
 }
 
@@ -15,12 +21,14 @@ impl GameCommand {
     pub async fn run(&self) -> sc_cli::Result<()> {
         let Context {cli, client, db, keystore, .. } = Context::<GameCommand>::load_context().await.unwrap();
         match cli.command {
-            Some(GameCommand::CreateShip(args)) => {
-                let _ = game::create_ship(&db, &client, &keystore, args).await;
-                Ok(())
-            }
+            Some(GameCommand::Game(cmd)) => match cmd {
+                Command::CreateShip(args) => {
+                    let _ = game::create_ship(&db, &client, &keystore, args).await;
+                    Ok(())
+                }
+            },
             None => {
-                log::info!("No Wallet Command invoked. Exiting.");
+                log::info!(" Asteria game");
                 Ok(())
             }
         }
