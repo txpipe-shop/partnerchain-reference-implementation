@@ -31,5 +31,6 @@ mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    cli::WalletCommand::run().await
+    let cmd = cli::WalletCommand::Wallet(cli::Command::ShowAllOutputs);
+    cmd.run().await
 }
