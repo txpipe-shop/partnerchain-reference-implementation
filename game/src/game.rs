@@ -16,6 +16,7 @@ use griffin_core::{
         compute_plutus_v2_script_hash, Address, AssetName, Coin, Datum, Input, Multiasset, Output,
         PlutusData, PlutusScript, PolicyId, Redeemer, RedeemerTag, Transaction, VKeyWitness, Value,
     },
+    uplc::tx::SlotConfig
 };
 use griffin_wallet::{cli::ShowOutputsAtArgs, keystore, sync};
 use jsonrpsee::{core::client::ClientT, http_client::HttpClient, rpc_params};
@@ -36,6 +37,7 @@ pub async fn create_ship(
     db: &Db,
     client: &HttpClient,
     keystore: &LocalKeystore,
+    slot_config: SlotConfig,
     args: CreateShipArgs,
 ) -> anyhow::Result<()> {
     log::debug!("The args are:: {:?}", args);
@@ -158,7 +160,7 @@ pub async fn create_ship(
                         PallasPlutusData::BoundedBytes(BoundedBytes(ship_name.0.clone().into())),
                         PallasPlutusData::BoundedBytes(BoundedBytes(pilot_name.0.clone().into())),
                         PallasPlutusData::BigInt(BigInt::BigUInt(BoundedBytes(
-                            1747081220000_u64.to_be_bytes().to_vec(),
+                            (slot_config.zero_time + slot_config.slot_length as u64 * args.ttl).to_be_bytes().to_vec(),
                         ))),
                     ]
                     .to_vec(),

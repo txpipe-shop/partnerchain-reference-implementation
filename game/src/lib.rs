@@ -19,11 +19,11 @@ pub enum Command {
 
 impl GameCommand {
     pub async fn run(&self) -> sc_cli::Result<()> {
-        let Context {cli, client, db, keystore, .. } = Context::<GameCommand>::load_context().await.unwrap();
+        let Context {cli, client, db, keystore, slot_config, .. } = Context::<GameCommand>::load_context().await.unwrap();
         match cli.command {
             Some(GameCommand::Game(cmd)) => match cmd {
                 Command::CreateShip(args) => {
-                    let _ = game::create_ship(&db, &client, &keystore, args).await;
+                    let _ = game::create_ship(&db, &client, &keystore, slot_config, args).await;
                     Ok(())
                 }
             },
