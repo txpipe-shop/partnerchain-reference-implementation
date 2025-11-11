@@ -2,7 +2,7 @@ use griffin_core::{
     h224::H224,
     types::{Address, Input, Value},
 };
-use parity_scale_codec::{Decode};
+use parity_scale_codec::Decode;
 use sp_core::H256;
 
 use crate::rpc;
@@ -58,7 +58,10 @@ fn strip_0x_prefix(s: &str) -> &str {
 
 /// Given an output ref, fetch the details about its value from the node's
 /// storage.
-pub async fn get_coin_from_storage(input: &Input, client: &jsonrpsee::http_client::HttpClient) -> anyhow::Result<Value> {
+pub async fn get_coin_from_storage(
+    input: &Input,
+    client: &jsonrpsee::http_client::HttpClient,
+) -> anyhow::Result<Value> {
     let utxo = rpc::fetch_storage(input, client).await?;
     let coin_in_storage: Value = utxo.value;
 

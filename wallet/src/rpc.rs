@@ -45,7 +45,10 @@ pub async fn fetch_storage(input: &Input, client: &HttpClient) -> anyhow::Result
 pub async fn node_get_zero_time(client: &HttpClient) -> anyhow::Result<Option<u64>> {
     let params = rpc_params![hex::encode(str::from_utf8(ZERO_TIME).unwrap())];
     let rpc_response: Option<String> = client.request("state_getStorage", params).await?;
-    let time_bytes: [u8; 8] = hex::decode(rpc_response.unwrap().strip_prefix("0x").unwrap()).unwrap().try_into().unwrap();
+    let time_bytes: [u8; 8] = hex::decode(rpc_response.unwrap().strip_prefix("0x").unwrap())
+        .unwrap()
+        .try_into()
+        .unwrap();
     let time = u64::from_le_bytes(time_bytes);
     Ok(Some(time))
 }
@@ -54,7 +57,10 @@ pub async fn node_get_zero_time(client: &HttpClient) -> anyhow::Result<Option<u6
 pub async fn node_get_zero_slot(client: &HttpClient) -> anyhow::Result<Option<u64>> {
     let params = rpc_params![hex::encode(str::from_utf8(ZERO_SLOT).unwrap())];
     let rpc_response: Option<String> = client.request("state_getStorage", params).await?;
-    let slot_bytes: [u8; 8] = hex::decode(rpc_response.unwrap().strip_prefix("0x").unwrap()).unwrap().try_into().unwrap();
+    let slot_bytes: [u8; 8] = hex::decode(rpc_response.unwrap().strip_prefix("0x").unwrap())
+        .unwrap()
+        .try_into()
+        .unwrap();
     let slot = u64::from_le_bytes(slot_bytes);
     Ok(Some(slot))
 }
@@ -63,7 +69,10 @@ pub async fn node_get_zero_slot(client: &HttpClient) -> anyhow::Result<Option<u6
 pub async fn node_get_slot_length(client: &HttpClient) -> anyhow::Result<Option<u32>> {
     let params = rpc_params![hex::encode(str::from_utf8(SLOT_LENGTH).unwrap())];
     let rpc_response: Option<String> = client.request("state_getStorage", params).await?;
-    let slot_length_bytes: [u8; 4] = hex::decode(rpc_response.unwrap().strip_prefix("0x").unwrap()).unwrap().try_into().unwrap();
+    let slot_length_bytes: [u8; 4] = hex::decode(rpc_response.unwrap().strip_prefix("0x").unwrap())
+        .unwrap()
+        .try_into()
+        .unwrap();
     let slot_length = u32::from_le_bytes(slot_length_bytes);
     Ok(Some(slot_length))
 }

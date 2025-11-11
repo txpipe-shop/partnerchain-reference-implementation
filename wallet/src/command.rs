@@ -23,7 +23,7 @@ use parity_scale_codec::Encode;
 use sc_keystore::LocalKeystore;
 use serde::{Deserialize, Serialize};
 use sled::Db;
-use sp_core::{H256, ed25519::Public};
+use sp_core::{ed25519::Public, H256};
 use sp_runtime::traits::{BlakeTwo256, Hash};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]

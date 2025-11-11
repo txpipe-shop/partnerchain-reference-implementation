@@ -1,6 +1,6 @@
 mod game;
 
-use clap::{Subcommand, Args};
+use clap::{Args, Subcommand};
 use griffin_core::types::Input;
 use griffin_wallet::{context::Context, keystore, utils};
 use sp_core::H256;
@@ -19,7 +19,14 @@ pub enum Command {
 
 impl GameCommand {
     pub async fn run(&self) -> sc_cli::Result<()> {
-        let Context {cli, client, db, keystore, slot_config, .. } = Context::<GameCommand>::load_context().await.unwrap();
+        let Context {
+            cli,
+            client,
+            db,
+            keystore,
+            slot_config,
+            ..
+        } = Context::<GameCommand>::load_context().await.unwrap();
         match cli.command {
             Some(GameCommand::Game(cmd)) => match cmd {
                 Command::CreateShip(args) => {
@@ -46,20 +53,10 @@ pub struct CreateShipArgs {
     #[arg(long, verbatim_doc_comment, value_parser = utils::h256_from_string, default_value = keystore::SHAWN_PUB_KEY, value_name = "PUBLIC_KEY")]
     pub witness: H256,
 
-    #[arg(
-        long,
-        verbatim_doc_comment,
-        required = true,
-        value_name = "POS_X"
-    )]
+    #[arg(long, verbatim_doc_comment, required = true, value_name = "POS_X")]
     pub pos_x: i16,
 
-    #[arg(
-        long,
-        verbatim_doc_comment,
-        required = true,
-        value_name = "POS_Y"
-    )]
+    #[arg(long, verbatim_doc_comment, required = true, value_name = "POS_Y")]
     pub pos_y: i16,
 
     #[arg(

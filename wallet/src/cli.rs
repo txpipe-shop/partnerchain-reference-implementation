@@ -5,19 +5,21 @@ extern crate alloc;
 use std::path::PathBuf;
 
 use crate::{
-    utils::{address_from_string, h224_from_string, h256_from_string, input_from_string},
+    command,
+    context::{Context, DEFAULT_ENDPOINT},
+    keystore,
     keystore::{SHAWN_ADDRESS, SHAWN_PUB_KEY},
-    context::{DEFAULT_ENDPOINT, Context},
-    command, sync, keystore, utils
+    sync, utils,
+    utils::{address_from_string, h224_from_string, h256_from_string, input_from_string},
 };
-use alloc::{string::String};
+use alloc::string::String;
 use clap::{ArgAction::Append, Args, Parser, Subcommand};
 use griffin_core::{
     pallas_crypto::hash::Hasher as PallasHasher,
-    types::{Address, Coin, Input, Value, PolicyId},
+    types::{Address, Coin, Input, PolicyId, Value},
 };
 use hex::FromHex;
-use parity_scale_codec::{Encode};
+use parity_scale_codec::Encode;
 use sp_core::H256;
 
 /// The wallet's main CLI struct
@@ -59,115 +61,122 @@ pub struct Cli<T: clap::Subcommand + clap::FromArgMatches> {
 #[derive(Clone, Debug, Subcommand)]
 pub enum WalletCommand {
     #[command(subcommand)]
-    Wallet(Command)
+    Wallet(Command),
 }
 
 impl WalletCommand {
     pub async fn run(&self) -> anyhow::Result<()> {
-        let Context {cli, client, db, keystore, data_path, keystore_path, slot_config: _ } = Context::<WalletCommand>::load_context().await.unwrap();
+        let Context {
+            cli,
+            client,
+            db,
+            keystore,
+            data_path,
+            keystore_path,
+            slot_config: _,
+        } = Context::<WalletCommand>::load_context().await.unwrap();
         // Dispatch to proper subcommand
         match cli.command {
-            Some(WalletCommand::Wallet(cmd)) => 
-                match cmd {
-                    Command::VerifyUtxo { input } => {
-                        println!("Details of coin {}:", hex::encode(input.encode()));
-        
-                        // Print the details from storage
-                        let coin_from_storage = utils::get_coin_from_storage(&input, &client).await?;
-                        print!("Found in storage.  Value: {:?}, ", coin_from_storage);
-        
-                        // Print the details from the local db
-                        match sync::get_unspent(&db, &input)? {
-                            Some((owner, amount, _)) => {
-                                println!("Found in local db. Value: {amount:?}, owned by {owner}");
-                            }
-                            None => {
-                                println!("Not found in local db");
-                            }
+            Some(WalletCommand::Wallet(cmd)) => match cmd {
+                Command::VerifyUtxo { input } => {
+                    println!("Details of coin {}:", hex::encode(input.encode()));
+
+                    // Print the details from storage
+                    let coin_from_storage = utils::get_coin_from_storage(&input, &client).await?;
+                    print!("Found in storage.  Value: {:?}, ", coin_from_storage);
+
+                    // Print the details from the local db
+                    match sync::get_unspent(&db, &input)? {
+                        Some((owner, amount, _)) => {
+                            println!("Found in local db. Value: {amount:?}, owned by {owner}");
                         }
-        
-                        Ok(())
+                        None => {
+                            println!("Not found in local db");
+                        }
                     }
-                    Command::SpendValue(args) => {
-                        command::spend_value(&db, &client, &keystore, args).await
-                    }
-                    Command::InsertKey { seed } => keystore::insert_key(&keystore, &seed),
-                    Command::GenerateKey { password } => {
-                        keystore::generate_key(&keystore, password)?;
-                        Ok(())
-                    }
-                    Command::ShowKeys => {
-                        keystore::get_keys(&keystore)?.for_each(|pubkey| {
-                            let pk_str: &str = &hex::encode(pubkey);
-                            let hash: String =
-                                PallasHasher::<224>::hash(&<[u8; 32]>::from_hex(pk_str).unwrap()).to_string();
-                            println!("key: 0x{}; addr: 0x61{}", pk_str, hash);
-                        });
-        
-                        Ok(())
-                    }
-                    Command::RemoveKey { pub_key } => {
-                        println!(
+
+                    Ok(())
+                }
+                Command::SpendValue(args) => {
+                    command::spend_value(&db, &client, &keystore, args).await
+                }
+                Command::InsertKey { seed } => keystore::insert_key(&keystore, &seed),
+                Command::GenerateKey { password } => {
+                    keystore::generate_key(&keystore, password)?;
+                    Ok(())
+                }
+                Command::ShowKeys => {
+                    keystore::get_keys(&keystore)?.for_each(|pubkey| {
+                        let pk_str: &str = &hex::encode(pubkey);
+                        let hash: String =
+                            PallasHasher::<224>::hash(&<[u8; 32]>::from_hex(pk_str).unwrap())
+                                .to_string();
+                        println!("key: 0x{}; addr: 0x61{}", pk_str, hash);
+                    });
+
+                    Ok(())
+                }
+                Command::RemoveKey { pub_key } => {
+                    println!(
                             "CAUTION!!! About permanently remove {pub_key}. This action CANNOT BE REVERSED. Type \"proceed\" to confirm deletion."
                         );
-        
-                        let mut confirmation = String::new();
-                        std::io::stdin()
-                            .read_line(&mut confirmation)
-                            .expect("Failed to read line");
-        
-                        if confirmation.trim() == "proceed" {
-                            keystore::remove_key(&keystore_path, &pub_key)
-                        } else {
-                            println!("Deletion aborted. That was close.");
-                            Ok(())
-                        }
-                    }
-                    Command::ShowBalance => {
-                        println!("Balance Summary");
-                        let mut total = Value::Coin(0);
-                        let balances = sync::get_balances(&db)?;
-                        for (account, balance) in balances {
-                            total += balance.clone();
-                            println!("{account}: {balance}");
-                        }
-                        println!("{:-<58}", "");
-                        println!("Total:   {}", total.normalize());
-        
+
+                    let mut confirmation = String::new();
+                    std::io::stdin()
+                        .read_line(&mut confirmation)
+                        .expect("Failed to read line");
+
+                    if confirmation.trim() == "proceed" {
+                        keystore::remove_key(&keystore_path, &pub_key)
+                    } else {
+                        println!("Deletion aborted. That was close.");
                         Ok(())
                     }
-                    Command::ShowAllOutputs => {
-                        println!("###### Unspent outputs ###########");
-                        sync::show_outputs(sync::print_unspent_tree(&db)?);
-                        println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
-                        Ok(())
+                }
+                Command::ShowBalance => {
+                    println!("Balance Summary");
+                    let mut total = Value::Coin(0);
+                    let balances = sync::get_balances(&db)?;
+                    for (account, balance) in balances {
+                        total += balance.clone();
+                        println!("{account}: {balance}");
                     }
-                    Command::ShowOutputsAt(args) => {
-                        println!(
-                            "###### Unspent outputs at address {} ###########",
-                            args.address
-                        );
-                        sync::show_outputs(sync::get_outputs_at(&db, args)?);
-                        println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
-                        Ok(())
-                    }
-                    Command::ShowOutputsWithAsset(args) => {
-                        println!(
+                    println!("{:-<58}", "");
+                    println!("Total:   {}", total.normalize());
+
+                    Ok(())
+                }
+                Command::ShowAllOutputs => {
+                    println!("###### Unspent outputs ###########");
+                    sync::show_outputs(sync::print_unspent_tree(&db)?);
+                    println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
+                    Ok(())
+                }
+                Command::ShowOutputsAt(args) => {
+                    println!(
+                        "###### Unspent outputs at address {} ###########",
+                        args.address
+                    );
+                    sync::show_outputs(sync::get_outputs_at(&db, args)?);
+                    println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
+                    Ok(())
+                }
+                Command::ShowOutputsWithAsset(args) => {
+                    println!(
                             "###### Unspent outputs containing asset with name {} and policy ID {} ###########",
                             args.name, args.policy
                         );
-                        sync::show_outputs(sync::get_outputs_with_asset(&db, args)?);
-                        println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
-                        Ok(())
-                    }
-                    Command::ShowAllOrders => {
-                        println!("###### Available Orders ###########");
-                        sync::print_orders(&db)?;
-                        Ok(())
-                    },
-                    Command::BuildTx(args) => command::build_tx(&db, &client, &keystore, args).await,
-
-                },
+                    sync::show_outputs(sync::get_outputs_with_asset(&db, args)?);
+                    println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
+                    Ok(())
+                }
+                Command::ShowAllOrders => {
+                    println!("###### Available Orders ###########");
+                    sync::print_orders(&db)?;
+                    Ok(())
+                }
+                Command::BuildTx(args) => command::build_tx(&db, &client, &keystore, args).await,
+            },
             None => {
                 log::info!("No Wallet Command invoked. Exiting.");
                 Ok(())

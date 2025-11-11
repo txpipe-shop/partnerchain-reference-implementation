@@ -22,11 +22,11 @@
 
 mod cli;
 mod command;
+mod context;
 mod keystore;
 mod order_book;
 mod rpc;
 mod sync;
-mod context;
 mod utils;
 
 #[tokio::main]
