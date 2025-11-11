@@ -12,6 +12,7 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
 {
     "zero_time": 1747081100000,
     "zero_slot": 0,
+    "slot_length": 3000,
     "outputs": [
         {
             "address": "6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4",
