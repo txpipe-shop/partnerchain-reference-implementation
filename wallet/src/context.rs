@@ -1,5 +1,6 @@
 use crate::{sync, rpc, cli::Cli};
 use clap::Parser;
+use griffin_core::uplc::tx::SlotConfig;
 use jsonrpsee::http_client::{HttpClient, HttpClientBuilder};
 use std::path::PathBuf;
 
@@ -13,6 +14,7 @@ pub struct Context<T: clap::Subcommand + clap::FromArgMatches> {
     pub keystore: sc_keystore::LocalKeystore,
     pub data_path: PathBuf,
     pub keystore_path: PathBuf,
+    pub slot_config: SlotConfig,
 }
 
 impl<T: clap::Subcommand + clap::FromArgMatches> Context<T> {
@@ -53,6 +55,21 @@ impl<T: clap::Subcommand + clap::FromArgMatches> Context<T> {
             .await?
             .expect("node should be able to return some genesis block");
         log::debug!("Node's Genesis block::{:?}", node_genesis_hash);
+
+        let zero_time = rpc::node_get_zero_time(&client)
+            .await?
+            .expect("node should be able to return zero time");
+        let zero_slot = rpc::node_get_zero_slot(&client)
+            .await?
+            .expect("node should be able to return zero slot");
+        let slot_length = rpc::node_get_slot_length(&client)
+            .await?
+            .expect("node should be able to return slot length");
+        let slot_config = SlotConfig {
+            zero_time,
+            zero_slot,
+            slot_length,
+        };
     
         if cli.purge_db {
             std::fs::remove_dir_all(db_path.clone()).map_err(|e| {
@@ -88,7 +105,7 @@ impl<T: clap::Subcommand + clap::FromArgMatches> Context<T> {
         };
     
         Ok(Context {
-            cli, client, db, keystore, data_path, keystore_path
+            cli, client, db, keystore, data_path, keystore_path, slot_config
         })
     }
 }

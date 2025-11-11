@@ -64,7 +64,7 @@ pub enum WalletCommand {
 
 impl WalletCommand {
     pub async fn run(&self) -> anyhow::Result<()> {
-        let Context {cli, client, db, keystore, data_path, keystore_path } = Context::<WalletCommand>::load_context().await.unwrap();
+        let Context {cli, client, db, keystore, data_path, keystore_path, slot_config: _ } = Context::<WalletCommand>::load_context().await.unwrap();
         // Dispatch to proper subcommand
         match cli.command {
             Some(WalletCommand::Wallet(cmd)) => 
