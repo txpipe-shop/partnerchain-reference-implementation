@@ -146,28 +146,14 @@ pub async fn create_ship(
                 shipyard_policy,
             });
 
-            let ship_datum = PallasPlutusData::from(PallasPlutusData::Constr(Constr {
-                tag: 121,
-                any_constructor: None,
-                fields: Indef(
-                    [
-                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
-                            args.pos_x,
-                        )))),
-                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
-                            args.pos_y,
-                        )))),
-                        PallasPlutusData::BoundedBytes(BoundedBytes(ship_name.0.clone().into())),
-                        PallasPlutusData::BoundedBytes(BoundedBytes(pilot_name.0.clone().into())),
-                        PallasPlutusData::BigInt(BigInt::BigUInt(BoundedBytes(
-                            (slot_config.zero_time + slot_config.slot_length as u64 * args.ttl)
-                                .to_be_bytes()
-                                .to_vec(),
-                        ))),
-                    ]
-                    .to_vec(),
-                ),
-            }));
+            let ship_datum = PallasPlutusData::from(ShipDatum::Ok {
+                pos_x: args.pos_x,
+                pos_y: args.pos_y,
+                ship_token_name: ship_name.clone(),
+                pilot_token_name: pilot_name.clone(),
+                last_move_latest_time: slot_config.zero_time
+                    + args.ttl * slot_config.slot_length as u64,
+            });
 
             transaction.transaction_body.inputs = inputs;
 

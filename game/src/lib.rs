@@ -53,10 +53,22 @@ pub struct CreateShipArgs {
     #[arg(long, verbatim_doc_comment, value_parser = utils::h256_from_string, default_value = keystore::SHAWN_PUB_KEY, value_name = "PUBLIC_KEY")]
     pub witness: H256,
 
-    #[arg(long, verbatim_doc_comment, required = true, value_name = "POS_X")]
+    #[arg(
+        long,
+        verbatim_doc_comment,
+        required = true,
+        allow_negative_numbers = true,
+        value_name = "POS_X"
+    )]
     pub pos_x: i16,
 
-    #[arg(long, verbatim_doc_comment, required = true, value_name = "POS_Y")]
+    #[arg(
+        long,
+        verbatim_doc_comment,
+        required = true,
+        allow_negative_numbers = true,
+        value_name = "POS_Y"
+    )]
     pub pos_y: i16,
 
     #[arg(
