@@ -346,7 +346,7 @@ We also have to remove references to FRAME pallets, and add necessary deps:
 <details>
   <summary>
 
-**Removals and imports at `create_chain_spec/mod.rs`** (click to expand)
+*Removals and imports at `create_chain_spec/mod.rs`* (click to expand)
   </summary>
 
 ``` diff
@@ -585,7 +585,7 @@ diff --git a/toolkit/partner-chains-cli/src/create_chain_spec/mod.rs b/toolkit/p
 <details>
   <summary>
 
-**Removals from `toolkit/cli/`** (click to expand)
+*Removals from `toolkit/cli/`* (click to expand)
   </summary>
 
 ``` diff
@@ -818,10 +818,17 @@ index 5cbd01b..42ffde9 100644
 
 #### `smart-contracts`
 
+From this package, we also remove
+```
+toolkit/smart-contracts/commands/src/bridge.rs
+toolkit/smart-contracts/commands/src/reserve.rs
+```
+and all references to them in the code.
+
 <details>
   <summary>
 
-**Removals from `toolkit/smart-contracts/`** (click to expand)
+*Removals from `toolkit/smart-contracts/`* (click to expand)
   </summary>
 
 ``` diff
@@ -1003,7 +1010,7 @@ CLI.
 <details>
   <summary>
 
-**Implementation at `node/src/`** (click to expand)
+*Implementation at `node/src/`* (click to expand)
   </summary>
 
 ``` diff

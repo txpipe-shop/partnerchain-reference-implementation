@@ -90,7 +90,8 @@ We also add Griffin dependencies:
 
 ``` diff
  scale-info = { version = "2.11.6", default-features = false }
- serde_json = { version = "1.0.132", default-features = false }
+-serde_json = { version = "1.0.132", default-features = false }
++serde_json = { version = "1.0.132", default-features = false, features = ["alloc"] }
  
 +# griffin deps
 +sc-chain-spec = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2", default-features = false }
@@ -179,17 +180,27 @@ Click the block below to see the rather long diff:
 +thiserror = { version = "2.0", default-features = false }
  codec = { version = "3.7.4", default-features = false, package = "parity-scale-codec" }
  scale-info = { version = "2.11.6", default-features = false }
- serde_json = { version = "1.0.132", default-features = false }
+-serde_json = { version = "1.0.132", default-features = false }
++serde_json = { version = "1.0.132", default-features = false, features = ["alloc"] }
 ```
 </details>
 
 #### Package dependencies
 
-This processes has to be repeated for all packages in the workspace. For the node,
+This processes has to be repeated for all packages in the workspace. For the node, we also change
+its name to `griffin-partner-chains-node`:
 
 ``` diff
+diff --git a/node/Cargo.toml b/node/Cargo.toml
 --- a/node/Cargo.toml
 +++ b/node/Cargo.toml
+@@ -1,5 +1,5 @@
+ [package]
+-name = "minimal-template-node"
++name = "griffin-partner-chains-node"
+ description = "A minimal Substrate-based Substrate node, ready for hacking."
+ version = "0.1.0"
+ license = "Unlicense"
 @@ -20,14 +20,33 @@ futures = { features = ["thread-pool"], workspace = true }
  futures-timer = { workspace = true }
  jsonrpsee = { features = ["server"], workspace = true }
