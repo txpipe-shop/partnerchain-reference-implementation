@@ -19,6 +19,8 @@ pub enum Command {
     GatherFuel(GatherFuelArgs),
     /// Move a ship to a new position
     MoveShip(MoveShipArgs),
+    /// Mine Asteria using a ship
+    MineAsteria(MineAsteriaArgs),
 }
 
 impl GameCommand {
@@ -43,6 +45,10 @@ impl GameCommand {
                 }
                 Command::MoveShip(args) => {
                     let _ = game::move_ship(&db, &client, &keystore, slot_config, args).await;
+                    Ok(())
+                }
+                Command::MineAsteria(args) => {
+                    let _ = game::mine_asteria(&db, &client, &keystore, args).await;
                     Ok(())
                 }
             },
@@ -172,4 +178,24 @@ pub struct MoveShipArgs {
         value_name = "TIME_TO_LIVE"
     )]
     pub ttl: u64,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct MineAsteriaArgs {
+    #[arg(long, short, verbatim_doc_comment, value_parser = utils::input_from_string, required = true, value_name = "SHIP_OUTPUT_REF")]
+    pub ship: Input,
+
+    /// 32-byte H256 public key of an input owner.
+    /// Their pk/sk pair must be registered in the wallet's keystore.
+    #[arg(long, short, verbatim_doc_comment, value_parser = utils::h256_from_string, default_value = keystore::SHAWN_PUB_KEY, value_name = "PUBLIC_KEY")]
+    pub witness: H256,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "VALIDITY_INTERVAL_START"
+    )]
+    pub validity_interval_start: u64,
 }
