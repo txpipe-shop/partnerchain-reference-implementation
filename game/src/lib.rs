@@ -15,6 +15,8 @@ pub enum GameCommand {
 pub enum Command {
     /// Create a ship to enter the game
     CreateShip(CreateShipArgs),
+    /// Gather fuel using a ship and a fuel pellet
+    GatherFuel(GatherFuelArgs),
 }
 
 impl GameCommand {
@@ -31,6 +33,10 @@ impl GameCommand {
             Some(GameCommand::Game(cmd)) => match cmd {
                 Command::CreateShip(args) => {
                     let _ = game::create_ship(&db, &client, &keystore, slot_config, args).await;
+                    Ok(())
+                }
+                Command::GatherFuel(args) => {
+                    let _ = game::gather_fuel(&db, &client, &keystore, args).await;
                     Ok(())
                 }
             },
@@ -79,4 +85,36 @@ pub struct CreateShipArgs {
         value_name = "TIME_TO_LIVE"
     )]
     pub ttl: u64,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct GatherFuelArgs {
+    #[arg(long, short, verbatim_doc_comment, value_parser = utils::input_from_string, required = true, value_name = "SHIP_OUTPUT_REF")]
+    pub ship: Input,
+
+    #[arg(long, short, verbatim_doc_comment, value_parser = utils::input_from_string, required = true, value_name = "PELLET_OUTPUT_REF")]
+    pub pellet: Input,
+
+    /// 32-byte H256 public key of an input owner.
+    /// Their pk/sk pair must be registered in the wallet's keystore.
+    #[arg(long, short, verbatim_doc_comment, value_parser = utils::h256_from_string, default_value = keystore::SHAWN_PUB_KEY, value_name = "PUBLIC_KEY")]
+    pub witness: H256,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "FUEL_AMOUNT"
+    )]
+    pub fuel: u64,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "VALIDITY_INTERVAL_START"
+    )]
+    pub validity_interval_start: u64,
 }

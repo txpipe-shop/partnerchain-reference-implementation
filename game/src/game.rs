@@ -1,4 +1,4 @@
-use crate::CreateShipArgs;
+use crate::{CreateShipArgs, GatherFuelArgs};
 use anyhow::anyhow;
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
@@ -19,7 +19,10 @@ use griffin_core::{
     },
     uplc::tx::SlotConfig,
 };
-use griffin_wallet::{cli::ShowOutputsAtArgs, keystore, sync};
+use griffin_wallet::{
+    cli::{ShowOutputsAtArgs, ShowOutputsWithAssetArgs},
+    keystore, sync,
+};
 use jsonrpsee::{core::client::ClientT, http_client::HttpClient, rpc_params};
 use parity_scale_codec::Encode;
 use sc_keystore::LocalKeystore;
@@ -252,6 +255,200 @@ pub async fn create_ship(
     }
 }
 
+pub async fn gather_fuel(
+    db: &Db,
+    client: &HttpClient,
+    keystore: &LocalKeystore,
+    args: GatherFuelArgs,
+) -> anyhow::Result<()> {
+    log::debug!("The args are:: {:?}", args);
+
+    let spacetime_script: PlutusScript = PlutusScript(hex::decode(SHIP_SCRIPT_HEX).unwrap());
+    let shipyard_policy: PolicyId = compute_plutus_v2_script_hash(spacetime_script.clone());
+
+    let pellet_script: PlutusScript = PlutusScript(hex::decode(PELLET_SCRIPT_HEX).unwrap());
+    let pellet_policy: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
+
+    // Construct a template Transaction to push coins into later
+    let mut transaction = Transaction::from((Vec::new(), Vec::new()));
+
+    let (spacetime_address, ship_value, ship_datum) =
+        sync::get_unspent(db, &args.ship)?.expect("Ship UTxO not found");
+    let (pellet_address, pellet_value, pellet_datum) =
+        sync::get_unspent(db, &args.pellet)?.expect("Pellet UTxO not found");
+
+    let ship_datum_option = ship_datum.clone().map(|d| ShipDatum::from(d));
+
+    if let Some(ShipDatum::Ok {
+        pos_x: _,
+        pos_y: _,
+        ship_token_name: _,
+        pilot_token_name,
+        last_move_latest_time: _,
+    }) = ship_datum_option
+    {
+        let fuel_name = AssetName::from("FUEL".to_string());
+
+        let pilot_utxos = sync::get_outputs_with_asset(
+            db,
+            ShowOutputsWithAssetArgs {
+                policy: shipyard_policy,
+                name: pilot_token_name.0,
+            },
+        )?;
+
+        if pilot_utxos.len() == 0 {
+            Err(anyhow!("Pilot UTxO not found"))?;
+        }
+        let pilot_utxo = &pilot_utxos[0];
+
+        let mut inputs = vec![
+            args.ship.clone(),
+            args.pellet.clone(),
+            pilot_utxo.input.clone(),
+        ];
+        let ordered_inputs: Vec<Input> = {
+            // Lexicographically order inputs by tx_hash and index
+            inputs.sort_by(|a, b| {
+                if a.tx_hash == b.tx_hash {
+                    a.index.cmp(&b.index)
+                } else {
+                    a.tx_hash.cmp(&b.tx_hash)
+                }
+            });
+            inputs.clone()
+        };
+        transaction.transaction_body.inputs = inputs;
+
+        // BUILD REDEEMERS
+        let ship_redeemer = Redeemer {
+            tag: RedeemerTag::Spend,
+            index: ordered_inputs.iter().position(|i| *i == args.ship).unwrap() as u32,
+            data: PlutusData::from(PallasPlutusData::Constr(Constr {
+                tag: 122,
+                any_constructor: None,
+                fields: Indef(
+                    [PallasPlutusData::Constr(Constr {
+                        tag: 122,
+                        any_constructor: None,
+                        fields: Indef(
+                            [PallasPlutusData::BigInt(BigInt::Int(Int(
+                                minicbor::data::Int::from(args.fuel),
+                            )))]
+                            .to_vec(),
+                        ),
+                    })]
+                    .to_vec(),
+                ),
+            })),
+        };
+
+        let pellet_redeemer = Redeemer {
+            tag: RedeemerTag::Spend,
+            index: ordered_inputs
+                .iter()
+                .position(|i| *i == args.pellet)
+                .unwrap() as u32,
+            data: PlutusData::from(PallasPlutusData::Constr(Constr {
+                tag: 122,
+                any_constructor: None,
+                fields: Indef(
+                    [PallasPlutusData::Constr(Constr {
+                        tag: 121,
+                        any_constructor: None,
+                        fields: Indef(
+                            [PallasPlutusData::BigInt(BigInt::Int(Int(
+                                minicbor::data::Int::from(args.fuel),
+                            )))]
+                            .to_vec(),
+                        ),
+                    })]
+                    .to_vec(),
+                ),
+            })),
+        };
+
+        let outputs = vec![
+            Output {
+                address: pilot_utxo.address.clone(),
+                value: pilot_utxo.value.clone(),
+                datum_option: pilot_utxo.datum_option.clone(),
+            },
+            Output {
+                address: pellet_address,
+                value: pellet_value - Value::from((pellet_policy, fuel_name.clone(), args.fuel)),
+                datum_option: pellet_datum,
+            },
+            Output {
+                address: spacetime_address,
+                value: ship_value + Value::from((pellet_policy, fuel_name, args.fuel)),
+                datum_option: ship_datum,
+            },
+        ];
+
+        for output in outputs {
+            transaction.transaction_body.outputs.push(output.clone());
+        }
+
+        transaction.transaction_body.validity_interval_start = Some(args.validity_interval_start);
+
+        let pallas_tx: PallasTransaction = <_>::from(transaction.clone());
+        let cbor_bytes: Vec<u8> = babbage_tx_to_cbor(&pallas_tx);
+        let mtx: MintedTx = babbage_minted_tx_from_cbor(&cbor_bytes);
+        let tx_hash: &Vec<u8> = &Vec::from(mtx.transaction_body.original_hash().as_ref());
+        log::debug!("Original tx_body hash is: {:#x?}", tx_hash);
+
+        let vkey: Vec<u8> = Vec::from(args.witness.0);
+        let public = Public::from_h256(args.witness);
+        let signature: Vec<u8> =
+            Vec::from(crate::keystore::sign_with(keystore, &public, tx_hash)?.0);
+        transaction.transaction_witness_set = <_>::from(vec![VKeyWitness::from((vkey, signature))]);
+
+        transaction.transaction_witness_set.redeemer = Some(vec![ship_redeemer, pellet_redeemer]);
+        transaction.transaction_witness_set.plutus_script =
+            Some(vec![spacetime_script, pellet_script]);
+
+        log::debug!("Griffin transaction is: {:#x?}", transaction);
+        let pallas_tx: PallasTransaction = <_>::from(transaction.clone());
+        log::debug!("Babbage transaction is: {:#x?}", pallas_tx);
+
+        // Send the transaction
+        let genesis_spend_hex = hex::encode(Encode::encode(&transaction));
+        let params = rpc_params![genesis_spend_hex];
+        let genesis_spend_response: Result<String, _> =
+            client.request("author_submitExtrinsic", params).await;
+        log::info!(
+            "Node's response to spend transaction: {:?}",
+            genesis_spend_response
+        );
+        if let Err(_) = genesis_spend_response {
+            Err(anyhow!("Node did not accept the transaction"))?;
+        } else {
+            println!(
+                "Transaction queued. When accepted, the following UTxOs will become available:"
+            );
+            // Print new output refs for user to check later
+            let tx_hash = <BlakeTwo256 as Hash>::hash_of(&Encode::encode(&transaction));
+            for (i, output) in transaction.transaction_body.outputs.iter().enumerate() {
+                let new_value_ref = Input {
+                    tx_hash,
+                    index: i as u32,
+                };
+                let amount = &output.value;
+
+                println!(
+                    "{:?} worth {amount:?}.",
+                    hex::encode(Encode::encode(&new_value_ref))
+                );
+            }
+        }
+
+        Ok(())
+    } else {
+        Err(anyhow!("Malformed Ship Datum"))?
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum AsteriaDatum {
     Ok {
@@ -319,6 +516,102 @@ impl From<PallasPlutusData> for AsteriaDatum {
             }
         } else {
             AsteriaDatum::MalformedAsteriaDatum
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum ShipDatum {
+    Ok {
+        pos_x: i16,
+        pos_y: i16,
+        ship_token_name: AssetName,
+        pilot_token_name: AssetName,
+        last_move_latest_time: u64,
+    },
+    MalformedShipDatum,
+}
+
+impl From<ShipDatum> for Datum {
+    fn from(ship_datum: ShipDatum) -> Self {
+        Datum(PlutusData::from(PallasPlutusData::from(ship_datum)).0)
+    }
+}
+
+impl From<Datum> for ShipDatum {
+    fn from(datum: Datum) -> Self {
+        <_>::from(PallasPlutusData::from(PlutusData(datum.0)))
+    }
+}
+
+impl From<ShipDatum> for PallasPlutusData {
+    fn from(ship_datum: ShipDatum) -> Self {
+        match ship_datum {
+            ShipDatum::Ok {
+                pos_x,
+                pos_y,
+                ship_token_name,
+                pilot_token_name,
+                last_move_latest_time,
+            } => PallasPlutusData::from(PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                            pos_x,
+                        )))),
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                            pos_y,
+                        )))),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(
+                            ship_token_name.0.clone().into(),
+                        )),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(
+                            pilot_token_name.0.clone().into(),
+                        )),
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                            last_move_latest_time,
+                        )))),
+                    ]
+                    .to_vec(),
+                ),
+            })),
+            ShipDatum::MalformedShipDatum => {
+                PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(-1))))
+            }
+        }
+    }
+}
+
+impl From<PallasPlutusData> for ShipDatum {
+    fn from(data: PallasPlutusData) -> Self {
+        if let PallasPlutusData::Constr(Constr {
+            tag: 121,
+            any_constructor: None,
+            fields: Indef(ship_datum),
+        }) = data
+        {
+            if let [PallasPlutusData::BigInt(BigInt::Int(Int(pos_x))), PallasPlutusData::BigInt(BigInt::Int(Int(pos_y))), PallasPlutusData::BoundedBytes(BoundedBytes(ship_name_vec)), PallasPlutusData::BoundedBytes(BoundedBytes(pilot_name_vec)), PallasPlutusData::BigInt(BigInt::Int(Int(last_move_latest_time)))] =
+                &ship_datum[..]
+            {
+                ShipDatum::Ok {
+                    pos_x: TryFrom::<minicbor::data::Int>::try_from(*pos_x).unwrap(),
+                    pos_y: TryFrom::<minicbor::data::Int>::try_from(*pos_y).unwrap(),
+                    ship_token_name: AssetName(String::from_utf8(ship_name_vec.to_vec()).unwrap()),
+                    pilot_token_name: AssetName(
+                        String::from_utf8(pilot_name_vec.to_vec()).unwrap(),
+                    ),
+                    last_move_latest_time: TryFrom::<minicbor::data::Int>::try_from(
+                        *last_move_latest_time,
+                    )
+                    .unwrap(),
+                }
+            } else {
+                ShipDatum::MalformedShipDatum
+            }
+        } else {
+            ShipDatum::MalformedShipDatum
         }
     }
 }

@@ -390,7 +390,7 @@ pub fn get_outputs_at(
 }
 
 /// Print the unspent outputs with a specific asset.
-pub(crate) fn get_outputs_with_asset(
+pub fn get_outputs_with_asset(
     db: &Db,
     args: crate::cli::ShowOutputsWithAssetArgs,
 ) -> anyhow::Result<Vec<ResolvedInputInfo>> {
