@@ -9,15 +9,16 @@
 The inclusion of the partner-chain toolkit allows us to create some UTxOs in Cardano that rule some aspects of the partner chain. We’ll briefly go over what these are and then we’ll go through the instructions to set up the partner chain using the wizards.
 
 The UTxOs that will be created on the cardano side are the following;
-- Governance init UTxO: identifies the partner chain, it’s unique for each chain.
-- Permissioned-candidates UTxO: holds the list of permissioned candidates for the list. It can be updated.
-- D-Parameter UTxO: holds the D-Parameter, which is the ratio of permissioned to registered candidates on the committee. It is updatable as well.
+- *Governance init UTxO*: identifies the partner chain, it’s unique for each chain.
+- *Permissioned-candidates UTxO*: holds the list of permissioned candidates for the list. It can be updated.
+- *D-Parameter UTxO*: holds the D-Parameter, which is the ratio of permissioned to registered candidates on the committee. It is updatable as well.
 
-### Instructions:
+### Instructions
 
 #### Build the node
 
-You can build the `griffin-partner-chains-node` with the following command:
+You can build the `griffin-partner-chains-node` with the following command (recall the convenience
+of using our [`rust-toolchain.toml`](../../rust-toolchain.toml) at the repo root):
 
 ```bash
 cargo build --release -p griffin-partner-chains-node
