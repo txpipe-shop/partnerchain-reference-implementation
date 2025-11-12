@@ -17,6 +17,8 @@ pub enum Command {
     CreateShip(CreateShipArgs),
     /// Gather fuel using a ship and a fuel pellet
     GatherFuel(GatherFuelArgs),
+    /// Move a ship to a new position
+    MoveShip(MoveShipArgs),
 }
 
 impl GameCommand {
@@ -37,6 +39,10 @@ impl GameCommand {
                 }
                 Command::GatherFuel(args) => {
                     let _ = game::gather_fuel(&db, &client, &keystore, args).await;
+                    Ok(())
+                }
+                Command::MoveShip(args) => {
+                    let _ = game::move_ship(&db, &client, &keystore, slot_config, args).await;
                     Ok(())
                 }
             },
@@ -117,4 +123,53 @@ pub struct GatherFuelArgs {
         value_name = "VALIDITY_INTERVAL_START"
     )]
     pub validity_interval_start: u64,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct MoveShipArgs {
+    #[arg(long, short, verbatim_doc_comment, value_parser = utils::input_from_string, required = true, value_name = "SHIP_OUTPUT_REF")]
+    pub ship: Input,
+
+    /// 32-byte H256 public key of an input owner.
+    /// Their pk/sk pair must be registered in the wallet's keystore.
+    #[arg(long, short, verbatim_doc_comment, value_parser = utils::h256_from_string, default_value = keystore::SHAWN_PUB_KEY, value_name = "PUBLIC_KEY")]
+    pub witness: H256,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        allow_negative_numbers = true,
+        value_name = "POS_X"
+    )]
+    pub pos_x: i16,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        allow_negative_numbers = true,
+        value_name = "POS_Y"
+    )]
+    pub pos_y: i16,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "VALIDITY_INTERVAL_START"
+    )]
+    pub validity_interval_start: u64,
+
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "TIME_TO_LIVE"
+    )]
+    pub ttl: u64,
 }

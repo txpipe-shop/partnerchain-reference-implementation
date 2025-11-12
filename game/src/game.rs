@@ -1,4 +1,4 @@
-use crate::{CreateShipArgs, GatherFuelArgs};
+use crate::{CreateShipArgs, GatherFuelArgs, MoveShipArgs};
 use anyhow::anyhow;
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
@@ -391,6 +391,205 @@ pub async fn gather_fuel(
         }
 
         transaction.transaction_body.validity_interval_start = Some(args.validity_interval_start);
+
+        let pallas_tx: PallasTransaction = <_>::from(transaction.clone());
+        let cbor_bytes: Vec<u8> = babbage_tx_to_cbor(&pallas_tx);
+        let mtx: MintedTx = babbage_minted_tx_from_cbor(&cbor_bytes);
+        let tx_hash: &Vec<u8> = &Vec::from(mtx.transaction_body.original_hash().as_ref());
+        log::debug!("Original tx_body hash is: {:#x?}", tx_hash);
+
+        let vkey: Vec<u8> = Vec::from(args.witness.0);
+        let public = Public::from_h256(args.witness);
+        let signature: Vec<u8> =
+            Vec::from(crate::keystore::sign_with(keystore, &public, tx_hash)?.0);
+        transaction.transaction_witness_set = <_>::from(vec![VKeyWitness::from((vkey, signature))]);
+
+        transaction.transaction_witness_set.redeemer = Some(vec![ship_redeemer, pellet_redeemer]);
+        transaction.transaction_witness_set.plutus_script =
+            Some(vec![spacetime_script, pellet_script]);
+
+        log::debug!("Griffin transaction is: {:#x?}", transaction);
+        let pallas_tx: PallasTransaction = <_>::from(transaction.clone());
+        log::debug!("Babbage transaction is: {:#x?}", pallas_tx);
+
+        // Send the transaction
+        let genesis_spend_hex = hex::encode(Encode::encode(&transaction));
+        let params = rpc_params![genesis_spend_hex];
+        let genesis_spend_response: Result<String, _> =
+            client.request("author_submitExtrinsic", params).await;
+        log::info!(
+            "Node's response to spend transaction: {:?}",
+            genesis_spend_response
+        );
+        if let Err(_) = genesis_spend_response {
+            Err(anyhow!("Node did not accept the transaction"))?;
+        } else {
+            println!(
+                "Transaction queued. When accepted, the following UTxOs will become available:"
+            );
+            // Print new output refs for user to check later
+            let tx_hash = <BlakeTwo256 as Hash>::hash_of(&Encode::encode(&transaction));
+            for (i, output) in transaction.transaction_body.outputs.iter().enumerate() {
+                let new_value_ref = Input {
+                    tx_hash,
+                    index: i as u32,
+                };
+                let amount = &output.value;
+
+                println!(
+                    "{:?} worth {amount:?}.",
+                    hex::encode(Encode::encode(&new_value_ref))
+                );
+            }
+        }
+
+        Ok(())
+    } else {
+        Err(anyhow!("Malformed Ship Datum"))?
+    }
+}
+
+pub async fn move_ship(
+    db: &Db,
+    client: &HttpClient,
+    keystore: &LocalKeystore,
+    slot_config: SlotConfig,
+    args: MoveShipArgs,
+) -> anyhow::Result<()> {
+    log::debug!("The args are:: {:?}", args);
+
+    let spacetime_script: PlutusScript = PlutusScript(hex::decode(SHIP_SCRIPT_HEX).unwrap());
+    let shipyard_policy: PolicyId = compute_plutus_v2_script_hash(spacetime_script.clone());
+
+    let pellet_script: PlutusScript = PlutusScript(hex::decode(PELLET_SCRIPT_HEX).unwrap());
+    let pellet_policy: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
+
+    // Construct a template Transaction to push coins into later
+    let mut transaction = Transaction::from((Vec::new(), Vec::new()));
+
+    let (spacetime_address, ship_value, ship_datum) =
+        sync::get_unspent(db, &args.ship)?.expect("Ship UTxO not found");
+
+    let ship_datum_option = ship_datum.clone().map(|d| ShipDatum::from(d));
+
+    if let Some(ShipDatum::Ok {
+        pos_x,
+        pos_y,
+        ship_token_name,
+        pilot_token_name,
+        last_move_latest_time: _,
+    }) = ship_datum_option
+    {
+        // Asset Names
+        let fuel_name = AssetName::from("FUEL".to_string());
+
+        let pilot_utxos = sync::get_outputs_with_asset(
+            db,
+            ShowOutputsWithAssetArgs {
+                policy: shipyard_policy,
+                name: pilot_token_name.clone().0,
+            },
+        )?;
+
+        if pilot_utxos.len() == 0 {
+            Err(anyhow!("Pilot UTxO not found"))?;
+        }
+        let pilot_utxo = &pilot_utxos[0];
+
+        let mut inputs = vec![args.ship.clone(), pilot_utxo.input.clone()];
+        let ordered_inputs: Vec<Input> = {
+            // Lexicographically order inputs by tx_hash and index
+            inputs.sort_by(|a, b| {
+                if a.tx_hash == b.tx_hash {
+                    a.index.cmp(&b.index)
+                } else {
+                    a.tx_hash.cmp(&b.tx_hash)
+                }
+            });
+            inputs.clone()
+        };
+        transaction.transaction_body.inputs = inputs;
+
+        // BURNS
+        let moved_manhattan_distance = (pos_x - args.pos_x).abs() + (pos_y - args.pos_y).abs();
+        let moved_manhattan_distance_i64: i64 = moved_manhattan_distance.try_into().unwrap();
+        let burn_fuel: Option<Multiasset<i64>> = Some(Multiasset::from((
+            pellet_policy,
+            fuel_name.clone(),
+            -moved_manhattan_distance_i64,
+        )));
+
+        // BUILD REDEEMERS
+        let ship_redeemer = Redeemer {
+            tag: RedeemerTag::Spend,
+            index: ordered_inputs.iter().position(|i| *i == args.ship).unwrap() as u32,
+            data: PlutusData::from(PallasPlutusData::Constr(Constr {
+                tag: 122,
+                any_constructor: None,
+                fields: Indef(
+                    [PallasPlutusData::Constr(Constr {
+                        tag: 121,
+                        any_constructor: None,
+                        fields: Indef(
+                            [
+                                PallasPlutusData::BigInt(BigInt::Int(Int(
+                                    minicbor::data::Int::from(args.pos_x - pos_x),
+                                ))),
+                                PallasPlutusData::BigInt(BigInt::Int(Int(
+                                    minicbor::data::Int::from(args.pos_y - pos_y),
+                                ))),
+                            ]
+                            .to_vec(),
+                        ),
+                    })]
+                    .to_vec(),
+                ),
+            })),
+        };
+
+        let pellet_redeemer = Redeemer {
+            tag: RedeemerTag::Mint,
+            index: 0,
+            data: PlutusData::from(PallasPlutusData::Constr(Constr {
+                tag: 122,
+                any_constructor: None,
+                fields: Indef([].to_vec()),
+            })),
+        };
+
+        let ship_output_datum = PallasPlutusData::from(ShipDatum::Ok {
+            pos_x: args.pos_x,
+            pos_y: args.pos_y,
+            ship_token_name,
+            pilot_token_name,
+            last_move_latest_time: slot_config.zero_time
+                + args.ttl * slot_config.slot_length as u64,
+        });
+
+        let outputs = vec![
+            Output {
+                address: pilot_utxo.address.clone(),
+                value: pilot_utxo.value.clone(),
+                datum_option: pilot_utxo.datum_option.clone(),
+            },
+            Output {
+                address: spacetime_address,
+                value: ship_value
+                    - Value::from((
+                        pellet_policy,
+                        fuel_name,
+                        moved_manhattan_distance.try_into().unwrap(),
+                    )),
+                datum_option: Some(Datum(PlutusData::from(ship_output_datum.clone()).0)),
+            },
+        ];
+
+        for output in outputs {
+            transaction.transaction_body.outputs.push(output.clone());
+        }
+        transaction.transaction_body.mint = burn_fuel;
+        transaction.transaction_body.validity_interval_start = Some(args.validity_interval_start);
+        transaction.transaction_body.ttl = Some(args.ttl);
 
         let pallas_tx: PallasTransaction = <_>::from(transaction.clone());
         let cbor_bytes: Vec<u8> = babbage_tx_to_cbor(&pallas_tx);
