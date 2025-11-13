@@ -21,6 +21,8 @@ pub enum Command {
     MoveShip(MoveShipArgs),
     /// Mine Asteria using a ship
     MineAsteria(MineAsteriaArgs),
+    /// Apply parameters and write game scripts
+    DeployScripts(DeployScriptsArgs),
 }
 
 impl GameCommand {
@@ -49,6 +51,10 @@ impl GameCommand {
                 }
                 Command::MineAsteria(args) => {
                     let _ = game::mine_asteria(&db, &client, &keystore, args).await;
+                    Ok(())
+                }
+                Command::DeployScripts(args) => {
+                    let _ = game::deploy_scripts(args).await;
                     Ok(())
                 }
             },
@@ -198,4 +204,16 @@ pub struct MineAsteriaArgs {
         value_name = "VALIDITY_INTERVAL_START"
     )]
     pub validity_interval_start: u64,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct DeployScriptsArgs {
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "SCRIPTS_PARAMS_PATH"
+    )]
+    pub params: String,
 }

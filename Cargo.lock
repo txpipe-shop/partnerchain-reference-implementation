@@ -3335,6 +3335,8 @@ dependencies = [
  "parity-scale-codec",
  "sc-cli",
  "sc-keystore",
+ "serde",
+ "serde_json",
  "sled",
  "sp-core",
  "sp-runtime",

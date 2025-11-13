@@ -1,4 +1,4 @@
-use crate::{CreateShipArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs};
+use crate::{CreateShipArgs, DeployScriptsArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs};
 use anyhow::anyhow;
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
@@ -8,16 +8,19 @@ use griffin_core::{
         utils::{Int, MaybeIndefArray::Indef},
     },
     pallas_crypto::hash::Hash as PallasHash,
-    pallas_primitives::babbage::{
-        BigInt, BoundedBytes, Constr, MintedTx, PlutusData as PallasPlutusData,
-        Tx as PallasTransaction,
+    pallas_primitives::{
+        babbage::{
+            BigInt, BoundedBytes, Constr, MintedTx, PlutusData as PallasPlutusData,
+            Tx as PallasTransaction,
+        },
+        Fragment,
     },
     pallas_traverse::OriginalHash,
     types::{
         compute_plutus_v2_script_hash, Address, AssetName, Coin, Datum, Input, Multiasset, Output,
         PlutusData, PlutusScript, PolicyId, Redeemer, RedeemerTag, Transaction, VKeyWitness, Value,
     },
-    uplc::tx::SlotConfig,
+    uplc::tx::{apply_params_to_script, SlotConfig},
 };
 use griffin_wallet::{
     cli::{ShowOutputsAtArgs, ShowOutputsWithAssetArgs},
@@ -26,6 +29,7 @@ use griffin_wallet::{
 use jsonrpsee::{core::client::ClientT, http_client::HttpClient, rpc_params};
 use parity_scale_codec::Encode;
 use sc_keystore::LocalKeystore;
+use serde::{Deserialize, Serialize};
 use sled::Db;
 use sp_core::ed25519::Public;
 use sp_runtime::traits::{BlakeTwo256, Hash};
@@ -893,6 +897,140 @@ pub async fn mine_asteria(
     }
 }
 
+pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
+    log::debug!("The args are:: {:?}", args);
+
+    let params_json: String = std::fs::read_to_string(args.params)?;
+    let params: ScriptsParams =
+        serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
+
+    let asteria_params = PallasPlutusData::Array(Indef(
+        [
+            PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BoundedBytes(BoundedBytes(
+                            hex::decode(params.admin_policy.clone()).unwrap(),
+                        )),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(
+                            params.admin_name.clone().into(),
+                        )),
+                    ]
+                    .to_vec(),
+                ),
+            }),
+            PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                params.ship_mint_lovelace_fee,
+            )))),
+            PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                params.max_asteria_mining,
+            )))),
+        ]
+        .to_vec(),
+    ));
+
+    let asteria_script = PlutusScript(
+        apply_params_to_script(
+            asteria_params.encode_fragment().unwrap().as_slice(),
+            hex::decode(ASTERIA_PARAMETERIZED).unwrap().as_slice(),
+        )
+        .unwrap(),
+    );
+    let asteria_hash: PolicyId = compute_plutus_v2_script_hash(asteria_script.clone());
+
+    let pellet_params = PallasPlutusData::Array(Indef(
+        [PallasPlutusData::Constr(Constr {
+            tag: 121,
+            any_constructor: None,
+            fields: Indef(
+                [
+                    PallasPlutusData::BoundedBytes(BoundedBytes(
+                        hex::decode(params.admin_policy.clone()).unwrap(),
+                    )),
+                    PallasPlutusData::BoundedBytes(BoundedBytes(params.admin_name.clone().into())),
+                ]
+                .to_vec(),
+            ),
+        })]
+        .to_vec(),
+    ));
+
+    let pellet_script = PlutusScript(
+        apply_params_to_script(
+            pellet_params.encode_fragment().unwrap().as_slice(),
+            hex::decode(PELLET_PARAMETERIZED).unwrap().as_slice(),
+        )
+        .unwrap(),
+    );
+    let pellet_hash: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
+
+    let spacetime_params = PallasPlutusData::Array(Indef(
+        [
+            PallasPlutusData::BoundedBytes(BoundedBytes(pellet_hash.0.to_vec())),
+            PallasPlutusData::BoundedBytes(BoundedBytes(asteria_hash.0.to_vec())),
+            PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BoundedBytes(BoundedBytes(
+                            hex::decode(params.admin_policy.clone()).unwrap(),
+                        )),
+                        PallasPlutusData::BoundedBytes(BoundedBytes(
+                            params.admin_name.clone().into(),
+                        )),
+                    ]
+                    .to_vec(),
+                ),
+            }),
+            PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                            params.max_speed.distance,
+                        )))),
+                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                            params.max_speed.time,
+                        )))),
+                    ]
+                    .to_vec(),
+                ),
+            }),
+            PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                params.max_ship_fuel,
+            )))),
+            PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                params.fuel_per_step,
+            )))),
+            PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                params.initial_fuel,
+            )))),
+            PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
+                params.min_asteria_distance,
+            )))),
+        ]
+        .to_vec(),
+    ));
+
+    let spacetime_script = PlutusScript(
+        apply_params_to_script(
+            spacetime_params.encode_fragment().unwrap().as_slice(),
+            hex::decode(SPACETIME_PARAMETERIZED).unwrap().as_slice(),
+        )
+        .unwrap(),
+    );
+
+    std::fs::write(PELLET_PATH, hex::encode(pellet_script.0)).unwrap();
+    std::fs::write(ASTERIA_PATH, hex::encode(asteria_script.0)).unwrap();
+    std::fs::write(SPACETIME_PATH, hex::encode(spacetime_script.0)).unwrap();
+    println!("All scripts written successfully!");
+    Ok(())
+}
+
 fn quanity_of(value: &Value, policy: &PolicyId, name: &AssetName) -> u64 {
     if let Value::Multiasset(_, ma) = value {
         if let Some(assets) = ma.0.get(policy) {
@@ -909,6 +1047,25 @@ fn coin_of(value: &Value) -> u64 {
         Value::Coin(c) => *c,
         Value::Multiasset(c, _) => *c,
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct ScriptsParams {
+    admin_policy: String,
+    admin_name: String,
+    fuel_per_step: u64,
+    initial_fuel: u64,
+    max_speed: Speed,
+    max_ship_fuel: u64,
+    max_asteria_mining: u64,
+    min_asteria_distance: u64,
+    ship_mint_lovelace_fee: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct Speed {
+    distance: u64,
+    time: u64,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
