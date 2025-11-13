@@ -1,4 +1,4 @@
-use crate::{CreateShipArgs, DeployScriptsArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs};
+use crate::{CreateShipArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs};
 use anyhow::anyhow;
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
@@ -17,7 +17,7 @@ use griffin_core::{
     },
     pallas_traverse::OriginalHash,
     types::{
-        compute_plutus_v2_script_hash, Address, AssetName, Coin, Datum, Input, Multiasset, Output,
+        compute_plutus_v2_script_hash, Address, AssetName, Datum, Input, Multiasset, Output,
         PlutusData, PlutusScript, PolicyId, Redeemer, RedeemerTag, Transaction, VKeyWitness, Value,
     },
     uplc::tx::{apply_params_to_script, SlotConfig},
@@ -44,6 +44,7 @@ const PELLET_PARAMETERIZED: &str = "590d2701000032323232323232323232323232322223
 const ASTERIA_PATH: &str = "game/src/scripts/asteria.txt";
 const SPACETIME_PATH: &str = "game/src/scripts/spacetime.txt";
 const PELLET_PATH: &str = "game/src/scripts/pellet.txt";
+const DEPLOY_PARAMS_PATH: &str = "game/src/deploy_params.json";
 
 pub async fn create_ship(
     db: &Db,
@@ -706,7 +707,6 @@ pub async fn mine_asteria(
         ))?;
     }
     let asteria = &asterias[0];
-    let rewards = coin_of(&asteria.value) * MAX_ASTERIA_MINING / 100;
 
     let (_spacetime_address, ship_value, ship_datum) =
         sync::get_unspent(db, &args.ship)?.expect("Ship UTxO not found");
@@ -818,13 +818,13 @@ pub async fn mine_asteria(
             Output {
                 address: pilot_utxo.address.clone(),
                 value: pilot_utxo.value.clone()
-                    + Value::Coin(rewards)
+                    + Value::Coin(args.mine_coin_amount)
                     + Value::Coin(coin_of(&ship_value)),
                 datum_option: pilot_utxo.datum_option.clone(),
             },
             Output {
                 address: asteria.address.clone(),
-                value: asteria.value.clone() - Value::Coin(rewards),
+                value: asteria.value.clone() - Value::Coin(args.mine_coin_amount),
                 datum_option: asteria.datum_option.clone(),
             },
         ];
@@ -897,10 +897,8 @@ pub async fn mine_asteria(
     }
 }
 
-pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
-    log::debug!("The args are:: {:?}", args);
-
-    let params_json: String = std::fs::read_to_string(args.params)?;
+pub async fn deploy_scripts() -> anyhow::Result<()> {
+    let params_json: String = std::fs::read_to_string(DEPLOY_PARAMS_PATH)?;
     let params: ScriptsParams =
         serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
 
