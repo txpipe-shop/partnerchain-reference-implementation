@@ -1,8 +1,8 @@
 # Partnerchain integration
 
-| Previous                                    | Next                                                | Up                         |
-|---------------------------------------------|-----------------------------------------------------|----------------------------|
-| [Node customization](node_customization.md) | [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) |
+| Previous                                    | Next                                            | Up                         |
+|---------------------------------------------|-------------------------------------------------|----------------------------|
+| [Node customization](node_customization.md) | [Use-case application](use_case_application.md) | [Tutorial root](README.md) |
 
 ## Dependencies
 
@@ -1133,9 +1133,9 @@ diff --git a/node/src/command.rs b/node/src/command.rs
 ```
 </details>
 
-| Previous                                    | Next                                                | Up                         |
-|---------------------------------------------|-----------------------------------------------------|----------------------------|
-| [Node customization](node_customization.md) | [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) |
+| Previous                                    | Next                                            | Up                         |
+|---------------------------------------------|-------------------------------------------------|----------------------------|
+| [Node customization](node_customization.md) | [Use-case application](use_case_application.md) | [Tutorial root](README.md) |
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->

@@ -6,10 +6,14 @@
 The customization of the Substrate node involves:
 - [Installing the ledger](#installing-the-ledger) explains the process of adding the Griffin
   ledger. This requires extensive editing of the runtime, which is detailed in [Runtime
-  sources](#runtime-sources). The node client requires fewer modifications, which are detailed in
-  [Node Sources](node-sources).
+  sources](#modifications-at-the-runtime-sources). The node client requires fewer modifications, which are detailed in
+  [Node Sources](#modifications-at-the-node-sources).
 
-- [Partnerchain integration](partnerchain_integration.md).
+- [Partnerchain integration](partnerchain_integration.md) brings code from the IOG's PC SDK to the
+  repo and tweaks it to our needs.
+
+- [Use-case application](use_case_application.md) gives some hints on how to interface your
+  application to the modified node.
 
 ## Requisites
 

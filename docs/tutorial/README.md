@@ -22,21 +22,26 @@ We hope that the guide presented here helps you to set your particular use-case.
 ## Index
 
 - [Node customization](node_customization.md) involves:
+
   - [Installing the ledger](node_customization.md#installing-the-ledger) explains the process of adding the Griffin
     ledger. This requires extensive editing of the runtime, which is detailed in [Runtime
-    sources](node_customization.md#runtime-sources). The node client requires fewer modifications, which are detailed in
-    [Node Sources](node_customization.md#node-sources).
+    sources](node_customization.md#modifications-at-the-runtime-sources). The node client requires fewer modifications, which are detailed in
+    [Node Sources](node_customization.md#modifications-at-the-node-sources).
 
-  - [Partnerchain integration](partnerchain_integration.md).
+  - [Partnerchain integration](partnerchain_integration.md) explains how to integrate the PC SDK
+    into our node; in particular, that it can be used without relying on FRAME pallets.
+
+  - [Use-case application](use_case_application.md) gives broad hints on how to integrate your
+    application to a modified node.
 
 - [Operating instructions](operating_instructions.md).
 
 - [Troubleshooting](troubleshooting.md) addresses some common pitfalls while editing and building
   Substrate nodes.
 
-| Next                                        |
-|---------------------------------------------|
-| [Node customization](node_customization.md) |
+| Next                                        | Up                           |
+|---------------------------------------------|------------------------------|
+| [Node customization](node_customization.md) | [Root README](../../README.md) |
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->
