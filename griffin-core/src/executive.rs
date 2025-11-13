@@ -35,7 +35,7 @@ use crate::{
     utxo_set::TransparentUtxoSet,
     EXTRINSIC_KEY, HEADER_KEY, HEIGHT_KEY, LOG_TARGET,
 };
-use crate::{MILLI_SECS_PER_SLOT, ZERO_SLOT, ZERO_TIME};
+use crate::{SLOT_LENGTH, ZERO_SLOT, ZERO_TIME};
 use alloc::{collections::btree_set::BTreeSet, string::String, vec::Vec};
 use log::debug;
 use parity_scale_codec::{Decode, Encode};
@@ -107,7 +107,7 @@ where
         let slot_config = SlotConfig {
             zero_time: Self::zero_time(),
             zero_slot: Self::zero_slot(),
-            slot_length: MILLI_SECS_PER_SLOT,
+            slot_length: Self::slot_length(),
         };
         let phase_two_result = eval_phase_two(
             &conway_mtx,
@@ -319,6 +319,13 @@ where
         sp_io::storage::get(ZERO_SLOT)
             .and_then(|d| u64::decode(&mut &*d).ok())
             .expect("Failed to read ZERO_SLOT from storage.")
+    }
+
+    /// A helper function that allows griffin runtimes to read the millisecs per slot
+    pub fn slot_length() -> u32 {
+        sp_io::storage::get(SLOT_LENGTH)
+            .and_then(|d| u32::decode(&mut &*d).ok())
+            .expect("Failed to read SLOT_LENGTH from storage.")
     }
 
     // These next three methods are for the block authoring workflow.

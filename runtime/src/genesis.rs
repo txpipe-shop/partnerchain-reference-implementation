@@ -12,6 +12,7 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
 {
     "zero_time": 1747081100000,
     "zero_slot": 0,
+    "slot_length": 3000,
     "outputs": [
         {
             "address": "6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4",
@@ -25,15 +26,30 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
             "datum": "820080"
         },
         {
-            "address": "61547932e40a24e2b7deb41f31af21ed57acd125f4ed8a72b626b3d7f6",
-            "coin": 314150000,
+            "address": "70bac1753d5f7e3609c92776371fd0eafa753889e5712858f48fb83981",
+            "coin": 500000000,
             "value": [
                     {
-                        "policy": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005",
-                        "assets": [ ["tokenA", 300000000], ["tokenB", 2000000000] ]
+                        "policy": "516238dd0a79bac4bebe041c44bad8bf880d74720733d2fc0d255d28",
+                        "assets": [ ["asteriaAdmin", 1] ]
                     }
                     ],
-            "datum": "820080"
+            "datum": "D8799F00581C7BA97FB6E48018EF131DD08916939350C0CE7050534F8E51B5E0E3A4FF"
+        },
+        {
+            "address": "706a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
+            "coin": 2000,
+            "value": [
+                    {
+                        "policy": "6a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
+                        "assets": [ ["FUEL", 80] ]
+                    },
+                    {
+                        "policy": "516238dd0a79bac4bebe041c44bad8bf880d74720733d2fc0d255d28",
+                        "assets": [ ["asteriaAdmin", 1] ]
+                    }
+                    ],
+            "datum": "d8799f2703581c7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4ff"
         },
         {
             "address": "0000000000000000000000000000000000000000000000000000000000",

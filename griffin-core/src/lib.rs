@@ -37,7 +37,7 @@ pub mod utxo_set;
 pub use executive::Executive;
 
 /// The Aura slot duration. When things are working well, this will also be the block time.
-pub const MILLI_SECS_PER_SLOT: u32 = 3000;
+pub const SLOT_LENGTH: &[u8] = b"slot-length";
 
 /// A storage key that will store the slot number of the first block in the chain.
 pub const ZERO_SLOT: &[u8] = b"zero-slot";

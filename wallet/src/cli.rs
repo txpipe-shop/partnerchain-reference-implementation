@@ -1,19 +1,31 @@
 //! Test Wallet's Command Line Interface.
 
+extern crate alloc;
+
 use std::path::PathBuf;
 
 use crate::{
-    address_from_string, h224_from_string, h256_from_string, input_from_string,
+    command,
+    context::{Context, DEFAULT_ENDPOINT},
+    keystore,
     keystore::{SHAWN_ADDRESS, SHAWN_PUB_KEY},
-    DEFAULT_ENDPOINT, H256,
+    sync, utils,
+    utils::{address_from_string, h224_from_string, h256_from_string, input_from_string},
 };
+use alloc::string::String;
 use clap::{ArgAction::Append, Args, Parser, Subcommand};
-use griffin_core::types::{Address, Coin, Input, PolicyId};
+use griffin_core::{
+    pallas_crypto::hash::Hasher as PallasHasher,
+    types::{Address, Coin, Input, PolicyId, Value},
+};
+use hex::FromHex;
+use parity_scale_codec::Encode;
+use sp_core::H256;
 
 /// The wallet's main CLI struct
 #[derive(Debug, Parser)]
 #[command(about, version)]
-pub struct Cli {
+pub struct Cli<T: clap::Subcommand + clap::FromArgMatches> {
     #[arg(long, short, default_value_t = DEFAULT_ENDPOINT.to_string())]
     /// RPC endpoint of the node that this wallet will connect to.
     pub endpoint: String,
@@ -42,11 +54,151 @@ pub struct Cli {
     pub purge_db: bool,
 
     #[command(subcommand)]
-    pub command: Option<Command>,
+    pub command: Option<T>,
 }
 
 /// The tasks supported by the wallet
-#[derive(Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand)]
+pub enum WalletCommand {
+    #[command(subcommand)]
+    Wallet(Command),
+}
+
+impl WalletCommand {
+    pub async fn run(&self) -> anyhow::Result<()> {
+        let Context {
+            cli,
+            client,
+            db,
+            keystore,
+            data_path,
+            keystore_path,
+            slot_config: _,
+        } = Context::<WalletCommand>::load_context().await.unwrap();
+        // Dispatch to proper subcommand
+        match cli.command {
+            Some(WalletCommand::Wallet(cmd)) => match cmd {
+                Command::VerifyUtxo { input } => {
+                    println!("Details of coin {}:", hex::encode(input.encode()));
+
+                    // Print the details from storage
+                    let coin_from_storage = utils::get_coin_from_storage(&input, &client).await?;
+                    print!("Found in storage.  Value: {:?}, ", coin_from_storage);
+
+                    // Print the details from the local db
+                    match sync::get_unspent(&db, &input)? {
+                        Some((owner, amount, _)) => {
+                            println!("Found in local db. Value: {amount:?}, owned by {owner}");
+                        }
+                        None => {
+                            println!("Not found in local db");
+                        }
+                    }
+
+                    Ok(())
+                }
+                Command::SpendValue(args) => {
+                    command::spend_value(&db, &client, &keystore, args).await
+                }
+                Command::InsertKey { seed } => keystore::insert_key(&keystore, &seed),
+                Command::GenerateKey { password } => {
+                    keystore::generate_key(&keystore, password)?;
+                    Ok(())
+                }
+                Command::ShowKeys => {
+                    keystore::get_keys(&keystore)?.for_each(|pubkey| {
+                        let pk_str: &str = &hex::encode(pubkey);
+                        let hash: String =
+                            PallasHasher::<224>::hash(&<[u8; 32]>::from_hex(pk_str).unwrap())
+                                .to_string();
+                        println!("key: 0x{}; addr: 0x61{}", pk_str, hash);
+                    });
+
+                    Ok(())
+                }
+                Command::RemoveKey { pub_key } => {
+                    println!(
+                            "CAUTION!!! About permanently remove {pub_key}. This action CANNOT BE REVERSED. Type \"proceed\" to confirm deletion."
+                        );
+
+                    let mut confirmation = String::new();
+                    std::io::stdin()
+                        .read_line(&mut confirmation)
+                        .expect("Failed to read line");
+
+                    if confirmation.trim() == "proceed" {
+                        keystore::remove_key(&keystore_path, &pub_key)
+                    } else {
+                        println!("Deletion aborted. That was close.");
+                        Ok(())
+                    }
+                }
+                Command::ShowBalance => {
+                    println!("Balance Summary");
+                    let mut total = Value::Coin(0);
+                    let balances = sync::get_balances(&db)?;
+                    for (account, balance) in balances {
+                        total += balance.clone();
+                        println!("{account}: {balance}");
+                    }
+                    println!("{:-<58}", "");
+                    println!("Total:   {}", total.normalize());
+
+                    Ok(())
+                }
+                Command::ShowAllOutputs => {
+                    println!("###### Unspent outputs ###########");
+                    sync::show_outputs(sync::print_unspent_tree(&db)?);
+                    println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
+                    Ok(())
+                }
+                Command::ShowOutputsAt(args) => {
+                    println!(
+                        "###### Unspent outputs at address {} ###########",
+                        args.address
+                    );
+                    sync::show_outputs(sync::get_outputs_at(&db, args)?);
+                    println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
+                    Ok(())
+                }
+                Command::ShowOutputsWithAsset(args) => {
+                    println!(
+                            "###### Unspent outputs containing asset with name {} and policy ID {} ###########",
+                            args.name, args.policy
+                        );
+                    sync::show_outputs(sync::get_outputs_with_asset(&db, args)?);
+                    println!("To see all details of a particular UTxO, invoke the `verify-utxo` command.");
+                    Ok(())
+                }
+                Command::ShowAllOrders => {
+                    println!("###### Available Orders ###########");
+                    sync::print_orders(&db)?;
+                    Ok(())
+                }
+                Command::BuildTx(args) => command::build_tx(&db, &client, &keystore, args).await,
+            },
+            None => {
+                log::info!("No Wallet Command invoked. Exiting.");
+                Ok(())
+            }
+        }?;
+
+        if cli.tmp || cli.dev {
+            // Cleanup the temporary directory.
+            std::fs::remove_dir_all(data_path.clone()).map_err(|e| {
+                log::warn!(
+                    "Unable to remove temporary data directory at {}\nPlease remove it manually.",
+                    data_path.to_string_lossy()
+                );
+                e
+            })?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     /// Verify that a particular output ref exists.
     /// Show its value and owner address from both chain storage and the local database.
@@ -108,7 +260,7 @@ pub enum Command {
 }
 
 /// Arguments for building a complete Griffin transaction.
-#[derive(Debug, Args)]
+#[derive(Clone, Debug, Args)]
 pub struct BuildTxArgs {
     /// Path to the file containing all the transaction information in JSON format.
     /// There are example contracts and json files for testing this command in the `eutxo_examples` directory.
@@ -152,7 +304,7 @@ pub struct BuildTxArgs {
 }
 
 /// Arguments for spending wallet inputs only.
-#[derive(Debug, Args)]
+#[derive(Clone, Debug, Args)]
 pub struct SpendValueArgs {
     /// An input to be consumed by this transaction. This argument may be specified multiple times.
     #[arg(long, short, verbatim_doc_comment, value_parser = input_from_string, required = true, value_name = "OUTPUT_REF")]
@@ -184,14 +336,14 @@ pub struct SpendValueArgs {
     pub token_amount: Vec<Coin>,
 }
 
-#[derive(Debug, Args)]
+#[derive(Clone, Debug, Args)]
 pub struct ShowOutputsAtArgs {
     /// 29-byte hash-address.
     #[arg(long, short, verbatim_doc_comment, value_parser = address_from_string, required = true, value_name = "ADDRESS")]
     pub address: Address,
 }
 
-#[derive(Debug, Args)]
+#[derive(Clone, Debug, Args)]
 pub struct ShowOutputsWithAssetArgs {
     /// Policy ID of the asset.
     #[arg(long, short, verbatim_doc_comment, value_parser = h224_from_string, required = true, value_name = "POLICY_ID")]

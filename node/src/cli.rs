@@ -1,4 +1,6 @@
+use game::GameCommand;
 use griffin_partner_chains_runtime::opaque::SessionKeys;
+use griffin_wallet::cli::WalletCommand;
 use partner_chains_cli::{KeyDefinition, AURA, GRANDPA};
 use partner_chains_node_commands::{PartnerChainRuntime, PartnerChainsSubcommand};
 
@@ -103,6 +105,13 @@ pub enum Subcommand {
     /// Key management cli utilities
     #[command(subcommand)]
     Key(sc_cli::KeySubcommand),
+
+    #[clap(flatten)]
+    Wallet(WalletCommand),
+
+    /// Commands to play the Asteria game
+    #[clap(flatten)]
+    Game(GameCommand),
 
     #[clap(flatten)]
     PartnerChains(PartnerChainsSubcommand<WizardBindings>),

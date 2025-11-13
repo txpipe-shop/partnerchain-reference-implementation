@@ -14,7 +14,6 @@ use alloc::{string::ToString, vec, vec::Vec};
 use griffin_core::genesis::config_builder::GenesisConfig;
 use griffin_core::types::{Address, AssetName, Input, PolicyId};
 use griffin_core::utxo_set::TransparentUtxoSet;
-use griffin_core::MILLI_SECS_PER_SLOT;
 pub use opaque::SessionKeys;
 
 use parity_scale_codec::{Decode, Encode};
@@ -253,7 +252,7 @@ impl_runtime_apis! {
 
     impl apis::AuraApi<Block, AuraId> for Runtime {
         fn slot_duration() -> sp_consensus_aura::SlotDuration {
-            sp_consensus_aura::SlotDuration::from_millis(MILLI_SECS_PER_SLOT.into())
+            sp_consensus_aura::SlotDuration::from_millis(griffin_core::Executive::slot_length() as u64)
         }
 
         fn authorities() -> Vec<AuraId> {
