@@ -22,7 +22,7 @@ This repository will contain a reference implementation of a Substrate partnerch
 
 In the [docs](./docs/) folder you can find important information such as the [contribution guidelines](./docs/CONTRIBUTING.md) and the procedure for [releases](./docs/release_procedure.md). You can also find a document briefly explaining the [project structure](./docs/project_structure.md).
 
-Here you can also find the [dev activity logs](./docs/dev_logs/). The [initial_customizations](./docs/dev_logs/initial_customizations.md) document thoroughly explains the project and each step taken to modify the original template. It includes installation and running instructions, explanations on every component and a detailed walk through on each modification to the original node template. The [partner_chain_integration](./docs/dev_logs/partner_chain_integration.md) document explains the modifications made to include the partner-chain features, modifications on the partner-chain features themselves, and a step-by-step guide on how to use the commands to set up the governance UTxOs on the Cardano side, using a local development testnet. 
+Here you can also find the [dev activity logs](./docs/dev_logs/). The [initial_customizations](./docs/dev_logs/initial_customizations.md) document thoroughly explains the project and each step taken to modify the original template. It includes installation and running instructions, explanations on every component and a detailed walk through on each modification to the original node template. The [partner_chain_integration](./docs/dev_logs/partner_chain_integration.md) document explains the modifications made to include the partner-chain features, modifications on the partner-chain features themselves, and a step-by-step guide on how to use the commands to set up the governance UTxOs on the Cardano side, using a local development testnet. The [use_case_implementation](./docs/dev_logs/use_case_implementation.md) document explains the modifications made to the node to add the use case specific features.
 
 ## Getting Started
 
@@ -60,7 +60,13 @@ With this command you can start a local development chain that will use predefin
 
 ### Interacting with the node
 
-You can follow the instructions at [wallet](/wallet/README.md) to interact with the node using the Griffin wallet.
+You can follow the instructions at [wallet](/wallet/README.md) to interact with the node using the Griffin wallet. Starting from `v0.0.4` the wallet is integrated into the node commands. This means you can use it directly with the node's executable:
+
+```sh
+./target/release/griffin-partner-chains-node wallet <wallet-subcommands>
+```
+
+> Note: this command only supports the wallet's subcommands. This means options like `--purge-db` are NOT supported. You can manually clean the wallet's database with `rm -r ~/.local/share/griffin-wallet/`. If you have the `griffin-wallet` executable, you can use options and commands like normal.
 
 ### Build and run with docker
 
