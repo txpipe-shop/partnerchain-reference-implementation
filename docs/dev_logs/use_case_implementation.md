@@ -2,7 +2,8 @@
 
 This is the deatiled log of the development activities required for the implementation of the use case specific features. The use case to develop was a game and we decided to implement Asteria. This is a game with 4 main operations that utilize the eUtxO model, so the task was to implement each of them. A more in-depth explanation of the game's operations and design can be found in the [onchain documentation](../../game/onchain/docs/design/design.md).
 This log is divided in three parts: 
-- [_game integration_](#add-game-crate): step-by-step modifications that were made to implement the game features and add the operations as commands to the node,
+- [_game integration_](#add-game-crate): step-by-step modifications that were made to implement the game features,
+- [_game commands in the node_](#add-game-to-node-commands): add the operations as commands to the node,
 - [_wallet refactor_]: particular to our node, we refactored the wallet to make it more modular,
 - [_game usage_]: detailed instructions on how to use the commands and play the game. 
 
@@ -19,11 +20,16 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/b96196
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/b96196d87dadbcf194fe6700aa3236ead7b1dd34/Cargo.toml#L82
 
 
-3. Define new `GameCommand` struct:
+3. Define new `GameCommand` struct and implement its `run` method:
+
+We define an overarching `GameCommand` enum that will hold the actual subcommands enum, this structure allows us to integrate the command into the node.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2b0fd645ec32e071a1ecb9b6a5829176057/game/src/lib.rs#L9-L13
 
-We define an overarching `GameCommand` enum that will hold the actual subcommands enum, this structure allows us to integrate the command into the node.
+
+The `run` method dictates the parsing of the commands:
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2b0fd645ec32e071a1ecb9b6a5829176057/game/src/lib.rs#L29-L68
 
 4. Define each game command:
 
@@ -82,6 +88,17 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2b0fd645ec32e071a1ecb9b6a5829176057/game/src/game.rs#L961-L967
 
+## Add game to node commands
 
+1. Include the `game` crate as a dependency in the node's `Cargo.toml`.
 
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2b0fd645ec32e071a1ecb9b6a5829176057/node/Cargo.toml#L25
+
+2. Add a new `Game(GameCommand)` item in the `Subcommand` enum, within `node/src/cli.rs`.
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2b0fd645ec32e071a1ecb9b6a5829176057/node/src/cli.rs#L112-L114
+
+3. Include the previous item in the subcommands match struct, within the `run` function in `node/src/command.rs`. 
+
+https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2b0fd645ec32e071a1ecb9b6a5829176057/node/src/command.rs#L59-L63
 
