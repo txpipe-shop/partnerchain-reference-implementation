@@ -92,7 +92,8 @@ Make sure that the endpoint you are connecting to matches the node's being run i
 ## Use-case: Asteria game
 
 As the result of the discovery process, after surveying many developers, it was decided that the use case for the partnerchain reference implementation would be a game. We chose the game Asteria which consists of ships moving across a board to find the Asteria prize and collect a portion of it.
-In this repository we include the [on-chain code](./game/onchain/), which comes with a [design document](./game/onchain/docs/design/design.md) that thoroughly explains the transactions involved in the game. In the game [src](./game/src/) you can find the implementation of the commands necessary to play the game and [detailed instructions](./game/README.md) on how to run them.
+
+In this repository we include the [on-chain code](./game/onchain/), which comes with a [design document](./game/onchain/docs/design/design.md) that thoroughly explains the transactions involved in the game. In the game [src](./game/src/) you can find the implementation of the commands necessary to play the game and a [README](./game/README.md) that goes over the app design, in the context of the game's integration into the node, and [instructions](./game/README.md#game-usage) on how to run the commands.
 
 ## Setting up a Partner Chain
 
