@@ -857,18 +857,18 @@ impl<K: Ord + Clone, V: Sub<Output = V> + Clone> Sub for EncapBTree<K, V> {
 impl Sub for Value {
     type Output = Self;
 
-    /// Coordinate-wise subtraction of `Value`s
+    /// Coordinate-wise subtraction of Values
     fn sub(self, other: Self) -> Self {
         use Value::*;
 
         match self {
             Coin(c) => match other {
-                Coin(d) => Coin(c - d),
-                Multiasset(d, ma) => Multiasset(c - d, ma),
+                Coin(d) => Coin(c.saturating_sub(d)),
+                Multiasset(d, ma) => Multiasset(c.saturating_sub(d), ma),
             },
             Multiasset(c, ma) => match other {
-                Coin(d) => Multiasset(c - d, ma),
-                Multiasset(d, mb) => Multiasset(c - d, ma - mb),
+                Coin(d) => Multiasset(c.saturating_sub(d), ma),
+                Multiasset(d, mb) => Multiasset(c.saturating_sub(d), ma - mb),
             },
         }
         .normalize()

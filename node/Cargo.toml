@@ -21,6 +21,8 @@ futures-timer = { workspace = true }
 griffin-core = { workspace = true }
 griffin-partner-chains-runtime = { workspace = true }
 griffin-rpc = { workspace = true }
+griffin-wallet = { workspace = true }
+game = { workspace = true }
 jsonrpsee = { features = ["server"], workspace = true }
 sc-basic-authorship = { workspace = true }
 sc-cli = { workspace = true }
@@ -41,6 +43,7 @@ sp-genesis-builder = { workspace = true }
 sp-io = { workspace = true }
 sp-timestamp = { workspace = true }
 sp-runtime = { workspace = true }
+tokio = { workspace = true }
 
 partner-chains-node-commands = { workspace = true }
 partner-chains-cli = { workspace = true }

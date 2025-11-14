@@ -14,7 +14,7 @@ This repository will contain a reference implementation of a Substrate partnerch
 
   - [Start a chain with docker](#build-and-run-with-docker)
 
-- [Use-case: Asteria game]()
+- [Use-case: Asteria game](#use-case-asteria-game)
 
 - [Setting up a partner chain](#setting-up-a-partner-chain)
 
@@ -92,7 +92,7 @@ Make sure that the endpoint you are connecting to matches the node's being run i
 ## Use-case: Asteria game
 
 As the result of the discovery process, after surveying many developers, it was decided that the use case for the partnerchain reference implementation would be a game. We chose the game Asteria which consists of ships moving across a board to find the Asteria prize and collect a portion of it.
-In this repository we include the [on-chain code](./game/onchain/), which comes with a [design document](./game/onchain/docs/design/design.md) that thoroughly explains the transactions involved in the game.
+In this repository we include the [on-chain code](./game/onchain/), which comes with a [design document](./game/onchain/docs/design/design.md) that thoroughly explains the transactions involved in the game. In the game [src](./game/src/) you can find the implementation of the commands necessary to play the game and [detailed instructions](./game/README.md) on how to run them.
 
 ## Setting up a Partner Chain
 
