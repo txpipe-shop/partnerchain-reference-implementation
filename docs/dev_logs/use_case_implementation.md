@@ -1,10 +1,11 @@
 # Dev activity log: Use case specific features
 
 This is the deatiled log of the development activities required for the implementation of the use case specific features. The use case to develop was a game and we decided to implement Asteria. This is a game with 4 main operations that utilize the eUtxO model, so the task was to implement each of them. A more in-depth explanation of the game's operations and design can be found in the [onchain documentation](../../game/onchain/docs/design/design.md).
+
 This log is divided in three parts: 
 - [_game integration_](#add-game-crate): step-by-step modifications that were made to implement the game features,
 - [_game commands in the node_](#add-game-to-node-commands): add the operations as commands to the node,
-- [_wallet refactor_]: particular to our node, we refactored the wallet to make it more modular,
+- [_wallet refactor_](#wallet-refactor): particular to our node, we refactored the wallet to make it more modular,
 - [_game usage_]: detailed instructions on how to use the commands and play the game. 
 
 ## Add Game Crate
@@ -101,4 +102,19 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2
 3. Include the previous item in the subcommands match struct, within the `run` function in `node/src/command.rs`. 
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/1b98b2b0fd645ec32e071a1ecb9b6a5829176057/node/src/command.rs#L59-L63
+
+## Wallet refactor
+
+We'll briefly detail the modifications done to the wallet:
+
+1. Move initial `main()` setup (cli parser, keystore and db paths, endpoints, sync with node) and auxiliary functions `default_data_path` and `temp_dir` to a new `context.rs` module.
+2. Move the rest of auxiliary functions defined in `main.rs` into a new `utils.rs` module.
+3. Define `WalletCommand` enum in `wallet/src/cli.rs` and implement its `run()` method, moving within the code previously in `main()`.
+4. Add library crate feature : include `lib.rs`.
+
+This refactoring allowed us to include the `wallet` into the node, along with the game:
+
+1. Include the `griffin-wallet` package in `Cargo.toml`.
+2. Add a new `Wallet(WalletCommand)` item in the `Subcommand` enum, within `node/src/cli.rs`.
+3. Include the previous item in the subcommands match struct, within the `run` function in `node/src/command.rs`. 
 
