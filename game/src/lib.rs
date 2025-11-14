@@ -1,4 +1,5 @@
 mod game;
+mod tests;
 
 use clap::{Args, Subcommand};
 use griffin_core::types::Input;
