@@ -1,11 +1,11 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
+            "tx_hash": "0d082f536bd0829dd423c16ae66c80f10563df7ea154919f92877ee5688503e5",
             "index": 0
         },
         {
-            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
+            "tx_hash": "0d082f536bd0829dd423c16ae66c80f10563df7ea154919f92877ee5688503e5",
             "index": 1,
             "redeemer_cbor": "D87980"
         }
@@ -21,7 +21,7 @@
                 },
                 {
                     "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                    "assets": [ ["PILOT0", 1], ["PILOT1", 1], ["PILOT2", 1] ]
+                    "assets": [ ["PILOT0", 1] ]
                 }
             ]
         },
@@ -34,7 +34,7 @@
                         "assets": [ ["asteriaAdmin", 1] ]
                     }
                     ],
-            "datum": "D8799F03581C7BA97FB6E48018EF131DD08916939350C0CE7050534F8E51B5E0E3A4FF"
+            "datum": "D8799F01581C7BA97FB6E48018EF131DD08916939350C0CE7050534F8E51B5E0E3A4FF"
         },
         {
             "address": "707ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
@@ -46,10 +46,10 @@
                     },
                     {
                         "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                        "assets": [ ["SHIP2", 1] ]
+                        "assets": [ ["SHIP0", 1] ]
                     }
                     ],
-            "datum": "D8799F27034553484950324650494C4F54321B00000196C6267010FF"
+            "datum": "D8799F27034553484950304650494C4F54301B00000196C6267010FF"
         }
     ],
     "mintings_info": [
@@ -60,7 +60,7 @@
         },
         {
             "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-            "assets": [ ["SHIP2", 1], ["PILOT2", 1] ],
+            "assets": [ ["SHIP0", 1], ["PILOT0", 1] ],
             "redeemer_cbor": "D87980"
         }
     ],

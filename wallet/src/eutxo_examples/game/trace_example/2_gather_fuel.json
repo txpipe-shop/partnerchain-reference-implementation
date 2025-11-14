@@ -1,17 +1,17 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "1aa20b201b7e21300315f48099a1fc76612b421fbe0fb7b3fde133ea205b0973",
+            "tx_hash": "3071b37f53d7a577b0bda4853667f64560d953ff1e7bcd3a38dec00859e51478",
             "index": 0
         },
         {
-            "tx_hash": "1aa20b201b7e21300315f48099a1fc76612b421fbe0fb7b3fde133ea205b0973",
+            "tx_hash": "3071b37f53d7a577b0bda4853667f64560d953ff1e7bcd3a38dec00859e51478",
             "index": 2,
             "redeemer_cbor": "d87a9fd87a9f14ffff"
         },
         {
-            "tx_hash": "6e24eb75286f208b07a4e3131363d99018c0e6abda8e133499d9c7534b4c828b",
-            "index": 4,
+            "tx_hash": "0d082f536bd0829dd423c16ae66c80f10563df7ea154919f92877ee5688503e5",
+            "index": 2,
             "redeemer_cbor": "d87a9fd8799f14ffff"
         }
     ],
@@ -26,7 +26,7 @@
                 },
                 {
                     "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                    "assets": [ ["PILOT0", 1], ["PILOT1", 1], ["PILOT2", 1] ]
+                    "assets": [ ["PILOT0", 1] ]
                 }
             ]
         },
@@ -40,10 +40,10 @@
                     },
                     {
                         "policy": "7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4",
-                        "assets": [ ["SHIP2", 1] ]
+                        "assets": [ ["SHIP0", 1] ]
                     }
                     ],
-            "datum": "d8799f27034553484950324650494c4f54321b00000196c6267010ff"
+            "datum": "D8799F27034553484950304650494C4F54301B00000196C6267010FF"
         },
         {
             "address": "706a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
