@@ -34,7 +34,9 @@ We hope that the guide presented here helps you to set your particular use-case.
   - [Use-case application](use_case_application.md) gives broad hints on how to integrate your
     application to a modified node.
 
-- [Operating instructions](operating_instructions.md).
+- [Operating instructions](operating_instructions.md) indicates how to setup the node to work with a
+  as a partner chain, details how to [run an example on
+  devnet](operating_instructions.md#example-with-devnet), ....
 
 - [Troubleshooting](troubleshooting.md) addresses some common pitfalls while editing and building
   Substrate nodes.

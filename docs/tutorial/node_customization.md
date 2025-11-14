@@ -304,6 +304,10 @@ and for the runtime:
 Setting up UTxO logic on top of a Polkadot/Substrate node requires extensive changes to the
 runtime. We will highlight below some of the steps involved.
 
+> Most diffs shown below are actual diffs obtained by working on top of a clean
+> `polkadot-sdk-minimal-template` repo and applying the changes indicated, *with the provision of
+> running `cargo fmt` in advance*. The same goes for sources gathered from the PC SDK.
+
 Recall that we took the approach of replacing `polkadot-sdk` by several smaller packages. This
 implies that some imports have to replaced by the corresponding replacements. For instance, at
 `build.rs` we have the following replacement:
