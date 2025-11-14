@@ -52,6 +52,21 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
             "datum": "d8799f2703581c7ba97fb6e48018ef131dd08916939350c0ce7050534f8e51b5e0e3a4ff"
         },
         {
+            "address": "706a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
+            "coin": 2000,
+            "value": [
+                    {
+                        "policy": "6a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
+                        "assets": [ ["FUEL", 120] ]
+                    },
+                    {
+                        "policy": "516238dd0a79bac4bebe041c44bad8bf880d74720733d2fc0d255d28",
+                        "assets": [ ["asteriaAdmin", 1] ]
+                    }
+                    ],
+            "datum": "D8799F0521581C7BA97FB6E48018EF131DD08916939350C0CE7050534F8E51B5E0E3A4FF"
+        },
+        {
             "address": "0000000000000000000000000000000000000000000000000000000000",
             "coin": 314150000,
             "value": [
