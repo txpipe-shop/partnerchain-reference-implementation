@@ -1,12 +1,12 @@
 # Dev activity log: Use case specific features
 
 This is the deatiled log of the development activities required for the implementation of the use case specific features. The use case to develop was a game and we decided to implement Asteria. This is a game with 4 main operations that utilize the eUtxO model, so the task was to implement each of them. A more in-depth explanation of the game's operations and design can be found in the [onchain documentation](../../game/onchain/docs/design/design.md).
+The game commands' usage is thorougly explained in the game's [README](../../game/README.md).
 
 This log is divided in three parts: 
 - [_game integration_](#add-game-crate): step-by-step modifications that were made to implement the game features,
 - [_game commands in the node_](#add-game-to-node-commands): add the operations as commands to the node,
-- [_wallet refactor_](#wallet-refactor): particular to our node, we refactored the wallet to make it more modular,
-- [_game usage_]: detailed instructions on how to use the commands and play the game. 
+- [_wallet refactor_](#wallet-refactor): particular to our node, we refactored the wallet to make it more modular.
 
 ## Add Game Crate
 
@@ -117,4 +117,3 @@ This refactoring allowed us to include the `wallet` into the node, along with th
 1. Include the `griffin-wallet` package in `Cargo.toml`.
 2. Add a new `Wallet(WalletCommand)` item in the `Subcommand` enum, within `node/src/cli.rs`.
 3. Include the previous item in the subcommands match struct, within the `run` function in `node/src/command.rs`. 
-
