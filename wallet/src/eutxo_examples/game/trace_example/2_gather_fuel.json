@@ -1,11 +1,11 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "3071b37f53d7a577b0bda4853667f64560d953ff1e7bcd3a38dec00859e51478",
+            "tx_hash": "2b39394660a70926c61a17a563df2ea02c4a2ce9d36790ef9918d340ec67790a",
             "index": 0
         },
         {
-            "tx_hash": "3071b37f53d7a577b0bda4853667f64560d953ff1e7bcd3a38dec00859e51478",
+            "tx_hash": "2b39394660a70926c61a17a563df2ea02c4a2ce9d36790ef9918d340ec67790a",
             "index": 2,
             "redeemer_cbor": "d87a9fd87a9f14ffff"
         },
@@ -43,7 +43,7 @@
                         "assets": [ ["SHIP0", 1] ]
                     }
                     ],
-            "datum": "D8799F27034553484950304650494C4F54301B00000196C6267010FF"
+            "datum": "D8799F27034553484950304650494C4F54301B00000196C626E540FF"
         },
         {
             "address": "706a25ad5476105ac4a3784769cb93f92fd67a11932ef9a65a61abd1d6",
@@ -75,6 +75,6 @@
     "required_signers": [
         "01e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4"
     ],
-    "validity_interval_start": 10,
-    "ttl": 20
+    "validity_interval_start": 20,
+    "ttl": null
 }

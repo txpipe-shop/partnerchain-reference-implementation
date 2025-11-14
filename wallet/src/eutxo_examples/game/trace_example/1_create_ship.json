@@ -49,7 +49,7 @@
                         "assets": [ ["SHIP0", 1] ]
                     }
                     ],
-            "datum": "D8799F27034553484950304650494C4F54301B00000196C6267010FF"
+            "datum": "D8799F27034553484950304650494C4F54301B00000196C626E540FF"
         }
     ],
     "mintings_info": [
@@ -81,6 +81,6 @@
     "required_signers": [
         "01e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4"
     ],
-    "validity_interval_start": 0,
-    "ttl": 10
+    "validity_interval_start": null,
+    "ttl": 20
 }
