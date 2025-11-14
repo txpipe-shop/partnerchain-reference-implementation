@@ -10,9 +10,7 @@ we concluded that implementing a game would be the most convenient
 example. Hence we chose **Asteria**, which showcases the capabilities of the
 eUTxO model, particularly its concurrency benefits.
 
-Those not familiar with  mechanics of the game can check the [relevant
-section](../dev_log/use_case.md#brief-introduction-to-game-mechanics) of the [third dev
-log](../dev_log/use_case.md).
+Those not familiar with  mechanics of the game can check the [game README](../../game/README.md#game-usage).
 
 ## Technical details
 
