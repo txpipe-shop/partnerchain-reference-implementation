@@ -35,14 +35,17 @@ We hope that the guide presented here helps you to set your particular use-case.
     application to a modified node.
 
 - [Operating instructions](operating_instructions.md) indicates how to setup the node to work with a
-  as a partner chain, details how to [run an example on
-  devnet](operating_instructions.md#example-with-devnet), ....
+  as a partner chain, details how to 
+
+  - [run an example on devnet](operating_instructions.md#example-with-devnet), and
+
+  - use our adaptation of the [Asteria game](game_usage.md).
 
 - [Troubleshooting](troubleshooting.md) addresses some common pitfalls while editing and building
   Substrate nodes.
 
-| Next                                        | Up                           |
-|---------------------------------------------|------------------------------|
+| Next                                        | Up                             |
+|---------------------------------------------|--------------------------------|
 | [Node customization](node_customization.md) | [Root README](../../README.md) |
 
 <!-- Local Variables: -->
