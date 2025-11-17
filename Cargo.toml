@@ -4,7 +4,7 @@ authors = ["TxPipe-Shop"]
 homepage = "https://github.com/txpipe-shop/partnerchain-reference-implementation"
 repository = "https://github.com/txpipe-shop/partnerchain-reference-implementation"
 edition = "2021"
-version = "0.0.3"
+version = "0.0.4"
 
 [workspace]
 default-members = ["runtime"]
