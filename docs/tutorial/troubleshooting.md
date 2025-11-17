@@ -24,14 +24,20 @@ When trying to use `alloc` features like `vec`, you might run into the trouble t
 | [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) |
 
 
-## ``Failed to deserialize `.../minimal_template_runtime.wasm`: UnknownOpcode(192)``
+## `Failed to deserialize... UnknownOpcode(192)`
 
-An error like the above might arise while building with the `--release` flag while you are modifying
+An error like the following:
+
+```
+Failed to deserialize `.../minimal_template_runtime.wasm`: UnknownOpcode(192)
+```
+
+might arise while building with the `--release` flag while you are modifying
 the node (`debug` builds rarely produce it). This might persist even if you complete all
 modifications indicated.
 
 In such situations, best thing to do is start a build from scratch by issuing a `cargo clean --release` command,
-delete `Cargo.lock` and release-build again. That should do it.
+delete `Cargo.lock`, and release-build again. That should do it.
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->
