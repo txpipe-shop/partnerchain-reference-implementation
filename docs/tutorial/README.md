@@ -5,7 +5,7 @@ node into a Partnerchain node with use-case specific features.
  
 The material presented here is a streamlined version of the info detailed at the [Dev Activity
 Logs](../dev_logs/) ([node customization](../dev_logs/initial_customizations.md), [Partner Chains SDK
-integration](../dev-logs/partner_chain_integration.md)).
+integration](../dev-logs/partner_chain_integration.md), and [Use case application](../dev_logs/use_case_implementation.md)).
 
 ## Summary
 
