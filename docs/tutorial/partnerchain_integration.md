@@ -32,7 +32,7 @@ appropriate version number should also be defined: PC `toolkit` packages expect 
 <details>
   <summary>
 
-**Complete `[TEMPLATE_ROOT]/Cargo.toml` diff** (click to expand)
+*Complete `[TEMPLATE_ROOT]/Cargo.toml` diff* (click to expand)
   </summary>
 
 ``` diff

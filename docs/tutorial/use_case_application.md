@@ -5,7 +5,7 @@
 | [Partnerchain integration](partnerchain_integration.md) | [Operating instructions](operating_instructions.md) | [Node customization](node_customization.md) |
 
 Here, we only give some broad hints on how we handled the integration of an app, since this is the
-part that will depend the most on what is your particular use case.
+part that will depend the most on your particular use case.
 
 From a [recent
 survey](https://docs.google.com/document/d/1M6W_bv6s3-Q4HAr4zZCMtfjCjoutFDDXdZSeqiDeEAY/edit?tab=t.0#heading=h.fsivic5l6yjb),

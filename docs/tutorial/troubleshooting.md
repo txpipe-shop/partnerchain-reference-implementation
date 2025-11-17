@@ -1,8 +1,8 @@
 # Troubleshooting
 
-| Previous                                            | Up                         |
-|-----------------------------------------------------|----------------------------|
-| [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) |
+| Previous                                            | Up                         | Back to                        |
+|-----------------------------------------------------|----------------------------|--------------------------------|
+| [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) | [Root README](../../README.md) |
 
 These are some common errors that can happen when developing on Substrate:
 
@@ -19,11 +19,6 @@ happen commonly when using std crates in a non-std environment, like Substrate's
 
 When trying to use `alloc` features like `vec`, you might run into the trouble that the compiler can't find the `alloc` crate. This feature can be imported from various dependencies like `serde` and `serde_json`. To use it make sure to add `extern crate alloc;` at the top of your file.
 
-| Previous                                            | Up                         |
-|-----------------------------------------------------|----------------------------|
-| [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) |
-
-
 ## `Failed to deserialize... UnknownOpcode(192)`
 
 An error like the following:
@@ -38,6 +33,10 @@ modifications indicated.
 
 In such situations, best thing to do is start a build from scratch by issuing a `cargo clean --release` command,
 delete `Cargo.lock`, and release-build again. That should do it.
+
+| Previous                                            | Up                         | Back to                        |
+|-----------------------------------------------------|----------------------------|--------------------------------|
+| [Operating instructions](operating_instructions.md) | [Tutorial root](README.md) | [Root README](../../README.md) |
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->

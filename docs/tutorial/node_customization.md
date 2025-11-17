@@ -3,7 +3,7 @@
 |----------------------------|---------------------------------------------------------|----------------------------|
 | [Tutorial root](README.md) | [Partnerchain integration](partnerchain_integration.md) | [Tutorial root](README.md) |
 
-The customization of the Substrate node involves:
+The customization of the Substrate node involves three parts:
 - [Installing the ledger](#installing-the-ledger) explains the process of adding the Griffin
   ledger. This requires extensive editing of the runtime, which is detailed in [Runtime
   sources](#modifications-at-the-runtime-sources). The node client requires fewer modifications, which are detailed in
@@ -115,7 +115,7 @@ We also add Griffin dependencies:
 > we pick and choose what we need from the Polkadot-SDK and set each as their own dependency, using
 > the Git tag for release `polkadot-stable2506-2`.
 
-Click the block below to see the rather long diff:
+Click on the block below to see the rather long diff:
 
 <details>
   <summary>
@@ -405,7 +405,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 <details>
   <summary>
 
-**Complete `runtime/src/lib.rs` diff** (click to expand)
+*Complete `runtime/src/lib.rs` diff* (click to expand)
   </summary>
 
 ``` diff
@@ -1074,7 +1074,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 <details>
   <summary>
 
-**Complete `node/` diff** (click to expand)
+*Complete `node/` diff* (click to expand)
   </summary>
 
 ``` diff

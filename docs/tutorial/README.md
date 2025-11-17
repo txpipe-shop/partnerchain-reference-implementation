@@ -9,7 +9,7 @@ integration](../dev-logs/partner_chain_integration.md), and [Use case applicatio
 
 ## Summary
 
-This reference implementation takes the very basic [Substrate's minimal
+This reference implementation takes Substrate's very basic [minimal
 template](https://github.com/paritytech/polkadot-sdk-minimal-template) and shows how to: 
 
 - add a custom ledger (eUTxO using Griffin);
@@ -21,7 +21,7 @@ We hope that the guide presented here helps you to set your particular use-case.
 
 ## Index
 
-- [Node customization](node_customization.md) involves:
+- [Node customization](node_customization.md) contains the following sections:
 
   - [Installing the ledger](node_customization.md#installing-the-ledger) explains the process of adding the Griffin
     ledger. This requires extensive editing of the runtime, which is detailed in [Runtime
@@ -34,8 +34,8 @@ We hope that the guide presented here helps you to set your particular use-case.
   - [Use-case application](use_case_application.md) gives broad hints on how to integrate your
     application to a modified node.
 
-- [Operating instructions](operating_instructions.md) indicates how to setup the node to work with a
-  as a partner chain, details how to 
+- [Operating instructions](operating_instructions.md) indicates how to setup the node to work
+  as a partner chain, and details how to
 
   - [run an example on devnet](operating_instructions.md#example-with-devnet), and
 
