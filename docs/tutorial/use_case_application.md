@@ -4,11 +4,15 @@
 |---------------------------------------------------------|-----------------------------------------------------|---------------------------------------------|
 | [Partnerchain integration](partnerchain_integration.md) | [Operating instructions](operating_instructions.md) | [Node customization](node_customization.md) |
 
+Here, we only give some broad hints on how we handled the integration of an app, since this is the
+part that will depend the most on what is your particular use case.
+
 From a [recent
 survey](https://docs.google.com/document/d/1M6W_bv6s3-Q4HAr4zZCMtfjCjoutFDDXdZSeqiDeEAY/edit?tab=t.0#heading=h.fsivic5l6yjb),
 we concluded that implementing a game would be the most convenient
 example. Hence we chose **Asteria**, which showcases the capabilities of the
-eUTxO model, particularly its concurrency benefits.
+eUTxO model, particularly its concurrency benefits. To test our application, please copy the `game`
+directory from our repo and integrate it as indicated below.
 
 Those not familiar with the mechanics of the game can check the [game README](../../game/README.md#game-usage).
 
@@ -21,7 +25,7 @@ you to its [design document](../../game/onchain/docs/design/design.md), that exc
 describes it. From now on we’ll discuss the technical aspects of implementing the game in our
 Substrate node.
 
-There are two sides to the implementation process, which we proceed to discuss rightaway
+There are two sides to the implementation process, which we proceed to discuss rightaway.
 
 ### Offchain implementation
 
@@ -120,7 +124,9 @@ diff --git a/runtime/src/genesis.rs b/runtime/src/genesis.rs
 The main purpose of these functions is to simplify the user experience, as a friendlier layer on top
 of the `tx-builder`. The game commands are innate to the node, as we want the game to be the main
 functionality of the chain. These additions take place at `/node/src/cli.rs` and
-`/node/src/command.rs`.
+`/node/src/command.rs`. These `GameCommands` have also been added to the game application, as
+detailed in the [third dev-log](../dev_logs/use_case_implementation.md#add-game-crate) (from item 3
+onwards).
 
 
 | Previous | Next | Up |

@@ -1,8 +1,8 @@
 # Operating instructions
 
-| Previous                                        | Next                                  | Up                         |
-|-------------------------------------------------|---------------------------------------|----------------------------|
-| [Use-case application](use_case_application.md) | [Troubleshooting](troubleshooting.md) | [Tutorial root](README.md) |
+| Previous                                        | Next                        | Up                         |
+|-------------------------------------------------|-----------------------------|----------------------------|
+| [Use-case application](use_case_application.md) | [Game usage](game_usage.md) | [Tutorial root](README.md) |
 
 ## Partnerchain set up and usage
 
@@ -457,9 +457,9 @@ Are you sure to remove "./chains/local_testnet/paritydb"? [y/N]: y
 "./chains/local_testnet/paritydb" removed.
 ```
 
-| Previous                                        | Next                                  | Up                         |
-|-------------------------------------------------|---------------------------------------|----------------------------|
-| [Use-case application](use_case_application.md) | [Troubleshooting](troubleshooting.md) | [Tutorial root](README.md) |
+| Previous                                        | Next                        | Up                         |
+|-------------------------------------------------|-----------------------------|----------------------------|
+| [Use-case application](use_case_application.md) | [Game usage](game_usage.md) | [Tutorial root](README.md) |
 
 <!-- Local Variables: -->
 <!-- mode: Markdown -->
