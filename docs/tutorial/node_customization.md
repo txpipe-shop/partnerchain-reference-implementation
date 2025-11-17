@@ -392,7 +392,7 @@ https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c495
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L195-L203
 
-- Include `sp_consensus_grandpa::GrandpaApi<Block>`. Use custom `grandpa_authorities` implementation for the homonymous function from the api. Give a trivial implementation for `current_set_id`, `submit_report_equivocation_unsigned_extrinsic` and `generate_key_ownership_proof`.
+- Include `sp_consensus_grandpa::GrandpaApi<Block>`. Use custom `grandpa_authorities` implementation for the homonym function from the API. Give a trivial implementation for `current_set_id`, `submit_report_equivocation_unsigned_extrinsic` and `generate_key_ownership_proof`.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/runtime/src/lib.rs#L205-L222
 

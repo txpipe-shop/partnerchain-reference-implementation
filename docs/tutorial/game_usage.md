@@ -23,7 +23,7 @@ scripts, writing the resulting ones in their respective files, inside the `scrip
 
 ### Arguments details:
 
-*params*: path to the json file containing all the script parameters.
+*params*: path to the JSON file containing all the script parameters.
 
 ### Create Ship
 
@@ -68,7 +68,7 @@ This command moves fuel tokens from a pellet UTxO to a ship UTxO, only if they h
 
 ### Move Ship
 
-This command moves the ship to a different point in the grid (updates de `pos_x` and `pos_y` fields in the ship datum). The transaction also burns the fuel tokens consumed.
+This command moves the ship to a different point in the grid (updates the `pos_x` and `pos_y` fields in the ship datum). The transaction also burns the fuel tokens consumed.
 
 ```console
 ./target/release/griffin-partner-chains-node game move-ship
@@ -87,7 +87,7 @@ witness: public key of the pilot token owner. This is necessary since the pilot 
 - *pos-x*: new “x” coordinate of the ship.
 - *pos-y*: new “y” coordinate of the ship.
 - *validity-interval-start*: start of the transaction’s validity interval. The corresponding POSIX must be greater than the `last-move-latest-time` field in the ship datum, in order to respect the speed limit of the last move.
-- *ttl*: the transaction’s time-to-live. The resulting POSIX time of the validity interval is used to set the initial `last-move-latest-time` field in the Ship output datum. The manhattan distance travelled divided by the POSIX validity range must be less or equal to the max speed.
+- *ttl*: the transaction’s time-to-live. The resulting POSIX time of the validity interval is used to set the initial `last-move-latest-time` field in the Ship output datum. The Manhattan distance traveled divided by the POSIX validity range must be less or equal to the max speed.
 
 ### Mine Asteria
 
@@ -110,3 +110,8 @@ This command can be triggered when the ship reaches Asteria, i.e., its coordinat
 |-----------------------------------------------------|---------------------------------------|----------------------------|
 | [Operating instructions](operating_instructions.md) | [Troubleshooting](troubleshooting.md) | [Tutorial root](README.md) |
 
+<!-- Local Variables: -->
+<!-- mode: Markdown -->
+<!-- ispell-local-dictionary: "american" -->
+<!-- fill-column: 100 -->
+<!-- End: -->

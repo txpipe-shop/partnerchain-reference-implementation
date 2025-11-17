@@ -25,7 +25,7 @@ you to its [design document](../../game/onchain/docs/design/design.md), that exc
 describes it. From now on we’ll discuss the technical aspects of implementing the game in our
 Substrate node.
 
-There are two sides to the implementation process, which we proceed to discuss rightaway.
+There are two sides to the implementation process, which we proceed to discuss right away.
 
 ### Offchain implementation
 
