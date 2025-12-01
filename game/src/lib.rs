@@ -104,6 +104,16 @@ pub struct CreateShipArgs {
         value_name = "TIME_TO_LIVE"
     )]
     pub ttl: u64,
+
+    /// Path to the game parameters JSON file
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "GAME_PARAMS_PATH"
+    )]
+    pub params_path: String,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -136,6 +146,16 @@ pub struct GatherFuelArgs {
         value_name = "VALIDITY_INTERVAL_START"
     )]
     pub validity_interval_start: u64,
+
+    /// Path to the game parameters JSON file
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "GAME_PARAMS_PATH"
+    )]
+    pub params_path: String,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -185,6 +205,16 @@ pub struct MoveShipArgs {
         value_name = "TIME_TO_LIVE"
     )]
     pub ttl: u64,
+
+    /// Path to the game parameters JSON file
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "GAME_PARAMS_PATH"
+    )]
+    pub params_path: String,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -214,6 +244,16 @@ pub struct MineAsteriaArgs {
         value_name = "MINE_COIN_AMOUNT"
     )]
     pub mine_coin_amount: u64,
+
+    /// Path to the game parameters JSON file
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "GAME_PARAMS_PATH"
+    )]
+    pub params_path: String,
 }
 
 #[derive(Debug, Args, Clone)]
