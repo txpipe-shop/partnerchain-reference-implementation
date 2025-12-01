@@ -63,17 +63,17 @@ Each of the following actions must be run with a running instance of the node.
 
 ### Deploy Scripts
 
-This command reads all the script parameters from `game/src/deploy_params.json` and applies them to the generic (parameterized)
-scripts, writing the resulting ones in their respective files, inside the `scripts` directory.
+This command reads all the script parameters provided in the argument JSON file and applies them to the generic (parameterized)
+scripts, writing the resulting ones in their respective files, inside the `scripts_directory` specified in the same JSON file.
 
 ```console
 ./target/release/griffin-partner-chains-node game deploy-scripts
---params <SCRIPTS_PARAMS_PATH>
+--params-path <GAME_PARAMS_PATH>
 ```
 
 #### Arguments details:
 
-*params*: path to the json file containing all the script parameters.
+*params-path*: path to the JSON file containing all the game scripts parameters and the target directory to write the resulting scripts.
 
 ### Create Ship
 
