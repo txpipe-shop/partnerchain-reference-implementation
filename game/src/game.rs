@@ -1,4 +1,4 @@
-use crate::{CreateShipArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs};
+use crate::{CreateShipArgs, DeployScriptsArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs};
 use anyhow::anyhow;
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
@@ -900,10 +900,11 @@ pub async fn mine_asteria(
     }
 }
 
-pub async fn deploy_scripts() -> anyhow::Result<()> {
-    let params_json: String = std::fs::read_to_string(DEPLOY_PARAMS_PATH)?;
-    let params: ScriptsParams =
-        serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
+pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
+    let params_json: String = std::fs::read_to_string(args.params_path).unwrap();
+    let params: ScriptsParams = serde_json::from_str(&params_json)
+        .map_err(|e| anyhow!("Invalid params JSON: {}", e))
+        .unwrap();
 
     let asteria_params = PallasPlutusData::Array(Indef(
         [
@@ -1025,9 +1026,21 @@ pub async fn deploy_scripts() -> anyhow::Result<()> {
         .unwrap(),
     );
 
-    std::fs::write(PELLET_PATH, hex::encode(pellet_script.0)).unwrap();
-    std::fs::write(ASTERIA_PATH, hex::encode(asteria_script.0)).unwrap();
-    std::fs::write(SPACETIME_PATH, hex::encode(spacetime_script.0)).unwrap();
+    std::fs::write(
+        params.scripts_directory.clone() + "pellet.txt",
+        hex::encode(pellet_script.0),
+    )
+    .unwrap();
+    std::fs::write(
+        params.scripts_directory.clone() + "asteria.txt",
+        hex::encode(asteria_script.0),
+    )
+    .unwrap();
+    std::fs::write(
+        params.scripts_directory.clone() + "spacetime.txt",
+        hex::encode(spacetime_script.0),
+    )
+    .unwrap();
     println!("All scripts written successfully!");
     Ok(())
 }
@@ -1061,6 +1074,7 @@ struct ScriptsParams {
     max_asteria_mining: u64,
     min_asteria_distance: u64,
     ship_mint_lovelace_fee: u64,
+    scripts_directory: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

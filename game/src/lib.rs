@@ -23,7 +23,7 @@ pub enum Command {
     /// Mine Asteria using a ship
     MineAsteria(MineAsteriaArgs),
     /// Apply parameters and write game scripts
-    DeployScripts,
+    DeployScripts(DeployScriptsArgs),
 }
 
 impl GameCommand {
@@ -54,8 +54,8 @@ impl GameCommand {
                     let _ = game::mine_asteria(&db, &client, &keystore, args).await;
                     Ok(())
                 }
-                Command::DeployScripts => {
-                    let _ = game::deploy_scripts().await;
+                Command::DeployScripts(args) => {
+                    let _ = game::deploy_scripts(args).await;
                     Ok(())
                 }
             },
@@ -214,4 +214,17 @@ pub struct MineAsteriaArgs {
         value_name = "MINE_COIN_AMOUNT"
     )]
     pub mine_coin_amount: u64,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct DeployScriptsArgs {
+    /// Path to the game parameters JSON file
+    #[arg(
+        long,
+        short,
+        verbatim_doc_comment,
+        required = true,
+        value_name = "GAME_PARAMS_PATH"
+    )]
+    pub params_path: String,
 }

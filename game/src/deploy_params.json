@@ -10,5 +10,6 @@
     "max_ship_fuel": 100,
     "max_asteria_mining": 50,
     "min_asteria_distance": 10,
-    "ship_mint_lovelace_fee": 3000000
+    "ship_mint_lovelace_fee": 3000000,
+    "scripts_directory": "game/src/scripts/"
 }
