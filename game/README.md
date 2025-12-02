@@ -63,17 +63,17 @@ Each of the following actions must be run with a running instance of the node.
 
 ### Deploy Scripts
 
-This command reads all the script parameters from `game/src/deploy_params.json` and applies them to the generic (parameterized)
-scripts, writing the resulting ones in their respective files, inside the `scripts` directory.
+This command reads all the script parameters provided in the argument JSON file and applies them to the generic (parameterized)
+scripts, writing the resulting ones in their respective files, inside the `scripts_directory` specified in the same JSON file.
 
 ```console
 ./target/release/griffin-partner-chains-node game deploy-scripts
---params <SCRIPTS_PARAMS_PATH>
+--params-path <GAME_PARAMS_PATH>
 ```
 
 #### Arguments details:
 
-*params*: path to the json file containing all the script parameters.
+*params-path*: path to the JSON file containing all the game scripts parameters and the target directory to write the resulting scripts.
 
 ### Create Ship
 
@@ -86,6 +86,7 @@ This command creates the player’s Ship. The transaction also mints the initial
 --pos-x <POS_X>
 --pos-y <POS_Y>
 --ttl <TIME_TO_LIVE>
+--params-path <GAME_PARAMS_PATH>
 ```
 #### Arguments details:
 
@@ -94,6 +95,7 @@ This command creates the player’s Ship. The transaction also mints the initial
 - *pos-x*: initial “x” coordinate of the Ship output.
 - *pos-y*: initial “y” coordinate of the Ship output.
 - *ttl*: the transaction’s time-to-live. The resulting POSIX time of the validity interval is used to set the initial `last-move-latest-time` field in the Ship output datum.
+- *params-path*: path to the JSON file containing all the game scripts parameters and the applied scripts directory.
 
 ### Gather Fuel
 
@@ -106,6 +108,7 @@ This command moves fuel tokens from a pellet UTxO to a ship UTxO, only if they h
 --witness <PUBLIC_KEY>
 --fuel <FUEL_AMOUNT>
 --validity-interval-start <VALIDITY_INTERVAL_START>
+--params-path <GAME_PARAMS_PATH>
 ```
 
 #### Arguments details:
@@ -115,6 +118,7 @@ This command moves fuel tokens from a pellet UTxO to a ship UTxO, only if they h
 - *witness*: public key of the pilot token owner. This is necessary since the pilot UTxO must be provided as input to prove the ship ownership. If omitted, Shawn’s pub key is the default value.
 - *fuel*: the amount of fuel to transfer from the pellet to the ship.
 - *validity-interval-start*: start of the transaction’s validity interval. The corresponding POSIX must be greater than the `last-move-latest-time` field in the ship datum, in order to respect the speed limit of the last move.
+- *params-path*: path to the JSON file containing all the game scripts parameters and the applied scripts directory.
 
 ### Move Ship
 
@@ -128,6 +132,7 @@ This command moves the ship to a different point in the grid (updates de `pos_x`
 --pos-y <POS_Y>
 --validity-interval-start <VALIDITY_INTERVAL_START>
 --ttl <TIME_TO_LIVE>
+--params-path <GAME_PARAMS_PATH>
 ```
 
 #### Arguments details:
@@ -138,6 +143,7 @@ witness: public key of the pilot token owner. This is necessary since the pilot 
 - *pos-y*: new “y” coordinate of the ship.
 - *validity-interval-start*: start of the transaction’s validity interval. The corresponding POSIX must be greater than the `last-move-latest-time` field in the ship datum, in order to respect the speed limit of the last move.
 - *ttl*: the transaction’s time-to-live. The resulting POSIX time of the validity interval is used to set the initial `last-move-latest-time` field in the Ship output datum. The manhattan distance travelled divided by the POSIX validity range must be less or equal to the max speed.
+- *params-path*: path to the JSON file containing all the game scripts parameters and the applied scripts directory.
 
 ### Mine Asteria
 
@@ -148,6 +154,8 @@ This command can be triggered when the ship reaches Asteria, i.e., its coordinat
 --ship <SHIP_OUTPUT_REF>
 --witness <PUBLIC_KEY>
 --validity-interval-start <VALIDITY_INTERVAL_START>
+--mine-coin-amount <MINE_COIN_AMOUNT>
+--params-path <GAME_PARAMS_PATH>
 ```
 
 #### Arguments details:
@@ -155,5 +163,7 @@ This command can be triggered when the ship reaches Asteria, i.e., its coordinat
 - *ship*: reference to the ship UTxO.
 - *witness*: public key of the pilot token owner. This is necessary since the pilot UTxO must be provided as input to prove the ship ownership. If omitted, Shawn’s pub key is the default value.
 - *validity-interval-start*: start of the transaction’s validity interval. The corresponding POSIX must be greater than the `last-move-latest-time` field in the ship datum, in order to respect the speed limit of the last move.
+- *mine-coin-amount*: amount of coin to be mined from Asteria. This must be less or equal to the allowed maximum percentage of the total prize defined by MAX_ASTERIA_MINING.
+- *params-path*: path to the JSON file containing all the game scripts parameters and the applied scripts directory.
 
 
