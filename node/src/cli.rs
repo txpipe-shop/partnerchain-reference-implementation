@@ -1,6 +1,6 @@
 use game::GameCommand;
-use griffin_partner_chains_runtime::opaque::SessionKeys;
 use gpc_wallet::cli::WalletCommand;
+use griffin_partner_chains_runtime::opaque::SessionKeys;
 use partner_chains_cli::{KeyDefinition, AURA, GRANDPA};
 use partner_chains_node_commands::{PartnerChainRuntime, PartnerChainsSubcommand};
 
