@@ -8,7 +8,7 @@ This CLI wallet is based on a minimized version of the [Tuxedo wallet](https://g
 You should have a properly installed Griffin node to build the wallet. After following the [instructions to do that](https://github.com/txpipe/griffin/blob/main/README.md#installation), run
 
 ```bash
-cargo build --release -p griffin-wallet
+cargo build --release -p gpc-wallet
 ```
 
 As explained in the node installation instructions, omitting the `--release` will build the "debug" version.
@@ -26,14 +26,14 @@ In another terminal, one can interact with the node by issuing wallet commands. 
 To list the whole UTxO set, run
 
 ```bash
-./target/release/griffin-wallet show-all-outputs
+./target/release/gpc-wallet show-all-outputs
 ```
 
 When this is done for the first, the output will look like this:
 
 ```
-[2024-11-14T12:37:20Z INFO  griffin_wallet] Number of blocks in the db: 5
-[2024-11-14T12:37:20Z INFO  griffin_wallet] Wallet database synchronized with node to height 6
+[2024-11-14T12:37:20Z INFO  gpc_wallet] Number of blocks in the db: 5
+[2024-11-14T12:37:20Z INFO  gpc_wallet] Wallet database synchronized with node to height 6
 ###### Unspent outputs ###########
 998f074b5357d465fdd99198c65af6a418522e5a1688e2674c935702fef38d0600000000: owner address 6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4, datum Some(CuteOutput), amount: 314000000 Coins, Multiassets:
   (0x0298…2005) tokenA: 271000000
@@ -42,10 +42,10 @@ When this is done for the first, the output will look like this:
 This “genesis” UTxO belongs to Shawn's address. In order to spend it, we need to add his public/secret key pair (pk/sk) to the wallet keystore. We do this by generating the pair with the corresponding seed phrase:
 
 ```
-$ ./target/release/griffin-wallet insert-key "news slush supreme milk chapter athlete soap sausage put clutch what kitten"
+$ ./target/release/gpc-wallet insert-key "news slush supreme milk chapter athlete soap sausage put clutch what kitten"
 
-[2024-11-14T12:38:19Z INFO  griffin_wallet] Number of blocks in the db: 6
-[2024-11-14T12:38:19Z INFO  griffin_wallet] Wallet database synchronized with node to height 26
+[2024-11-14T12:38:19Z INFO  gpc_wallet] Number of blocks in the db: 6
+[2024-11-14T12:38:19Z INFO  gpc_wallet] Wallet database synchronized with node to height 26
 The generated public key is 7b155093789404780735f4501c576e9f6e2b0a486cdec70e03e1ef8b9ef99274 (5Er65XH4...)
 Associated address is 0x6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4
 ```
@@ -53,10 +53,10 @@ Associated address is 0x6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329
 We use the `generate-key` command to have another pk/sk and address available for experimenting.
 
 ```
-$ ./target/release/griffin-wallet generate-key
+$ ./target/release/gpc-wallet generate-key
 
-[2024-11-14T12:38:53Z INFO  griffin_wallet] Number of blocks in the db: 26
-[2024-11-14T12:38:53Z INFO  griffin_wallet] Wallet database synchronized with node to height 37
+[2024-11-14T12:38:53Z INFO  gpc_wallet] Number of blocks in the db: 26
+[2024-11-14T12:38:53Z INFO  gpc_wallet] Wallet database synchronized with node to height 37
 Generated public key is 3538f889235842527b946255962241591cdc86cb99ba566afde335ae94262ee4 (5DGVKT7k...)
 Generated Phrase is "vibrant assume service vibrant six unusual trumpet ten truck raise verify soft"
 Associated address is 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
@@ -65,27 +65,27 @@ Associated address is 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273
 Now we spend the output, generating a new UTxO for the last address:
 
 ```
-$ ./target/release/griffin-wallet spend-value --input 998f074b5357d465fdd99198c65af6a418522e5a1688e2674c935702fef38d0600000000 --amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
+$ ./target/release/gpc-wallet spend-value --input 998f074b5357d465fdd99198c65af6a418522e5a1688e2674c935702fef38d0600000000 --amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
 
-[2024-11-14T12:41:18Z INFO  griffin_wallet] Number of blocks in the db: 37
-[2024-11-14T12:41:18Z INFO  griffin_wallet] Wallet database synchronized with node to height 86
+[2024-11-14T12:41:18Z INFO  gpc_wallet] Number of blocks in the db: 37
+[2024-11-14T12:41:18Z INFO  gpc_wallet] Wallet database synchronized with node to height 86
 Note: Excess input amount goes to Shawn.
-[2024-11-14T12:41:18Z INFO  griffin_wallet::money] Node's response to spend transaction: Ok("0x5a1974d3e3d32c075b220513125c9457ac9efc59a651d36704c0c7a4e389b6e6")
+[2024-11-14T12:41:18Z INFO  gpc_wallet::money] Node's response to spend transaction: Ok("0x5a1974d3e3d32c075b220513125c9457ac9efc59a651d36704c0c7a4e389b6e6")
 Transaction queued. When accepted, the following UTxOs will become available:
 "dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f600000000" worth Coin(200000000).
 "dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f601000000" worth Multiasset(114000000, EncapBTree({0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005: EncapBTree({AssetName("tokenA"): 271000000, AssetName("tokenB"): 1123581321})})).
 ```
 >As you can see in the example above, the hash of the submitted extrinsic returned by the node differs from the transaction hash computed by the wallet. We rely on the latter to uniquely identify UTxOs. The first is [not guaranteed to be unique](https://docs.polkadot.com/polkadot-protocol/parachain-basics/blocks-transactions-fees/transactions/#unique-identifiers-for-extrinsics).
 
-All command-line arguments admit short versions (run `./target/release/griffin-wallet -h` for details). The next invocation spends the first UTxO and sends some coins back to Shawn:
+All command-line arguments admit short versions (run `./target/release/gpc-wallet -h` for details). The next invocation spends the first UTxO and sends some coins back to Shawn:
 
 ```
-$ ./target/release/griffin-wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f600000000 --amount 150000000 --witness 3538f889235842527b946255962241591cdc86cb99ba566afde335ae94262ee4
+$ ./target/release/gpc-wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f600000000 --amount 150000000 --witness 3538f889235842527b946255962241591cdc86cb99ba566afde335ae94262ee4
 
-[2024-11-14T12:47:45Z INFO  griffin_wallet] Number of blocks in the db: 184
-[2024-11-14T12:47:45Z INFO  griffin_wallet] Wallet database synchronized with node to height 215
+[2024-11-14T12:47:45Z INFO  gpc_wallet] Number of blocks in the db: 184
+[2024-11-14T12:47:45Z INFO  gpc_wallet] Wallet database synchronized with node to height 215
 Note: Excess input amount goes to Shawn.
-[2024-11-14T12:47:45Z INFO  griffin_wallet::money] Node's response to spend transaction: Ok("0xbcc0e3f157c660e022890ea9a8ddf1e7a324dd7ae30496a774d4f04046b5097a")
+[2024-11-14T12:47:45Z INFO  gpc_wallet::money] Node's response to spend transaction: Ok("0xbcc0e3f157c660e022890ea9a8ddf1e7a324dd7ae30496a774d4f04046b5097a")
 Transaction queued. When accepted, the following UTxOs will become available:
 "bf73bc5bcf3afa75a7070041c635d78f6613aa3b753956e93053077cf9dc4b8e00000000" worth Coin(150000000).
 "bf73bc5bcf3afa75a7070041c635d78f6613aa3b753956e93053077cf9dc4b8e01000000" worth Coin(50000000).
@@ -96,10 +96,10 @@ In this second example, we had to explicitly state the pk of the owning address 
 The UTxO set at this point is
 
 ```
-$ ./target/release/griffin-wallet show-all-outputs
+$ ./target/release/gpc-wallet show-all-outputs
 
-[2024-11-14T12:48:44Z INFO  griffin_wallet] Number of blocks in the db: 215
-[2024-11-14T12:48:44Z INFO  griffin_wallet] Wallet database synchronized with node to height 234
+[2024-11-14T12:48:44Z INFO  gpc_wallet] Number of blocks in the db: 215
+[2024-11-14T12:48:44Z INFO  gpc_wallet] Wallet database synchronized with node to height 234
 ###### Unspent outputs ###########
 bf73bc5bcf3afa75a7070041c635d78f6613aa3b753956e93053077cf9dc4b8e00000000: owner address 6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4, datum None, amount: 150000000 Coins
 bf73bc5bcf3afa75a7070041c635d78f6613aa3b753956e93053077cf9dc4b8e01000000: owner address 6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4, datum None, amount: 50000000 Coins
@@ -111,12 +111,12 @@ dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f601000000: owner 
 
 Finally, to send some coins *and* `tokenA`s from the last UTxO to the other account, we do:
 ```
-$ ./target/release/griffin-wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f601000000 --amount 14000000 --policy 0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005 --name tokenA --token-amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
+$ ./target/release/gpc-wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f601000000 --amount 14000000 --policy 0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005 --name tokenA --token-amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
 
-[2024-11-14T12:54:28Z INFO  griffin_wallet] Number of blocks in the db: 250
-[2024-11-14T12:54:28Z INFO  griffin_wallet] Wallet database synchronized with node to height 349
+[2024-11-14T12:54:28Z INFO  gpc_wallet] Number of blocks in the db: 250
+[2024-11-14T12:54:28Z INFO  gpc_wallet] Wallet database synchronized with node to height 349
 Note: Excess input amount goes to Shawn.
-[2024-11-14T12:54:28Z INFO  griffin_wallet::money] Node's response to spend transaction: Ok("0xa7ad4765e2ab4767e434fc6c117929a8871288c094a428164071c63bd9f0490a")
+[2024-11-14T12:54:28Z INFO  gpc_wallet::money] Node's response to spend transaction: Ok("0xa7ad4765e2ab4767e434fc6c117929a8871288c094a428164071c63bd9f0490a")
 Transaction queued. When accepted, the following UTxOs will become available:
 "ae2bcf3d0b2ace1f957176f17bac72e3fc2e518c82b41a9bdd622bb82318e4b200000000" worth Multiasset(14000000, EncapBTree({0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005: EncapBTree({AssetName("tokenA"): 200000000})})).
 "ae2bcf3d0b2ace1f957176f17bac72e3fc2e518c82b41a9bdd622bb82318e4b201000000" worth Multiasset(100000000, EncapBTree({0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005: EncapBTree({AssetName("tokenA"): 71000000, AssetName("tokenB"): 1123581321})})).
@@ -125,10 +125,10 @@ Transaction queued. When accepted, the following UTxOs will become available:
 The *balance* summarizes `Value` amounts for each address:
 
 ```
-$ ./target/release/griffin-wallet show-balance
+$ ./target/release/gpc-wallet show-balance
 
-[2024-11-14T12:54:34Z INFO  griffin_wallet] Number of blocks in the db: 349
-[2024-11-14T12:54:34Z INFO  griffin_wallet] Wallet database synchronized with node to height 351
+[2024-11-14T12:54:34Z INFO  gpc_wallet] Number of blocks in the db: 349
+[2024-11-14T12:54:34Z INFO  gpc_wallet] Wallet database synchronized with node to height 351
 Balance Summary
 6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4: 300000000 Coins, Multiassets:
   (0x0298…2005) tokenA: 71000000
@@ -147,7 +147,7 @@ total      : 314000000 Coins, Multiassets:
 In order to reproduce more complex wallet commands, like consuming a script input or minting an asset, we provide a more complete transaction builder via the `build-tx` command. The only argument is a JSON file with all the necessary information about inputs, outputs, scripts, mintings, witnesses, required signers and validity interval. Run the command with:
 
 ```bash
-$ ./target/release/griffin-wallet build-tx --tx-info /path/to/your/json/file.json
+$ ./target/release/gpc-wallet build-tx --tx-info /path/to/your/json/file.json
 ```
 
 The json file must contain the following fields:
@@ -217,13 +217,13 @@ pub const ALICE_ADDRESS: &str = "61547932e40a24e2b7deb41f31af21ed57acd125f4ed8a7
 Apart from getting the whole UTxO set or the balance, one can also filter UTxOs by address or by asset. For example, to get all UTxOs owned by Shawn's address:
 
 ```
-$ ./target/debug/griffin-wallet show-outputs-at --address 6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4
+$ ./target/debug/gpc-wallet show-outputs-at --address 6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4
 ```
 
 or to get all UTxOs containing `tokenA` with policy ID `0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005`:
 
 ```
-$ ./target/debug/griffin-wallet show-outputs-with-asset --policy 0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005 --name tokenA
+$ ./target/debug/gpc-wallet show-outputs-with-asset --policy 0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005 --name tokenA
 ```
 
 Both commands will print the corresponding UTxOs in the same format as `show-all-outputs`.
@@ -232,5 +232,5 @@ Both commands will print the corresponding UTxOs in the same format as `show-all
 For a complete list of commands and options, run
 
 ```bash
-./target/release/griffin-wallet --help
+./target/release/gpc-wallet --help
 ```

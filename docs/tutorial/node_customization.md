@@ -192,7 +192,7 @@ Click on the block below to see the rather long diff:
 #### Package dependencies
 
 This processes has to be repeated for all packages in the workspace. For the node, we also change
-its name to `griffin-partner-chains-node`:
+its name to `gpc-node`:
 
 ``` diff
 diff --git a/node/Cargo.toml b/node/Cargo.toml
@@ -201,7 +201,7 @@ diff --git a/node/Cargo.toml b/node/Cargo.toml
 @@ -1,5 +1,5 @@
  [package]
 -name = "minimal-template-node"
-+name = "griffin-partner-chains-node"
++name = "gpc-node"
  description = "A minimal Substrate-based Substrate node, ready for hacking."
  version = "0.1.0"
  license = "Unlicense"

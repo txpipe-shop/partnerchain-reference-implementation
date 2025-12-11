@@ -1,5 +1,5 @@
 [package]
-name = "griffin-partner-chains-node"
+name = "gpc-node"
 description = "A solochain node built with Substrate, part of Polkadot SDK"
 version = "0.0.5"
 authors.workspace = true
@@ -21,7 +21,7 @@ futures-timer = { workspace = true }
 griffin-core = { workspace = true }
 griffin-partner-chains-runtime = { workspace = true }
 griffin-rpc = { workspace = true }
-griffin-wallet = { workspace = true }
+gpc-wallet = { workspace = true }
 game = { workspace = true }
 jsonrpsee = { features = ["server"], workspace = true }
 sc-basic-authorship = { workspace = true }

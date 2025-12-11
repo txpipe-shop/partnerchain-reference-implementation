@@ -1,7 +1,7 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "98e7dba69bc843e0d1b547f7159afe0d05d45c469554cd8b837653d380358d5f",
+            "tx_hash": "86acd70277f1bb6d8a455e0b72a76df14359049ee7b70a1e9a5cb098312af2d8",
             "index": 0,
             "redeemer_cbor": "d87a81d87980"
         }

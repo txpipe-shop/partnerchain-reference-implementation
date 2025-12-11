@@ -7,7 +7,7 @@ This is an example of a simple on-chain game built using the Extended UTXO model
 You must have a running instance of the Partnerchain node, and run the trace in order using the wallet tx-builder, like in the following example:
 
 ```bash
-./target/release/griffin-wallet wallet build-tx --tx-info wallet/src/eutxo_examples/game/trace_example/1_create_ship.json 
+./target/release/gpc-wallet wallet build-tx --tx-info wallet/src/eutxo_examples/game/trace_example/1_create_ship.json 
 ```
 
 Keep in mind that:

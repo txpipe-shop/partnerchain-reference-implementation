@@ -22,7 +22,7 @@ use griffin_core::{
     },
     uplc::tx::{apply_params_to_script, SlotConfig},
 };
-use griffin_wallet::{
+use gpc_wallet::{
     cli::{ShowOutputsAtArgs, ShowOutputsWithAssetArgs},
     keystore, sync,
 };

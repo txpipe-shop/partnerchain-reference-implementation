@@ -1,12 +1,12 @@
 {
     "inputs_info": [
         {
-            "tx_hash": "98e7dba69bc843e0d1b547f7159afe0d05d45c469554cd8b837653d380358d5f",
+            "tx_hash": "86acd70277f1bb6d8a455e0b72a76df14359049ee7b70a1e9a5cb098312af2d8",
             "index": 0,
             "redeemer_cbor": "d87a81d87a80"
         },
         {
-            "tx_hash": "8544c824cd05d68d25f6e9eed666c113acb7571961a9676a73e5dc8fe06d44ea",
+            "tx_hash": "8a238075b88aba304618a8795ee1cd2342b181306d371d7233755cc29d1acd36",
             "index": 0
         }
     ],

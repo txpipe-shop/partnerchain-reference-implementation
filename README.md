@@ -50,13 +50,13 @@ $ rustup component add rust-src --toolchain stable-x86_64-unknown-linux-gnu
 You can build all of the artifacts like the node and the wallet:
 
 ```sh
-cargo build --release -p griffin-partner-chains-node -p griffin-wallet
+cargo build --release -p gpc-node -p gpc-wallet
 ```
 
 To run use:
 
 ```sh
-target/release/griffin-partner-chains-node --dev --alice
+target/release/gpc-node --dev --alice
 ```
 With this command you can start a local development chain that will use predefined account Alice's keys, which are set in the runtime genesis as the authority keys.
 
@@ -65,10 +65,10 @@ With this command you can start a local development chain that will use predefin
 You can follow the instructions at [wallet](/wallet/README.md) to interact with the node using the Griffin wallet. Starting from `v0.0.4` the wallet is integrated into the node commands. This means you can use it directly with the node's executable:
 
 ```sh
-./target/release/griffin-partner-chains-node wallet <wallet-subcommands>
+./target/release/gpc-node wallet <wallet-subcommands>
 ```
 
-> Note: this command only supports the wallet's subcommands. This means options like `--purge-db` are NOT supported. You can manually clean the wallet's database with `rm -r ~/.local/share/griffin-wallet/`. If you have the `griffin-wallet` executable, you can use options and commands like normal.
+> Note: this command only supports the wallet's subcommands. This means options like `--purge-db` are NOT supported. You can manually clean the wallet's database with `rm -r ~/.local/share/gpc-wallet/`. If you have the `gpc-wallet` executable, you can use options and commands like normal.
 
 ### Build and run with docker
 
@@ -92,7 +92,7 @@ The docker utilizes a different `genesis` that sets these two accounts as author
 Similarly to the local chain, you can use Griffin wallet to interact with the node using `docker-exec`:
 
 ```sh
-docker exec gpc-node-1-1 griffin-wallet -e http://localhost:9944 show-all-outputs 
+docker exec gpc-node-1-1 gpc-wallet -e http://localhost:9944 show-all-outputs 
 ```
 
 Make sure that the endpoint you are connecting to matches the node's being run in the container.
