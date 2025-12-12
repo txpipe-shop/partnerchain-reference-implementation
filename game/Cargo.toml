@@ -9,7 +9,7 @@ edition.workspace = true
 anyhow = { workspace = true }
 clap = { features = ["derive"], workspace = true }
 griffin-core = { workspace = true }
-griffin-wallet = { workspace = true }
+gpc-wallet = { workspace = true }
 hex = { workspace = true }
 jsonrpsee = { workspace = true }
 log = { workspace = true }

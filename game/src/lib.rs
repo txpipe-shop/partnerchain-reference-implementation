@@ -2,8 +2,8 @@ mod game;
 mod tests;
 
 use clap::{Args, Subcommand};
+use gpc_wallet::{context::Context, keystore, utils};
 use griffin_core::types::Input;
-use griffin_wallet::{context::Context, keystore, utils};
 use sp_core::H256;
 
 #[derive(Clone, Debug, Subcommand)]

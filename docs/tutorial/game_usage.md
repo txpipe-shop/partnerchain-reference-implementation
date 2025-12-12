@@ -17,7 +17,7 @@ This command reads all the script parameters provided in the argument JSON file 
 scripts, writing the resulting ones in their respective files, inside the `scripts_directory` specified in the same JSON file.
 
 ```console
-./target/release/griffin-partner-chains-node game deploy-scripts
+./target/release/gpc-node game deploy-scripts
 --params-path <GAME_PARAMS_PATH>
 ```
 
@@ -30,7 +30,7 @@ scripts, writing the resulting ones in their respective files, inside the `scrip
 This command creates the player’s Ship. The transaction also mints the initial ship’s fuel, the ship and pilot tokens, and pays an inscription fee that is added to the total prize in the Asteria UTxO. The pilot token goes back to the wallet input owner, and serves as a proof of the ownership of the Ship.
 
 ```console
-./target/release/griffin-partner-chains-node game create-ship
+./target/release/gpc-node game create-ship
 --input <WALLET_OUTPUT_REF>
 --witness <PUBLIC_KEY>
 --pos-x <POS_X>
@@ -52,7 +52,7 @@ This command creates the player’s Ship. The transaction also mints the initial
 This command moves fuel tokens from a pellet UTxO to a ship UTxO, only if they have the same position in the grid, as specified in the datums. The amount of fuel to gather is specified in the redeemer, and the total ship fuel must not exceed its maximum capacity.
 
 ```console
-./target/release/griffin-partner-chains-node game gather-fuel
+./target/release/gpc-node game gather-fuel
 --ship <SHIP_OUTPUT_REF>
 --pellet <PELLET_OUTPUT_REF>
 --witness <PUBLIC_KEY>
@@ -75,7 +75,7 @@ This command moves fuel tokens from a pellet UTxO to a ship UTxO, only if they h
 This command moves the ship to a different point in the grid (updates the `pos_x` and `pos_y` fields in the ship datum). The transaction also burns the fuel tokens consumed.
 
 ```console
-./target/release/griffin-partner-chains-node game move-ship
+./target/release/gpc-node game move-ship
 --ship <SHIP_OUTPUT_REF>
 --witness <PUBLIC_KEY>
 --pos-x <POS_X>
@@ -100,7 +100,7 @@ witness: public key of the pilot token owner. This is necessary since the pilot 
 This command can be triggered when the ship reaches Asteria, i.e., its coordinates are both zero. Then the ship owner can receive a percentage of the total prize given by (MAX_ASTERIA_MINING/100). This transaction also burns the ship and all remaining fuel tokens.
 
 ```console
-./target/release/griffin-partner-chains-node game mine-asteria
+./target/release/gpc-node game mine-asteria
 --ship <SHIP_OUTPUT_REF>
 --witness <PUBLIC_KEY>
 --validity-interval-start <VALIDITY_INTERVAL_START>

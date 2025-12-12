@@ -114,6 +114,6 @@ We'll briefly detail the modifications done to the wallet:
 
 This refactoring allowed us to include the `wallet` into the node, along with the game:
 
-1. Include the `griffin-wallet` package in `Cargo.toml`.
+1. Include the `gpc-wallet` package in `Cargo.toml`.
 2. Add a new `Wallet(WalletCommand)` item in the `Subcommand` enum, within `node/src/cli.rs`.
 3. Include the previous item in the subcommands match struct, within the `run` function in `node/src/command.rs`. 

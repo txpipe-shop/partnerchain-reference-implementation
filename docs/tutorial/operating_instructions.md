@@ -17,11 +17,11 @@ The UTxOs that will be created on the cardano side are the following;
 
 #### Build the node
 
-You can build the `griffin-partner-chains-node` with the following command (recall the convenience
+You can build the `gpc-node` with the following command (recall the convenience
 of using our [`rust-toolchain.toml`](../../rust-toolchain.toml) at the repo root):
 
 ```bash
-cargo build --release -p griffin-partner-chains-node
+cargo build --release -p gpc-node
 ```
 
 #### Generate-keys
@@ -29,7 +29,7 @@ cargo build --release -p griffin-partner-chains-node
 The first time you set up a chain you’ll need to run the generate-keys command:
 
 ```bash
-./griffin-partner-chains-node wizards generate-keys
+./gpc-node wizards generate-keys
 ```
 
 This command creates three keys: a partner-chain key, a grandpa key and an aura key. The first one is an identifier for the node and the last two are used for the committee. If you run this command and there are keys present already, it will prompt you to decide whether you want new ones or not.
@@ -42,7 +42,7 @@ This wizard sets up the initial governance UTxO and also fills the `pc-chain-con
 Once you start the wizard:
 
 ```bash
-./griffin-partner-chains-node wizards prepare-configuration
+./gpc-node wizards prepare-configuration
 ```
 
 It will prompt you to fill out some information:
@@ -62,7 +62,7 @@ _This command requires Ogmios so make sure to have that service on before runnin
 This command sets up the DParameter and the Initial Permissioned Candidates list on the main chain.
 
 ```bash
-./griffin-partner-chains-node wizards setup-main-chain-state
+./gpc-node wizards setup-main-chain-state
 ```
 
 It will prompt you to provide the Ogmios instance. Then, as it doesn’t find a UTxO with the permissioned candidates, it will ask whether to create the UTxO or not. If you choose to set the UTxO, it will prompt for the signing key and to choose a UTxO for consumption.
@@ -74,7 +74,7 @@ After this is finished, the DParam will be set on the mainchain.
 This command is different from the original Partner Chain’s one, as we’ve modified it to build the chain specification that we need for Griffin. The functionality is similar in that it reads the `pc-chain-config.json` file to obtain the chain information and builds the chain specification, which in our case is the set of genesis UTxOs. Before running this step we need to have the registered candidates’ keys as well, and they need to be added to the permissioned candidate field on the configuration file.
 
 ```bash
-./griffin-partner-chains-node wizards create-chain-spec
+./gpc-node wizards create-chain-spec
 ```
 
 After reading the candidates list from the configuration, it will prompt you to choose if you want to use it for the genesis.
@@ -105,9 +105,9 @@ mkdir node1 node2 node3
 
 We need to copy the node executable to each of these folders.
 ```bash
-cp target/release/griffin-partner-chains-node node1
-cp target/release/griffin-partner-chains-node node2
-cp target/release/griffin-partner-chains-node node3
+cp target/release/gpc-node node1
+cp target/release/gpc-node node2
+cp target/release/gpc-node node3
 ```
 
 And we also need to create a sub folder `chains` for each node, that will in turn have a `local_testnet` sub folder. This will hold the keystore, db and network key of the chain:
@@ -128,7 +128,7 @@ As the other nodes will be permissioned they won’t need to sign any transactio
 Run the `generate-keys` command within each node’s sub folder:
 ```bash
 cd node1/
-./griffin-partner-chains-node wizards generate-keys
+./gpc-node wizards generate-keys
 ```
 
 Then make sure to appropriately point to the node directory as base path (`./`):
@@ -162,7 +162,7 @@ This step must be run within our chain builder’s node folder, in this case `no
 We also need to have Ogmios available so if you haven’t initialized the stack yet, it’s time to do so with `docker compose up -d` on the `dev/local-environment` folder.
 Once Ogmios is ready to receive connections we can run the wizard:
 ```bash
-./griffin-partner-chains-node wizards prepare-configuration
+./gpc-node wizards prepare-configuration
 ```
 First we configure the bootnode and its access point. Make sure to select this directory as the node base path (`./`).
 
@@ -304,7 +304,7 @@ This is an example of what it looks like with the keys I generated.
 
 Once we have this we can run the next wizard (also within `node1/`):
 ```bash
-./griffin-partner-chains-node wizards setup-main-chain-state
+./gpc-node wizards setup-main-chain-state
 ```
 You should still have an Ogmios instance running, this is the first thing the wizard asks for:
 
@@ -353,7 +353,7 @@ Done. Please remember that any changes to the Cardano state can be observed imme
 The last step of the wizard helps us create the genesis file that we will need to start the chain. This wizard reads the candidates from the list in the configuration file and adds them to a UTxO in the genesis set for the chain. Within `node1/` run:
 
 ```bash
-./griffin-partner-chains-node wizards create-chain-spec
+./gpc-node wizards create-chain-spec
 ```
 
 Then confirm the provided values:
@@ -397,7 +397,7 @@ mv node3/keystore node3/chains/local_testnet/
 To initialize node1, run (within `node1/`):
 
 ```bash
-./griffin-partner-chains-node \
+./gpc-node \
  --validator \
  --chain=new-genesis.json \
  --base-path . \
@@ -412,7 +412,7 @@ To initialize node1, run (within `node1/`):
 To initialize node2, you will need to copy the ID of node1, the bootnode we are connecting to. You can find it in the output of the previous command, or by checking the `pc-chain-config.json` file within node1’s base path. In this case it is `12D3KooWCwp2Mnd9xrTjbbu4voHRBMmdyzTqYwQJh9YBsXvq99LP`. Now run (within `node2/`):
 
 ```bash
-./griffin-partner-chains-node \
+./gpc-node \
  --validator \
  --chain=new-genesis.json \
  --base-path . \
@@ -428,7 +428,7 @@ To initialize node2, you will need to copy the ID of node1, the bootnode we are 
 To initialize node3 connecting to node1, we proceed similarly (within `node3/`):
 
 ```bash
-./griffin-partner-chains-node \
+./gpc-node \
  --validator \
  --chain=new-genesis.json \
  --base-path . \
@@ -447,12 +447,12 @@ You may need to modify the port numbers if they’re already in use by some othe
 
 If you wish to scrub the previous chain, you can use the `purge-chain` command:
 ```bash
-./griffin-partner-chains-node purge-chain -d .
+./gpc-node purge-chain -d .
 ```
 This command removes the database stored at `chains/local_testnet` located in the current directory.
 
 ```console
-./griffin-partner-chains-node purge-chain -d . 
+./gpc-node purge-chain -d . 
 Are you sure to remove "./chains/local_testnet/paritydb"? [y/N]: y
 "./chains/local_testnet/paritydb" removed.
 ```

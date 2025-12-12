@@ -17,7 +17,7 @@
 //! To list the whole UTxO set, run
 //!
 //! ```bash
-//! ./target/release/griffin-wallet show-all-outputs
+//! ./target/release/gpc-wallet show-all-outputs
 //! ```
 
 mod cli;

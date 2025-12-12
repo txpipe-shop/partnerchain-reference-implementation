@@ -6,7 +6,7 @@ services:
       - "30333:30333"
       - "9944:9944"
     command: >
-      griffin-partner-chains-node
+      gpc-node
       --base-path /data/node-1
       --chain genesis.json
       --alice
@@ -32,7 +32,7 @@ services:
       node-1:
         condition: service_healthy
     command: >
-      griffin-partner-chains-node
+      gpc-node
       --base-path /data/node-2
       --chain genesis.json
       --bob

@@ -1911,9 +1911,9 @@ dependencies = [
 
 [[package]]
 name = "crunchy"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43da5946c66ffcc7745f48db692ffbb10a83bfe0afd96235c5c2a4fb23994929"
+checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
 name = "crypto-bigint"
@@ -3327,8 +3327,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "gpc-wallet",
  "griffin-core",
- "griffin-wallet",
  "hex",
  "jsonrpsee",
  "log",
@@ -3501,6 +3501,71 @@ dependencies = [
 ]
 
 [[package]]
+name = "gpc-node"
+version = "0.0.5"
+dependencies = [
+ "clap",
+ "docify",
+ "futures",
+ "futures-timer",
+ "game",
+ "gpc-wallet",
+ "griffin-core",
+ "griffin-partner-chains-runtime",
+ "griffin-rpc",
+ "jsonrpsee",
+ "partner-chains-cli",
+ "partner-chains-node-commands",
+ "sc-basic-authorship",
+ "sc-cli",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-consensus-manual-seal",
+ "sc-executor",
+ "sc-network",
+ "sc-service",
+ "sc-telemetry",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+ "serde_json",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-genesis-builder",
+ "sp-io",
+ "sp-runtime",
+ "sp-timestamp",
+ "substrate-build-script-utils",
+ "tokio",
+]
+
+[[package]]
+name = "gpc-wallet"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "colored",
+ "directories",
+ "env_logger 0.11.8",
+ "futures",
+ "griffin-core",
+ "hex",
+ "jsonrpsee",
+ "log",
+ "parity-scale-codec",
+ "sc-cli",
+ "sc-keystore",
+ "serde",
+ "serde_json",
+ "sled",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
+ "tokio",
+]
+
+[[package]]
 name = "griffin-core"
 version = "0.2.0"
 dependencies = [
@@ -3558,45 +3623,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "griffin-partner-chains-node"
-version = "0.0.5"
-dependencies = [
- "clap",
- "docify",
- "futures",
- "futures-timer",
- "game",
- "griffin-core",
- "griffin-partner-chains-runtime",
- "griffin-rpc",
- "griffin-wallet",
- "jsonrpsee",
- "partner-chains-cli",
- "partner-chains-node-commands",
- "sc-basic-authorship",
- "sc-cli",
- "sc-client-api",
- "sc-consensus",
- "sc-consensus-manual-seal",
- "sc-executor",
- "sc-network",
- "sc-service",
- "sc-telemetry",
- "sc-transaction-pool",
- "sc-transaction-pool-api",
- "serde_json",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-genesis-builder",
- "sp-io",
- "sp-runtime",
- "sp-timestamp",
- "substrate-build-script-utils",
- "tokio",
-]
-
-[[package]]
 name = "griffin-partner-chains-runtime"
 version = "0.0.5"
 dependencies = [
@@ -3646,32 +3672,6 @@ dependencies = [
  "sp-core",
  "sp-genesis-builder",
  "sp-runtime",
-]
-
-[[package]]
-name = "griffin-wallet"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "clap",
- "colored",
- "directories",
- "env_logger 0.11.8",
- "futures",
- "griffin-core",
- "hex",
- "jsonrpsee",
- "log",
- "parity-scale-codec",
- "sc-cli",
- "sc-keystore",
- "serde",
- "serde_json",
- "sled",
- "sp-core",
- "sp-keystore",
- "sp-runtime",
- "tokio",
 ]
 
 [[package]]

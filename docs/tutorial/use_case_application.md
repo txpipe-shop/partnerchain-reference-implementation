@@ -40,7 +40,7 @@ consideration. Fortunately, there are no fees so that reduces the number of calc
 
 ### Node integration
 
-We first add `griffin-wallet` and the `game` to the workspace appropriately,
+We first add `gpc-wallet` and the `game` to the workspace appropriately,
 
 The key step is to integrate the game into the node via the definition of a command line interface
 that allows the users to play the game and the modification of the genesis of the chain.

@@ -120,7 +120,7 @@ impl<T: clap::Subcommand + clap::FromArgMatches> Context<T> {
 fn temp_dir() -> PathBuf {
     // Since it is only used for testing purpose, we don't need a secure temp dir, just a unique one.
     std::env::temp_dir().join(format!(
-        "griffin-wallet-{}",
+        "gpc-wallet-{}",
         std::time::UNIX_EPOCH.elapsed().unwrap().as_millis(),
     ))
 }

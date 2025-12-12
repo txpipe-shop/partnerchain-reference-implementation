@@ -95,7 +95,7 @@ More information can be found in the wallet [readme] and also there are some usa
 >From this point on, we steer away from using `polkadot-sdk` as one big dependency. Instead, we pick and choose what we need from the Polkadot-SDK and set each as their own dependency. This might look more complicated in terms of mantaining but we pull each dependency from the regsitry and as long as we pull the same stable version for each package there should not be any conflicts. At the time of writing this we use the release `polkadot-stable2506-2`.
 >Having clarified this, it is necessary to add the dependencies in all `Cargo.toml` files, and also to modify the imports where used. To reduce clutter we won't be mentioning these steps while talking about the modifications.
 
-Firstly, copy the source code for `griffin-core`, `griffin-rpc`, `griffin-wallet` and `demo`. Then we have to add these packages as workspace members to the project manifest:  add the paths to the packages under the `[members]` section.
+Firstly, copy the source code for `griffin-core`, `griffin-rpc`, `gpc-wallet` and `demo`. Then we have to add these packages as workspace members to the project manifest:  add the paths to the packages under the `[members]` section.
 
 https://github.com/txpipe-shop/partnerchain-reference-implementation/blob/67c4953149fb6f6d8d8c1978fcbe2c6ebab9a6ec/Cargo.toml#L11-L17
 

@@ -30,10 +30,12 @@ COPY griffin-core/ griffin-core/
 COPY griffin-rpc/ griffin-rpc/
 COPY demo/ demo/
 COPY wallet/ wallet/
+COPY game/ game/
+COPY toolkit/ toolkit/
 
 # Build the node
-RUN cargo build --release -p griffin-partner-chains-node
-RUN cargo build --release -p griffin-wallet
+RUN cargo build --release -p gpc-node
+RUN cargo build --release -p gpc-wallet
 
 # Final stage
 FROM debian:bullseye-slim
@@ -45,8 +47,8 @@ curl \
 --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /reference-impl/target/release/griffin-partner-chains-node /usr/local/bin
-COPY --from=builder /reference-impl/target/release/griffin-wallet /usr/local/bin
+COPY --from=builder /reference-impl/target/release/gpc-node /usr/local/bin
+COPY --from=builder /reference-impl/target/release/gpc-wallet /usr/local/bin
 COPY docker/genesis.json .
 COPY docker/examples/ /examples
 

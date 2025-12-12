@@ -78,7 +78,7 @@ zero-prefixed-literal = { level = "allow", priority = 2 }            # 00_1000_0
 griffin-core = { default-features = false, path = "griffin-core" }
 griffin-partner-chains-runtime = { path = "./runtime", default-features = false }
 griffin-rpc = { default-features = false, path = "griffin-rpc" }
-griffin-wallet = { default-features = false, path = "wallet" }
+gpc-wallet = { default-features = false, path = "wallet" }
 game = { default-features = false, path = "game" }
 clap = { version = "4.5.13" }
 derive-new = { version = "0.7.0" }
@@ -103,6 +103,7 @@ serde_json = { version = "1.0.132", default-features = false, features = [
 	"alloc",
 ] }
 thiserror = { version = "2.0", default-features = false }
+crunchy = { version = "0.2.4", default-features = false }
 
 # substrate dependencies
 frame-support = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2506-2" }
