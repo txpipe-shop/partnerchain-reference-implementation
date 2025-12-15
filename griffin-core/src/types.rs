@@ -1,5 +1,6 @@
 //! Types used to construct Griffin transactions.
 use crate::h224::H224;
+use crate::header::{ExtendedHeader};
 use crate::pallas_applying::utils::BabbageError;
 use crate::pallas_codec::minicbor::{
     self, decode::Error as MiniDecError, encode::Error as MiniEncError, encode::Write as MiniWrite,
@@ -34,7 +35,7 @@ pub type OpaqueHash = <Hash as HashT>::Output;
 pub type BlockNumber = u32;
 /// Because all griffin chains use the same Blocknumber and Hash types,
 /// they also use the same concrete header type.
-pub type Header = sp_runtime::generic::Header<BlockNumber, Hash>;
+pub type Header = ExtendedHeader;
 
 pub type Block = sp_runtime::generic::Block<Header, Transaction>;
 /// Opaque block type. It has a Griffin header, and opaque transactions.

@@ -22,6 +22,7 @@ mod executive;
 pub mod checks_interface;
 pub mod genesis;
 pub mod h224;
+pub mod header;
 pub mod pallas_addresses;
 pub mod pallas_applying;
 pub mod pallas_codec;

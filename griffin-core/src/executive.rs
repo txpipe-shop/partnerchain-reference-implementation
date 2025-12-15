@@ -5,6 +5,7 @@
 //!
 //! It does all the reusable verification of UTXO transactions.
 
+use crate::alloc::string::ToString;
 use crate::pallas_applying::{
     babbage::{
         check_ins_not_empty,
@@ -396,6 +397,7 @@ where
         let raw_state_root = &sp_io::storage::root(StateVersion::V1)[..];
         let state_root = <Header as HeaderT>::Hash::decode(&mut &raw_state_root[..]).unwrap();
         header.set_state_root(state_root);
+        header.set_pcdata("lol".to_string());
 
         debug!(target: LOG_TARGET, "finalizing block {:?}", header);
         header
