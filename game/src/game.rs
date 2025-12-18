@@ -47,29 +47,44 @@ pub async fn create_ship(
 ) -> anyhow::Result<()> {
     log::debug!("The args are:: {:?}", args);
 
-    let params_json: String = std::fs::read_to_string(args.params_path).unwrap();
-    let params: ScriptsParams = serde_json::from_str(&params_json)
-        .map_err(|e| anyhow!("Invalid params JSON: {}", e))
-        .unwrap();
+    let params_json: String = std::fs::read_to_string(args.params_path)
+        .map_err(|e| anyhow!("Failed to read params file: {}", e))?;
+
+    let params: ScriptsParams =
+        serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
 
     let asteria_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "asteria.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "asteria.txt")
+            .map_err(|e| anyhow!("Failed to read asteria script: {}", e))?;
+
     let spacetime_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt")
+            .map_err(|e| anyhow!("Failed to read spacetime script: {}", e))?;
+
     let pellet_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt")
+            .map_err(|e| anyhow!("Failed to read pellet script: {}", e))?;
 
-    let asteria_script: PlutusScript = PlutusScript(hex::decode(asteria_script_hex).unwrap());
+    let asteria_script: PlutusScript =
+        PlutusScript(hex::decode(asteria_script_hex).expect("Failed to decode asteria script"));
     let asteria_hash: PolicyId = compute_plutus_v2_script_hash(asteria_script.clone());
-    let asteria_address: Address =
-        Address(hex::decode("70".to_owned() + &hex::encode(asteria_hash)).unwrap());
+    let asteria_address: Address = Address(
+        hex::decode("70".to_owned() + &hex::encode(asteria_hash))
+            .map_err(|e| anyhow!("Failed to decode asteria address: {}", e))?,
+    );
 
-    let spacetime_script: PlutusScript = PlutusScript(hex::decode(spacetime_script_hex).unwrap());
+    let spacetime_script: PlutusScript =
+        PlutusScript(hex::decode(spacetime_script_hex).expect("Failed to decode spacetime script"));
     let spacetime_hash: PolicyId = compute_plutus_v2_script_hash(spacetime_script.clone());
-    let spacetime_address: Address =
-        Address(hex::decode("70".to_owned() + &hex::encode(spacetime_hash)).unwrap());
+    let spacetime_address: Address = Address(
+        hex::decode("70".to_owned() + &hex::encode(spacetime_hash))
+            .map_err(|e| anyhow!("Failed to decode spacetime address: {}", e))?,
+    );
 
-    let pellet_script: PlutusScript = PlutusScript(hex::decode(pellet_script_hex).unwrap());
+    let pellet_script: PlutusScript = PlutusScript(
+        hex::decode(pellet_script_hex)
+            .map_err(|e| anyhow!("Failed to decode pellet script: {}", e))?,
+    );
     let pellet_policy: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
 
     // Construct a template Transaction to push coins into later
@@ -212,7 +227,11 @@ pub async fn create_ship(
 
             let vkey: Vec<u8> = Vec::from(args.witness.0);
             let public = Public::from_h256(args.witness);
-            let signature: Vec<u8> = Vec::from(keystore::sign_with(keystore, &public, tx_hash)?.0);
+            let signature: Vec<u8> = Vec::from(
+                keystore::sign_with(keystore, &public, tx_hash)
+                    .map_err(|e| anyhow!("Failed to sign transaction: {}", e))?
+                    .0,
+            );
             transaction.transaction_witness_set =
                 <_>::from(vec![VKeyWitness::from((vkey, signature))]);
 
@@ -279,20 +298,29 @@ pub async fn gather_fuel(
 ) -> anyhow::Result<()> {
     log::debug!("The args are:: {:?}", args);
 
-    let params_json: String = std::fs::read_to_string(args.params_path).unwrap();
-    let params: ScriptsParams = serde_json::from_str(&params_json)
-        .map_err(|e| anyhow!("Invalid params JSON: {}", e))
-        .unwrap();
+    let params_json: String = std::fs::read_to_string(args.params_path)
+        .map_err(|e| anyhow!("Failed to read params file: {}", e))?;
+
+    let params: ScriptsParams =
+        serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
 
     let spacetime_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt")
+            .map_err(|e| anyhow!("Failed to read spacetime script: {}", e))?;
     let pellet_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt")
+            .map_err(|e| anyhow!("Failed to read pellet script: {}", e))?;
 
-    let spacetime_script: PlutusScript = PlutusScript(hex::decode(spacetime_script_hex).unwrap());
+    let spacetime_script: PlutusScript = PlutusScript(
+        hex::decode(spacetime_script_hex)
+            .map_err(|e| anyhow!("Failed to decode spacetime script: {}", e))?,
+    );
     let shipyard_policy: PolicyId = compute_plutus_v2_script_hash(spacetime_script.clone());
 
-    let pellet_script: PlutusScript = PlutusScript(hex::decode(pellet_script_hex).unwrap());
+    let pellet_script: PlutusScript = PlutusScript(
+        hex::decode(pellet_script_hex)
+            .map_err(|e| anyhow!("Failed to decode pellet script: {}", e))?,
+    );
     let pellet_policy: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
 
     // Construct a template Transaction to push coins into later
@@ -426,8 +454,11 @@ pub async fn gather_fuel(
 
         let vkey: Vec<u8> = Vec::from(args.witness.0);
         let public = Public::from_h256(args.witness);
-        let signature: Vec<u8> =
-            Vec::from(crate::keystore::sign_with(keystore, &public, tx_hash)?.0);
+        let signature: Vec<u8> = Vec::from(
+            keystore::sign_with(keystore, &public, tx_hash)
+                .map_err(|e| anyhow!("Failed to sign transaction: {}", e))?
+                .0,
+        );
         transaction.transaction_witness_set = <_>::from(vec![VKeyWitness::from((vkey, signature))]);
 
         transaction.transaction_witness_set.redeemer = Some(vec![ship_redeemer, pellet_redeemer]);
@@ -484,20 +515,28 @@ pub async fn move_ship(
 ) -> anyhow::Result<()> {
     log::debug!("The args are:: {:?}", args);
 
-    let params_json: String = std::fs::read_to_string(args.params_path).unwrap();
-    let params: ScriptsParams = serde_json::from_str(&params_json)
-        .map_err(|e| anyhow!("Invalid params JSON: {}", e))
-        .unwrap();
+    let params_json: String = std::fs::read_to_string(args.params_path)
+        .map_err(|e| anyhow!("Failed to read params file: {}", e))?;
+    let params: ScriptsParams =
+        serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
 
     let spacetime_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt")
+            .map_err(|e| anyhow!("Failed to read spacetime script: {}", e))?;
     let pellet_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt")
+            .map_err(|e| anyhow!("Failed to read pellet script: {}", e))?;
 
-    let spacetime_script: PlutusScript = PlutusScript(hex::decode(spacetime_script_hex).unwrap());
+    let spacetime_script: PlutusScript = PlutusScript(
+        hex::decode(spacetime_script_hex)
+            .map_err(|e| anyhow!("Failed to decode spacetime script: {}", e))?,
+    );
     let shipyard_policy: PolicyId = compute_plutus_v2_script_hash(spacetime_script.clone());
 
-    let pellet_script: PlutusScript = PlutusScript(hex::decode(pellet_script_hex).unwrap());
+    let pellet_script: PlutusScript = PlutusScript(
+        hex::decode(pellet_script_hex)
+            .map_err(|e| anyhow!("Failed to decode pellet script: {}", e))?,
+    );
     let pellet_policy: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
 
     // Construct a template Transaction to push coins into later
@@ -548,11 +587,10 @@ pub async fn move_ship(
 
         // BURNS
         let moved_manhattan_distance = (pos_x - args.pos_x).abs() + (pos_y - args.pos_y).abs();
-        let moved_manhattan_distance_i64: i64 = moved_manhattan_distance.try_into().unwrap();
         let burn_fuel: Option<Multiasset<i64>> = Some(Multiasset::from((
             pellet_policy,
             fuel_name.clone(),
-            -moved_manhattan_distance_i64,
+            -(moved_manhattan_distance as i64),
         )));
 
         // BUILD REDEEMERS
@@ -635,8 +673,11 @@ pub async fn move_ship(
 
         let vkey: Vec<u8> = Vec::from(args.witness.0);
         let public = Public::from_h256(args.witness);
-        let signature: Vec<u8> =
-            Vec::from(crate::keystore::sign_with(keystore, &public, tx_hash)?.0);
+        let signature: Vec<u8> = Vec::from(
+            crate::keystore::sign_with(keystore, &public, tx_hash)
+                .map_err(|e| anyhow!("Failed to sign transaction: {}", e))?
+                .0,
+        );
         transaction.transaction_witness_set = <_>::from(vec![VKeyWitness::from((vkey, signature))]);
 
         transaction.transaction_witness_set.redeemer = Some(vec![ship_redeemer, pellet_redeemer]);
@@ -692,27 +733,42 @@ pub async fn mine_asteria(
 ) -> anyhow::Result<()> {
     log::debug!("The args are:: {:?}", args);
 
-    let params_json: String = std::fs::read_to_string(args.params_path).unwrap();
-    let params: ScriptsParams = serde_json::from_str(&params_json)
-        .map_err(|e| anyhow!("Invalid params JSON: {}", e))
-        .unwrap();
+    let params_json: String = std::fs::read_to_string(args.params_path)
+        .map_err(|e| anyhow!("Failed to read params file: {}", e))?;
+    let params: ScriptsParams =
+        serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
 
     let asteria_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "asteria.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "asteria.txt")
+            .map_err(|e| anyhow!("Failed to read asteria script: {}", e))?;
     let spacetime_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "spacetime.txt")
+            .map_err(|e| anyhow!("Failed to read spacetime script: {}", e))?;
     let pellet_script_hex: &str =
-        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt").unwrap();
+        &std::fs::read_to_string(params.scripts_directory.clone() + "pellet.txt")
+            .map_err(|e| anyhow!("Failed to read pellet script: {}", e))?;
 
-    let asteria_script: PlutusScript = PlutusScript(hex::decode(asteria_script_hex).unwrap());
+    let asteria_script: PlutusScript = PlutusScript(
+        hex::decode(asteria_script_hex)
+            .map_err(|e| anyhow!("Failed to decode asteria script: {}", e))?,
+    );
     let asteria_hash: PolicyId = compute_plutus_v2_script_hash(asteria_script.clone());
-    let asteria_address: Address =
-        Address(hex::decode("70".to_owned() + &hex::encode(asteria_hash)).unwrap());
 
-    let spacetime_script: PlutusScript = PlutusScript(hex::decode(spacetime_script_hex).unwrap());
+    let asteria_address: Address = Address(
+        hex::decode("70".to_owned() + &hex::encode(asteria_hash))
+            .map_err(|e| anyhow!("Failed to decode asteria address: {}", e))?,
+    );
+
+    let spacetime_script: PlutusScript = PlutusScript(
+        hex::decode(spacetime_script_hex)
+            .map_err(|e| anyhow!("Failed to decode spacetime script: {}", e))?,
+    );
     let shipyard_policy: PolicyId = compute_plutus_v2_script_hash(spacetime_script.clone());
 
-    let pellet_script: PlutusScript = PlutusScript(hex::decode(pellet_script_hex).unwrap());
+    let pellet_script: PlutusScript = PlutusScript(
+        hex::decode(pellet_script_hex)
+            .map_err(|e| anyhow!("Failed to decode pellet script: {}", e))?,
+    );
     let pellet_policy: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
 
     // Construct a template Transaction to push coins into later
@@ -781,7 +837,9 @@ pub async fn mine_asteria(
 
         // BURNS
         let ship_fuel = quanity_of(&ship_value, &pellet_policy, &fuel_name);
-        let ship_fuel_i64: i64 = ship_fuel.try_into().unwrap();
+        let ship_fuel_i64: i64 = ship_fuel
+            .try_into()
+            .expect("Fuel amount too large to fit in i64");
         let burns = Some(
             Multiasset::from((shipyard_policy, ship_token_name.clone(), -1))
                 + Multiasset::from((pellet_policy, fuel_name.clone(), -ship_fuel_i64)),
@@ -867,8 +925,11 @@ pub async fn mine_asteria(
 
         let vkey: Vec<u8> = Vec::from(args.witness.0);
         let public = Public::from_h256(args.witness);
-        let signature: Vec<u8> =
-            Vec::from(crate::keystore::sign_with(keystore, &public, tx_hash)?.0);
+        let signature: Vec<u8> = Vec::from(
+            crate::keystore::sign_with(keystore, &public, tx_hash)
+                .map_err(|e| anyhow!("Failed to sign transaction: {}", e))?
+                .0,
+        );
         transaction.transaction_witness_set = <_>::from(vec![VKeyWitness::from((vkey, signature))]);
 
         transaction.transaction_witness_set.redeemer = Some(vec![
@@ -922,10 +983,10 @@ pub async fn mine_asteria(
 }
 
 pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
-    let params_json: String = std::fs::read_to_string(args.params_path).unwrap();
-    let params: ScriptsParams = serde_json::from_str(&params_json)
-        .map_err(|e| anyhow!("Invalid params JSON: {}", e))
-        .unwrap();
+    let params_json: String = std::fs::read_to_string(args.params_path)
+        .map_err(|e| anyhow!("Failed to read params file: {}", e))?;
+    let params: ScriptsParams =
+        serde_json::from_str(&params_json).map_err(|e| anyhow!("Invalid params JSON: {}", e))?;
 
     let asteria_params = PallasPlutusData::Array(Indef(
         [
@@ -959,7 +1020,7 @@ pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
             asteria_params.encode_fragment().unwrap().as_slice(),
             hex::decode(ASTERIA_PARAMETERIZED).unwrap().as_slice(),
         )
-        .unwrap(),
+        .map_err(|e| anyhow!("Failed to apply params to asteria script: {}", e))?,
     );
     let asteria_hash: PolicyId = compute_plutus_v2_script_hash(asteria_script.clone());
 
@@ -985,7 +1046,7 @@ pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
             pellet_params.encode_fragment().unwrap().as_slice(),
             hex::decode(PELLET_PARAMETERIZED).unwrap().as_slice(),
         )
-        .unwrap(),
+        .map_err(|e| anyhow!("Failed to apply params to pellet script: {}", e))?,
     );
     let pellet_hash: PolicyId = compute_plutus_v2_script_hash(pellet_script.clone());
 
@@ -1044,24 +1105,25 @@ pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
             spacetime_params.encode_fragment().unwrap().as_slice(),
             hex::decode(SPACETIME_PARAMETERIZED).unwrap().as_slice(),
         )
-        .unwrap(),
+        .map_err(|e| anyhow!("Failed to apply params to spacetime script: {}", e))?,
     );
 
     std::fs::write(
         params.scripts_directory.clone() + "pellet.txt",
         hex::encode(pellet_script.0),
     )
-    .unwrap();
+    .map_err(|e| anyhow!("Failed to write pellet script: {}", e))?;
     std::fs::write(
         params.scripts_directory.clone() + "asteria.txt",
         hex::encode(asteria_script.0),
     )
-    .unwrap();
+    .map_err(|e| anyhow!("Failed to write asteria script: {}", e))?;
     std::fs::write(
         params.scripts_directory.clone() + "spacetime.txt",
         hex::encode(spacetime_script.0),
     )
-    .unwrap();
+    .map_err(|e| anyhow!("Failed to write spacetime script: {}", e))?;
+
     println!("All scripts written successfully!");
     Ok(())
 }

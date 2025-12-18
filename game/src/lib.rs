@@ -39,23 +39,31 @@ impl GameCommand {
         match cli.command {
             Some(GameCommand::Game(cmd)) => match cmd {
                 Command::CreateShip(args) => {
-                    let _ = game::create_ship(&db, &client, &keystore, slot_config, args).await;
+                    let _ = game::create_ship(&db, &client, &keystore, slot_config, args)
+                        .await
+                        .unwrap();
                     Ok(())
                 }
                 Command::GatherFuel(args) => {
-                    let _ = game::gather_fuel(&db, &client, &keystore, args).await;
+                    let _ = game::gather_fuel(&db, &client, &keystore, args)
+                        .await
+                        .unwrap();
                     Ok(())
                 }
                 Command::MoveShip(args) => {
-                    let _ = game::move_ship(&db, &client, &keystore, slot_config, args).await;
+                    let _ = game::move_ship(&db, &client, &keystore, slot_config, args)
+                        .await
+                        .unwrap();
                     Ok(())
                 }
                 Command::MineAsteria(args) => {
-                    let _ = game::mine_asteria(&db, &client, &keystore, args).await;
+                    let _ = game::mine_asteria(&db, &client, &keystore, args)
+                        .await
+                        .unwrap();
                     Ok(())
                 }
                 Command::DeployScripts(args) => {
-                    let _ = game::deploy_scripts(args).await;
+                    let _ = game::deploy_scripts(args).await.unwrap();
                     Ok(())
                 }
             },
