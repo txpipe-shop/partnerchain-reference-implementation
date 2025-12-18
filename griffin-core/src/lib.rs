@@ -57,6 +57,10 @@ const HEADER_KEY: &[u8] = b"header";
 /// This allows the block number to be available in the runtime even during off-chain api calls.
 pub const HEIGHT_KEY: &[u8] = b"height";
 
+/// A storage key that will store the block's partner chain data during and after
+/// execution. This allows the information to be available in the runtime.
+pub const DATA_KEY: &[u8] = b"pcdata"; 
+
 /// A transient storage key that will hold the list of extrinsics that have been applied so far.
 /// This key is cleared before the end of the block.
 pub const EXTRINSIC_KEY: &[u8] = b"extrinsics";

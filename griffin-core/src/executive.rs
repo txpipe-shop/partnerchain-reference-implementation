@@ -5,7 +5,6 @@
 //!
 //! It does all the reusable verification of UTXO transactions.
 
-use crate::alloc::string::ToString;
 use crate::pallas_applying::{
     babbage::{
         check_ins_not_empty,
@@ -34,7 +33,8 @@ use crate::{
     ensure,
     types::{Block, BlockNumber, DispatchResult, Header, Input, Output, Transaction, UTxOError},
     utxo_set::TransparentUtxoSet,
-    EXTRINSIC_KEY, HEADER_KEY, HEIGHT_KEY, LOG_TARGET,
+    header::ExtendedHeader,
+    DATA_KEY, EXTRINSIC_KEY, HEADER_KEY, HEIGHT_KEY, LOG_TARGET,
 };
 use crate::{SLOT_LENGTH, ZERO_SLOT, ZERO_TIME};
 use alloc::{collections::btree_set::BTreeSet, string::String, vec::Vec};
@@ -346,6 +346,12 @@ where
         // performing pool validations and other off-chain runtime calls.
         sp_io::storage::set(HEIGHT_KEY, &header.number().encode());
 
+        if let Some(mut data) = ExtendedHeader::get_pcdata_storage() {
+            data.count = data.count + 1;
+            sp_io::storage::set(DATA_KEY, &(data).encode());
+        }
+
+
         // griffin blocks always allow user transactions.
         ExtrinsicInclusionMode::AllExtrinsics
     }
@@ -397,7 +403,9 @@ where
         let raw_state_root = &sp_io::storage::root(StateVersion::V1)[..];
         let state_root = <Header as HeaderT>::Hash::decode(&mut &raw_state_root[..]).unwrap();
         header.set_state_root(state_root);
-        header.set_pcdata("lol".to_string());
+        if let Some(data) = ExtendedHeader::get_pcdata_storage() {
+            header.set_pcdata(data);
+        }
 
         debug!(target: LOG_TARGET, "finalizing block {:?}", header);
         header

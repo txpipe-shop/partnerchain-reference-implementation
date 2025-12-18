@@ -1,13 +1,22 @@
+use crate::DATA_KEY;
+use alloc::string::String;
 use sp_runtime::{generic::Digest, traits::{BlakeTwo256, Header as HeaderT, Hash as HashT}};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
-use scale_info::{prelude::string::String, TypeInfo};
+use scale_info::{TypeInfo};
 use serde::{Deserialize, Serialize};
 
 pub type Hash = BlakeTwo256;
 pub type OpaqueHash = <Hash as HashT>::Output;
 pub type BlockNumber = u32;
 
-pub type PCData = String;
+
+#[derive(
+	Encode, Decode, DecodeWithMemTracking, Debug, PartialEq, Eq, Clone, TypeInfo, Serialize, Deserialize
+)]
+pub struct PCData {
+	pub name: String,
+	pub count: u32
+}
 
 #[derive(
 	Encode, Decode, DecodeWithMemTracking, Debug, PartialEq, Eq, Clone, TypeInfo, Serialize, Deserialize
@@ -35,16 +44,16 @@ impl ExtendedHeader {
     pub fn get_pcdata(&self) -> &Option<PCData> {
         &self.data
     }
+    
+	pub fn get_pcdata_storage() -> Option<PCData> {
+        let data = sp_io::storage::get(DATA_KEY)
+            .and_then(|d| PCData::decode(&mut &*d).ok());
+		data
+    }
 
     pub fn set_pcdata(&mut self, data: PCData) {
-        match &self.data {
-            Some(_d) => {
-                log::debug!("Partner Chain Data already set");
-            },
-            None => {
-                self.data = Some(data);
-            },
-        }
+        sp_io::storage::set(DATA_KEY, &data.encode());
+		self.data = Some(data)
     }
 }
 
