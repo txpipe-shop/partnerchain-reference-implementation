@@ -3,14 +3,19 @@
 use crate::{
     ensure,
     h224::H224,
+    header::PCData,
     pallas_crypto::hash::Hash,
     types::{
         address_from_hex, AssetName, Coin, EncapBTree, Input, Multiasset, Output, Transaction,
     },
-    EXTRINSIC_KEY, SLOT_LENGTH, UTXO_SET, ZERO_SLOT, ZERO_TIME,
+    DATA_KEY, EXTRINSIC_KEY, SLOT_LENGTH, UTXO_SET, ZERO_SLOT, ZERO_TIME,
 };
-
-use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
+use alloc::{
+    collections::BTreeMap,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 use core::str::FromStr;
 use hex::FromHex;
 use parity_scale_codec::Encode;
@@ -62,11 +67,17 @@ where
                 .collect(),
         ))];
 
+        let pc_data: PCData = PCData {
+            name: "hola".to_string(),
+            count: 0,
+        };
+
         // The transactions, zero slot and zero time are stored under special keys.
         sp_io::storage::set(EXTRINSIC_KEY, &transactions.encode());
         sp_io::storage::set(ZERO_SLOT, &genesis_config.zero_slot.encode());
         sp_io::storage::set(ZERO_TIME, &genesis_config.zero_time.encode());
         sp_io::storage::set(SLOT_LENGTH, &genesis_config.slot_length.encode());
+        sp_io::storage::set(DATA_KEY, &pc_data.encode());
 
         for tx in transactions.into_iter() {
             // Enforce that transactions do not have any inputs.
