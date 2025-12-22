@@ -31,9 +31,9 @@ use crate::{
         conway_minted_tx_from_cbor, mk_utxo_for_babbage_tx,
     },
     ensure,
+    header::ExtendedHeader,
     types::{Block, BlockNumber, DispatchResult, Header, Input, Output, Transaction, UTxOError},
     utxo_set::TransparentUtxoSet,
-    header::ExtendedHeader,
     DATA_KEY, EXTRINSIC_KEY, HEADER_KEY, HEIGHT_KEY, LOG_TARGET,
 };
 use crate::{SLOT_LENGTH, ZERO_SLOT, ZERO_TIME};
@@ -347,10 +347,9 @@ where
         sp_io::storage::set(HEIGHT_KEY, &header.number().encode());
 
         if let Some(mut data) = ExtendedHeader::get_pcdata_storage() {
-            data.count = data.count + 1;
+            data.count += 1;
             sp_io::storage::set(DATA_KEY, &(data).encode());
         }
-
 
         // griffin blocks always allow user transactions.
         ExtrinsicInclusionMode::AllExtrinsics

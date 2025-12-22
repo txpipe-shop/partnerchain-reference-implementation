@@ -1,6 +1,6 @@
 //! Types used to construct Griffin transactions.
 use crate::h224::H224;
-use crate::header::{ExtendedHeader};
+use crate::header::ExtendedHeader;
 use crate::pallas_applying::utils::BabbageError;
 use crate::pallas_codec::minicbor::{
     self, decode::Error as MiniDecError, encode::Error as MiniEncError, encode::Write as MiniWrite,

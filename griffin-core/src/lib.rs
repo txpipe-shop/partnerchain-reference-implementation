@@ -59,7 +59,7 @@ pub const HEIGHT_KEY: &[u8] = b"height";
 
 /// A storage key that will store the block's partner chain data during and after
 /// execution. This allows the information to be available in the runtime.
-pub const DATA_KEY: &[u8] = b"pcdata"; 
+pub const DATA_KEY: &[u8] = b"pcdata";
 
 /// A transient storage key that will hold the list of extrinsics that have been applied so far.
 /// This key is cleared before the end of the block.
