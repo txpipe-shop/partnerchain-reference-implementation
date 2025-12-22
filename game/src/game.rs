@@ -1108,6 +1108,10 @@ pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
         .map_err(|e| anyhow!("Failed to apply params to spacetime script: {}", e))?,
     );
 
+    // If scripts directory does not exist, create it
+    std::fs::create_dir_all(&params.scripts_directory)
+        .map_err(|e| anyhow!("Failed to create scripts directory: {}", e))?;
+
     std::fs::write(
         params.scripts_directory.clone() + "pellet.txt",
         hex::encode(pellet_script.0),
