@@ -26,7 +26,7 @@ In another terminal, one can interact with the node by issuing wallet commands. 
 To list the whole UTxO set, run
 
 ```bash
-./target/release/gpc-wallet show-all-outputs
+./target/release/gpc-wallet wallet show-all-outputs
 ```
 
 When this is done for the first, the output will look like this:
@@ -42,7 +42,7 @@ When this is done for the first, the output will look like this:
 This “genesis” UTxO belongs to Shawn's address. In order to spend it, we need to add his public/secret key pair (pk/sk) to the wallet keystore. We do this by generating the pair with the corresponding seed phrase:
 
 ```
-$ ./target/release/gpc-wallet insert-key "news slush supreme milk chapter athlete soap sausage put clutch what kitten"
+$ ./target/release/gpc-wallet wallet insert-key "news slush supreme milk chapter athlete soap sausage put clutch what kitten"
 
 [2024-11-14T12:38:19Z INFO  gpc_wallet] Number of blocks in the db: 6
 [2024-11-14T12:38:19Z INFO  gpc_wallet] Wallet database synchronized with node to height 26
@@ -53,7 +53,7 @@ Associated address is 0x6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329
 We use the `generate-key` command to have another pk/sk and address available for experimenting.
 
 ```
-$ ./target/release/gpc-wallet generate-key
+$ ./target/release/gpc-wallet wallet generate-key
 
 [2024-11-14T12:38:53Z INFO  gpc_wallet] Number of blocks in the db: 26
 [2024-11-14T12:38:53Z INFO  gpc_wallet] Wallet database synchronized with node to height 37
@@ -65,7 +65,7 @@ Associated address is 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273
 Now we spend the output, generating a new UTxO for the last address:
 
 ```
-$ ./target/release/gpc-wallet spend-value --input 998f074b5357d465fdd99198c65af6a418522e5a1688e2674c935702fef38d0600000000 --amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
+$ ./target/release/gpc-wallet wallet spend-value --input 998f074b5357d465fdd99198c65af6a418522e5a1688e2674c935702fef38d0600000000 --amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
 
 [2024-11-14T12:41:18Z INFO  gpc_wallet] Number of blocks in the db: 37
 [2024-11-14T12:41:18Z INFO  gpc_wallet] Wallet database synchronized with node to height 86
@@ -80,7 +80,7 @@ Transaction queued. When accepted, the following UTxOs will become available:
 All command-line arguments admit short versions (run `./target/release/gpc-wallet -h` for details). The next invocation spends the first UTxO and sends some coins back to Shawn:
 
 ```
-$ ./target/release/gpc-wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f600000000 --amount 150000000 --witness 3538f889235842527b946255962241591cdc86cb99ba566afde335ae94262ee4
+$ ./target/release/gpc-wallet wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f600000000 --amount 150000000 --witness 3538f889235842527b946255962241591cdc86cb99ba566afde335ae94262ee4
 
 [2024-11-14T12:47:45Z INFO  gpc_wallet] Number of blocks in the db: 184
 [2024-11-14T12:47:45Z INFO  gpc_wallet] Wallet database synchronized with node to height 215
@@ -96,7 +96,7 @@ In this second example, we had to explicitly state the pk of the owning address 
 The UTxO set at this point is
 
 ```
-$ ./target/release/gpc-wallet show-all-outputs
+$ ./target/release/gpc-wallet wallet show-all-outputs
 
 [2024-11-14T12:48:44Z INFO  gpc_wallet] Number of blocks in the db: 215
 [2024-11-14T12:48:44Z INFO  gpc_wallet] Wallet database synchronized with node to height 234
@@ -111,7 +111,7 @@ dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f601000000: owner 
 
 Finally, to send some coins *and* `tokenA`s from the last UTxO to the other account, we do:
 ```
-$ ./target/release/gpc-wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f601000000 --amount 14000000 --policy 0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005 --name tokenA --token-amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
+$ ./target/release/gpc-wallet wallet spend-value --input dcb998d9e000c19fd20e41afeff6e1e0d9366e6e6c756c8173e52fc8061638f601000000 --amount 14000000 --policy 0x0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005 --name tokenA --token-amount 200000000 --recipient 0x614fdf13c0aabb2c2e6df7a0ac0f5cb5aaabca448af8287e54681273dd
 
 [2024-11-14T12:54:28Z INFO  gpc_wallet] Number of blocks in the db: 250
 [2024-11-14T12:54:28Z INFO  gpc_wallet] Wallet database synchronized with node to height 349
@@ -125,7 +125,7 @@ Transaction queued. When accepted, the following UTxOs will become available:
 The *balance* summarizes `Value` amounts for each address:
 
 ```
-$ ./target/release/gpc-wallet show-balance
+$ ./target/release/gpc-wallet wallet show-balance
 
 [2024-11-14T12:54:34Z INFO  gpc_wallet] Number of blocks in the db: 349
 [2024-11-14T12:54:34Z INFO  gpc_wallet] Wallet database synchronized with node to height 351
@@ -147,7 +147,7 @@ total      : 314000000 Coins, Multiassets:
 In order to reproduce more complex wallet commands, like consuming a script input or minting an asset, we provide a more complete transaction builder via the `build-tx` command. The only argument is a JSON file with all the necessary information about inputs, outputs, scripts, mintings, witnesses, required signers and validity interval. Run the command with:
 
 ```bash
-$ ./target/release/gpc-wallet build-tx --tx-info /path/to/your/json/file.json
+$ ./target/release/gpc-wallet wallet build-tx --tx-info /path/to/your/json/file.json
 ```
 
 The json file must contain the following fields:
@@ -232,5 +232,5 @@ Both commands will print the corresponding UTxOs in the same format as `show-all
 For a complete list of commands and options, run
 
 ```bash
-./target/release/gpc-wallet --help
+./target/release/gpc-wallet wallet --help
 ```
