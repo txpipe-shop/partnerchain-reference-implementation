@@ -3327,6 +3327,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "colored",
  "gpc-wallet",
  "griffin-core",
  "hex",

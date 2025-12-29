@@ -24,6 +24,12 @@ pub enum Command {
     MineAsteria(MineAsteriaArgs),
     /// Apply parameters and write game scripts
     DeployScripts(DeployScriptsArgs),
+    /// Show Asteria UTxO
+    ShowAsteria(ShowAsteriaArgs),
+    /// Show pellet UTxOs
+    ShowPellets(ShowPelletsArgs),
+    /// Show ship UTxOs
+    ShowShips(ShowShipsArgs),
 }
 
 impl GameCommand {
@@ -60,6 +66,18 @@ impl GameCommand {
                     let _ = game::mine_asteria(&db, &client, &keystore, args)
                         .await
                         .unwrap();
+                    Ok(())
+                }
+                Command::ShowAsteria(args) => {
+                    let _ = game::show_asteria(&db, args).await.unwrap();
+                    Ok(())
+                }
+                Command::ShowPellets(args) => {
+                    let _ = game::show_pellets(&db, args).await.unwrap();
+                    Ok(())
+                }
+                Command::ShowShips(args) => {
+                    let _ = game::show_ships(&db, args).await.unwrap();
                     Ok(())
                 }
                 Command::DeployScripts(args) => {
@@ -276,3 +294,7 @@ pub struct DeployScriptsArgs {
     )]
     pub params_path: String,
 }
+
+pub type ShowAsteriaArgs = DeployScriptsArgs;
+pub type ShowPelletsArgs = DeployScriptsArgs;
+pub type ShowShipsArgs = DeployScriptsArgs;

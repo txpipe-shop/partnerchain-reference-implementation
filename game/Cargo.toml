@@ -8,6 +8,7 @@ edition.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 clap = { features = ["derive"], workspace = true }
+colored = { workspace = true }
 griffin-core = { workspace = true }
 gpc-wallet = { workspace = true }
 hex = { workspace = true }
