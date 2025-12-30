@@ -1,5 +1,7 @@
 mod game;
+mod queries;
 mod tests;
+mod types;
 
 use clap::{Args, Subcommand};
 use gpc_wallet::{context::Context, keystore, utils};
@@ -68,20 +70,20 @@ impl GameCommand {
                         .unwrap();
                     Ok(())
                 }
+                Command::DeployScripts(args) => {
+                    let _ = game::deploy_scripts(args).await.unwrap();
+                    Ok(())
+                }
                 Command::ShowAsteria(args) => {
-                    let _ = game::show_asteria(&db, args).await.unwrap();
+                    let _ = queries::show_asteria(&db, args).await.unwrap();
                     Ok(())
                 }
                 Command::ShowPellets(args) => {
-                    let _ = game::show_pellets(&db, args).await.unwrap();
+                    let _ = queries::show_pellets(&db, args).await.unwrap();
                     Ok(())
                 }
                 Command::ShowShips(args) => {
-                    let _ = game::show_ships(&db, args).await.unwrap();
-                    Ok(())
-                }
-                Command::DeployScripts(args) => {
-                    let _ = game::deploy_scripts(args).await.unwrap();
+                    let _ = queries::show_ships(&db, args).await.unwrap();
                     Ok(())
                 }
             },
