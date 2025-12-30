@@ -3575,6 +3575,7 @@ name = "griffin-core"
 version = "0.2.0"
 dependencies = [
  "async-trait",
+ "authority-selection-inherents",
  "base58",
  "bech32 0.9.1",
  "bitvec",
@@ -3613,6 +3614,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_test",
+ "sidechain-domain",
  "sp-api",
  "sp-blockchain",
  "sp-core",
@@ -3621,6 +3623,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
+ "sp-session-validator-management",
  "sp-storage",
  "strum 0.24.1",
  "strum_macros 0.24.3",

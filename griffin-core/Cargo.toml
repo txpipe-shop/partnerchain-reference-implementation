@@ -25,6 +25,10 @@ sp-io = { features = [
 sp-runtime = { default-features = false, workspace = true }
 sp-storage = { default-features = false, workspace = true }
 
+authority-selection-inherents = { workspace = true }
+sp-session-validator-management = { workspace = true }
+sidechain-domain = { workspace = true }
+
 ### Genesis Builder dependencies
 sc-chain-spec = { optional = true, workspace = true }
 sc-client-api = { optional = true, workspace = true }

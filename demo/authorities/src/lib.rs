@@ -5,6 +5,7 @@ extern crate alloc;
 use alloc::{string::ToString, vec, vec::Vec};
 use core::str::FromStr;
 use griffin_core::h224::H224;
+use griffin_core::header::ExtendedHeader;
 use griffin_core::pallas_codec::minicbor;
 use griffin_core::pallas_codec::utils::AnyCbor;
 use griffin_core::pallas_primitives::{Bytes, MaybeIndefArray};

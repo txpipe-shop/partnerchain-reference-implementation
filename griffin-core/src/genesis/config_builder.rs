@@ -3,7 +3,6 @@
 use crate::{
     ensure,
     h224::H224,
-    header::PCData,
     pallas_crypto::hash::Hash,
     types::{
         address_from_hex, AssetName, Coin, EncapBTree, Input, Multiasset, Output, Transaction,
@@ -18,10 +17,13 @@ use alloc::{
 };
 use core::str::FromStr;
 use hex::FromHex;
-use parity_scale_codec::Encode;
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
+use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_io::hashing::twox_128;
 use sp_runtime::traits::Hash as HashT;
+use sidechain_domain::{UtxoId, PolicyId};
+
 pub struct GriffinGenesisConfigBuilder;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -38,6 +40,27 @@ pub struct TransparentOutput {
     pub datum: Option<String>,
 }
 
+/// Initial configuration for Partner Chain related information.
+#[derive(
+    Serialize,
+    Deserialize,
+    Clone,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub struct PartnerChainData {
+    pub genesis_utxo: UtxoId,
+    pub d_parameter_policy: PolicyId,
+    pub permissioned_policy: PolicyId,
+    pub candidates_address: PolicyId,
+    pub current_committee_utxo: Option<Input>
+}
+
 /// Genesis configuration for the Griffin chain.
 /// It contains a list of outputs used to build the transactions
 /// to be included in the genesis block, the initial slot and the initial time.
@@ -46,6 +69,7 @@ pub struct GenesisConfig {
     pub zero_slot: u64,
     pub zero_time: u64,
     pub slot_length: u32,
+    pub partner_chain_data: Option<PartnerChainData>,
     pub outputs: Vec<TransparentOutput>,
 }
 
@@ -67,17 +91,20 @@ where
                 .collect(),
         ))];
 
-        let pc_data: PCData = PCData {
-            name: "hola".to_string(),
-            count: 0,
-        };
+        // let pc_data: PartnerChainData = PartnerChainData {
+        //     genesis_utxo: "hola".to_string(),
+        //     d_parameter_policy: "hola".to_string(),
+        //     permissioned_policy: "hola".to_string(),
+        //     candidates_address: "hola".to_string(),
+        //     current_committee_utxo: "hola".to_string()
+        // };
 
         // The transactions, zero slot and zero time are stored under special keys.
         sp_io::storage::set(EXTRINSIC_KEY, &transactions.encode());
         sp_io::storage::set(ZERO_SLOT, &genesis_config.zero_slot.encode());
         sp_io::storage::set(ZERO_TIME, &genesis_config.zero_time.encode());
         sp_io::storage::set(SLOT_LENGTH, &genesis_config.slot_length.encode());
-        sp_io::storage::set(DATA_KEY, &pc_data.encode());
+        sp_io::storage::set(DATA_KEY, &genesis_config.partner_chain_data.encode());
 
         for tx in transactions.into_iter() {
             // Enforce that transactions do not have any inputs.
