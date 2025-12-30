@@ -1,5 +1,4 @@
-use crate::DATA_KEY;
-use alloc::string::String;
+use crate::{DATA_KEY, genesis::config_builder::PartnerChainData};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -24,30 +23,13 @@ pub type BlockNumber = u32;
     Serialize,
     Deserialize,
 )]
-pub struct PCData {
-    pub name: String,
-    pub count: u32,
-}
-
-#[derive(
-    Encode,
-    Decode,
-    DecodeWithMemTracking,
-    Debug,
-    PartialEq,
-    Eq,
-    Clone,
-    TypeInfo,
-    Serialize,
-    Deserialize,
-)]
-pub struct ExtendedHeader {
+pub struct ExtendedHeader{
     pub parent_hash: OpaqueHash,
     pub number: BlockNumber,
     pub state_root: OpaqueHash,
     pub extrinsics_root: OpaqueHash,
     pub digest: Digest,
-    pub data: Option<PCData>,
+    pub data: Option<PartnerChainData>,
 }
 
 impl ExtendedHeader {
@@ -68,15 +50,15 @@ impl ExtendedHeader {
         }
     }
 
-    pub fn get_pcdata(&self) -> &Option<PCData> {
+    pub fn get_pcdata(&self) -> &Option<PartnerChainData> {
         &self.data
     }
 
-    pub fn get_pcdata_storage() -> Option<PCData> {
-        sp_io::storage::get(DATA_KEY).and_then(|d| PCData::decode(&mut &*d).ok())
+    pub fn get_pcdata_storage() -> Option<PartnerChainData> {
+        sp_io::storage::get(DATA_KEY).and_then(|d| PartnerChainData::decode(&mut &*d).ok())
     }
 
-    pub fn set_pcdata(&mut self, data: PCData) {
+    pub fn set_pcdata(&mut self, data: PartnerChainData) {
         sp_io::storage::set(DATA_KEY, &data.encode());
         self.data = Some(data)
     }

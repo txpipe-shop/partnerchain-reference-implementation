@@ -346,8 +346,7 @@ where
         // performing pool validations and other off-chain runtime calls.
         sp_io::storage::set(HEIGHT_KEY, &header.number().encode());
 
-        if let Some(mut data) = ExtendedHeader::get_pcdata_storage() {
-            data.count += 1;
+        if let Some(data) = ExtendedHeader::get_pcdata_storage() {
             sp_io::storage::set(DATA_KEY, &(data).encode());
         }
 

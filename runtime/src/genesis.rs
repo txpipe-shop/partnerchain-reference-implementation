@@ -13,6 +13,16 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
     "zero_time": 1747081100000,
     "zero_slot": 0,
     "slot_length": 3000,
+    "partner_chain_data": {
+        "genesis_utxo": "0000000000000000000000000000000000000000000000000000000000000000#0",
+        "d_parameter_policy": "0x00000000000000000000000000000000000000000000000000000000",
+        "permissioned_policy": "0x00000000000000000000000000000000000000000000000000000000",
+        "candidates_address": "0x00000000000000000000000000000000000000000000000000000000",
+        "current_committee_utxo": {
+            "tx_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+            "index": 0
+        }
+    },
     "outputs": [
         {
             "address": "6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4",
