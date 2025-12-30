@@ -1001,6 +1001,24 @@ impl Value {
         }
         false
     }
+
+    pub fn quantity_of(&self, policy: &PolicyId, name: &AssetName) -> u64 {
+        if let Value::Multiasset(_, ma) = self {
+            if let Some(assets) = ma.0.get(policy) {
+                if let Some(quantity) = assets.0.get(name) {
+                    return *quantity;
+                }
+            }
+        }
+        0
+    }
+
+    pub fn coin_of(&self) -> u64 {
+        match self {
+            Value::Coin(c) => *c,
+            Value::Multiasset(c, _) => *c,
+        }
+    }
 }
 
 impl From<String> for AssetName {
