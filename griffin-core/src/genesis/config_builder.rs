@@ -91,14 +91,6 @@ where
                 .collect(),
         ))];
 
-        // let pc_data: PartnerChainData = PartnerChainData {
-        //     genesis_utxo: "hola".to_string(),
-        //     d_parameter_policy: "hola".to_string(),
-        //     permissioned_policy: "hola".to_string(),
-        //     candidates_address: "hola".to_string(),
-        //     current_committee_utxo: "hola".to_string()
-        // };
-
         // The transactions, zero slot and zero time are stored under special keys.
         sp_io::storage::set(EXTRINSIC_KEY, &transactions.encode());
         sp_io::storage::set(ZERO_SLOT, &genesis_config.zero_slot.encode());
