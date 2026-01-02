@@ -103,6 +103,8 @@ As the result of the discovery process, after surveying many developers, it was 
 
 In this repository we include the [on-chain code](./game/onchain/), which comes with a [design document](./game/onchain/docs/design/design.md) that thoroughly explains the transactions involved in the game. In the game [src](./game/src/) you can find the implementation of the commands necessary to play the game and a [README](./game/README.md) that goes over the app design, in the context of the game's integration into the node, and [instructions](./game/README.md#game-usage) on how to run the commands.
 
+![Asteria Game Board](./game/game-board.png "Game Board")
+
 ## Setting up a Partner Chain
 
 The project includes the `partner-chains-cli` from IOG's [Partner Chain SDK](https://github.com/input-output-hk/partner-chains). This `CLI` allows us to set up governance UTxOs on the Cardano side for the partner chain. An extensive explanation on the integration and usage of the CLI can be found at the previously mentioned [partner_chain_integration](./docs/dev_logs/partner_chain_integration.md) document.

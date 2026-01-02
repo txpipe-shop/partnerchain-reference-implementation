@@ -38,7 +38,7 @@ const BLOCKS: &str = "blocks";
 const BLOCK_HASHES: &str = "block_hashes";
 
 /// The identifier for the unspent tree in the db.
-const UNSPENT: &str = "unspent";
+pub const UNSPENT: &str = "unspent";
 
 /// The identifier for the spent tree in the db.
 const SPENT: &str = "spent";

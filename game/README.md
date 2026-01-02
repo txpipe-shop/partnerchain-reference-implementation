@@ -166,4 +166,6 @@ This command can be triggered when the ship reaches Asteria, i.e., its coordinat
 - *mine-coin-amount*: amount of coin to be mined from Asteria. This must be less or equal to the allowed maximum percentage of the total prize defined by MAX_ASTERIA_MINING.
 - *params-path*: path to the JSON file containing all the game scripts parameters and the applied scripts directory.
 
+### Queries
 
+There are also three query commands that allow the user to inspect the game state UTxOs, with their datums in a human-readable format: `show-asteria`, `show-pellets`, and `show-ships`. Each of them takes no arguments, except for the `params-path` argument that is common to all game commands.

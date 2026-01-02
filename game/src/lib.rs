@@ -1,5 +1,7 @@
 mod game;
+mod queries;
 mod tests;
+mod types;
 
 use clap::{Args, Subcommand};
 use gpc_wallet::{context::Context, keystore, utils};
@@ -24,6 +26,12 @@ pub enum Command {
     MineAsteria(MineAsteriaArgs),
     /// Apply parameters and write game scripts
     DeployScripts(DeployScriptsArgs),
+    /// Show Asteria UTxO
+    ShowAsteria(ShowAsteriaArgs),
+    /// Show pellet UTxOs
+    ShowPellets(ShowPelletsArgs),
+    /// Show ship UTxOs
+    ShowShips(ShowShipsArgs),
 }
 
 impl GameCommand {
@@ -64,6 +72,18 @@ impl GameCommand {
                 }
                 Command::DeployScripts(args) => {
                     let _ = game::deploy_scripts(args).await.unwrap();
+                    Ok(())
+                }
+                Command::ShowAsteria(args) => {
+                    let _ = queries::show_asteria(&db, args).await.unwrap();
+                    Ok(())
+                }
+                Command::ShowPellets(args) => {
+                    let _ = queries::show_pellets(&db, args).await.unwrap();
+                    Ok(())
+                }
+                Command::ShowShips(args) => {
+                    let _ = queries::show_ships(&db, args).await.unwrap();
                     Ok(())
                 }
             },
@@ -276,3 +296,7 @@ pub struct DeployScriptsArgs {
     )]
     pub params_path: String,
 }
+
+pub type ShowAsteriaArgs = DeployScriptsArgs;
+pub type ShowPelletsArgs = DeployScriptsArgs;
+pub type ShowShipsArgs = DeployScriptsArgs;

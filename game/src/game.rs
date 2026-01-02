@@ -1,4 +1,6 @@
-use crate::{CreateShipArgs, DeployScriptsArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs};
+use crate::{
+    types::*, CreateShipArgs, DeployScriptsArgs, GatherFuelArgs, MineAsteriaArgs, MoveShipArgs,
+};
 use anyhow::anyhow;
 use gpc_wallet::{
     cli::{ShowOutputsAtArgs, ShowOutputsWithAssetArgs},
@@ -6,12 +8,10 @@ use gpc_wallet::{
 };
 use griffin_core::{
     checks_interface::{babbage_minted_tx_from_cbor, babbage_tx_to_cbor},
-    h224::H224,
     pallas_codec::{
         minicbor,
         utils::{Int, MaybeIndefArray::Indef},
     },
-    pallas_crypto::hash::Hash as PallasHash,
     pallas_primitives::{
         babbage::{
             BigInt, BoundedBytes, Constr, MintedTx, PlutusData as PallasPlutusData,
@@ -29,7 +29,6 @@ use griffin_core::{
 use jsonrpsee::{core::client::ClientT, http_client::HttpClient, rpc_params};
 use parity_scale_codec::Encode;
 use sc_keystore::LocalKeystore;
-use serde::{Deserialize, Serialize};
 use sled::Db;
 use sp_core::ed25519::Public;
 use sp_runtime::traits::{BlakeTwo256, Hash};
@@ -836,7 +835,7 @@ pub async fn mine_asteria(
         transaction.transaction_body.inputs = inputs;
 
         // BURNS
-        let ship_fuel = quanity_of(&ship_value, &pellet_policy, &fuel_name);
+        let ship_fuel = (&ship_value).quantity_of(&pellet_policy, &fuel_name);
         let ship_fuel_i64: i64 = ship_fuel
             .try_into()
             .expect("Fuel amount too large to fit in i64");
@@ -901,7 +900,7 @@ pub async fn mine_asteria(
                 address: pilot_utxo.address.clone(),
                 value: pilot_utxo.value.clone()
                     + Value::Coin(args.mine_coin_amount)
-                    + Value::Coin(coin_of(&ship_value)),
+                    + Value::Coin((&ship_value).coin_of()),
                 datum_option: pilot_utxo.datum_option.clone(),
             },
             Output {
@@ -1130,209 +1129,4 @@ pub async fn deploy_scripts(args: DeployScriptsArgs) -> anyhow::Result<()> {
 
     println!("All scripts written successfully!");
     Ok(())
-}
-
-fn quanity_of(value: &Value, policy: &PolicyId, name: &AssetName) -> u64 {
-    if let Value::Multiasset(_, ma) = value {
-        if let Some(assets) = ma.0.get(policy) {
-            if let Some(quantity) = assets.0.get(name) {
-                return *quantity as u64;
-            }
-        }
-    }
-    0
-}
-
-fn coin_of(value: &Value) -> u64 {
-    match value {
-        Value::Coin(c) => *c,
-        Value::Multiasset(c, _) => *c,
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct ScriptsParams {
-    admin_policy: String,
-    admin_name: String,
-    fuel_per_step: u64,
-    initial_fuel: u64,
-    max_speed: Speed,
-    max_ship_fuel: u64,
-    max_asteria_mining: u64,
-    min_asteria_distance: u64,
-    ship_mint_lovelace_fee: u64,
-    scripts_directory: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct Speed {
-    distance: u64,
-    time: u64,
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum AsteriaDatum {
-    Ok {
-        ship_counter: u16,
-        shipyard_policy: PolicyId,
-    },
-    MalformedAsteriaDatum,
-}
-
-impl From<AsteriaDatum> for Datum {
-    fn from(order_datum: AsteriaDatum) -> Self {
-        Datum(PlutusData::from(PallasPlutusData::from(order_datum)).0)
-    }
-}
-
-impl From<Datum> for AsteriaDatum {
-    fn from(datum: Datum) -> Self {
-        <_>::from(PallasPlutusData::from(PlutusData(datum.0)))
-    }
-}
-
-impl From<AsteriaDatum> for PallasPlutusData {
-    fn from(order_datum: AsteriaDatum) -> Self {
-        match order_datum {
-            AsteriaDatum::Ok {
-                ship_counter,
-                shipyard_policy,
-            } => PallasPlutusData::from(PallasPlutusData::Constr(Constr {
-                tag: 121,
-                any_constructor: None,
-                fields: Indef(
-                    [
-                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
-                            ship_counter,
-                        )))),
-                        PallasPlutusData::BoundedBytes(BoundedBytes(shipyard_policy.0.to_vec())),
-                    ]
-                    .to_vec(),
-                ),
-            })),
-            AsteriaDatum::MalformedAsteriaDatum => {
-                PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(-1))))
-            }
-        }
-    }
-}
-
-impl From<PallasPlutusData> for AsteriaDatum {
-    fn from(data: PallasPlutusData) -> Self {
-        if let PallasPlutusData::Constr(Constr {
-            tag: 121,
-            any_constructor: None,
-            fields: Indef(asteria_datum),
-        }) = data
-        {
-            if let [PallasPlutusData::BigInt(BigInt::Int(Int(ship_counter))), PallasPlutusData::BoundedBytes(BoundedBytes(shipyard_policy_vec))] =
-                &asteria_datum[..]
-            {
-                AsteriaDatum::Ok {
-                    ship_counter: TryFrom::<minicbor::data::Int>::try_from(*ship_counter).unwrap(),
-                    shipyard_policy: H224::from(PallasHash::from(shipyard_policy_vec.as_slice())),
-                }
-            } else {
-                AsteriaDatum::MalformedAsteriaDatum
-            }
-        } else {
-            AsteriaDatum::MalformedAsteriaDatum
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum ShipDatum {
-    Ok {
-        pos_x: i16,
-        pos_y: i16,
-        ship_token_name: AssetName,
-        pilot_token_name: AssetName,
-        last_move_latest_time: u64,
-    },
-    MalformedShipDatum,
-}
-
-impl From<ShipDatum> for Datum {
-    fn from(ship_datum: ShipDatum) -> Self {
-        Datum(PlutusData::from(PallasPlutusData::from(ship_datum)).0)
-    }
-}
-
-impl From<Datum> for ShipDatum {
-    fn from(datum: Datum) -> Self {
-        <_>::from(PallasPlutusData::from(PlutusData(datum.0)))
-    }
-}
-
-impl From<ShipDatum> for PallasPlutusData {
-    fn from(ship_datum: ShipDatum) -> Self {
-        match ship_datum {
-            ShipDatum::Ok {
-                pos_x,
-                pos_y,
-                ship_token_name,
-                pilot_token_name,
-                last_move_latest_time,
-            } => PallasPlutusData::from(PallasPlutusData::Constr(Constr {
-                tag: 121,
-                any_constructor: None,
-                fields: Indef(
-                    [
-                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
-                            pos_x,
-                        )))),
-                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
-                            pos_y,
-                        )))),
-                        PallasPlutusData::BoundedBytes(BoundedBytes(
-                            ship_token_name.0.clone().into(),
-                        )),
-                        PallasPlutusData::BoundedBytes(BoundedBytes(
-                            pilot_token_name.0.clone().into(),
-                        )),
-                        PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(
-                            last_move_latest_time,
-                        )))),
-                    ]
-                    .to_vec(),
-                ),
-            })),
-            ShipDatum::MalformedShipDatum => {
-                PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(-1))))
-            }
-        }
-    }
-}
-
-impl From<PallasPlutusData> for ShipDatum {
-    fn from(data: PallasPlutusData) -> Self {
-        if let PallasPlutusData::Constr(Constr {
-            tag: 121,
-            any_constructor: None,
-            fields: Indef(ship_datum),
-        }) = data
-        {
-            if let [PallasPlutusData::BigInt(BigInt::Int(Int(pos_x))), PallasPlutusData::BigInt(BigInt::Int(Int(pos_y))), PallasPlutusData::BoundedBytes(BoundedBytes(ship_name_vec)), PallasPlutusData::BoundedBytes(BoundedBytes(pilot_name_vec)), PallasPlutusData::BigInt(BigInt::Int(Int(last_move_latest_time)))] =
-                &ship_datum[..]
-            {
-                ShipDatum::Ok {
-                    pos_x: TryFrom::<minicbor::data::Int>::try_from(*pos_x).unwrap(),
-                    pos_y: TryFrom::<minicbor::data::Int>::try_from(*pos_y).unwrap(),
-                    ship_token_name: AssetName(String::from_utf8(ship_name_vec.to_vec()).unwrap()),
-                    pilot_token_name: AssetName(
-                        String::from_utf8(pilot_name_vec.to_vec()).unwrap(),
-                    ),
-                    last_move_latest_time: TryFrom::<minicbor::data::Int>::try_from(
-                        *last_move_latest_time,
-                    )
-                    .unwrap(),
-                }
-            } else {
-                ShipDatum::MalformedShipDatum
-            }
-        } else {
-            ShipDatum::MalformedShipDatum
-        }
-    }
 }
