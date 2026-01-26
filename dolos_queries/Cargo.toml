@@ -1,0 +1,19 @@
+[package]
+name = "dolos_queries"
+description = "Utilities for querying data from Dolos"
+version = "0.1.0"
+repository.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+blockfrost = { workspace = true }
+clap = { features = ["derive"], workspace = true }
+demo-authorities = { workspace = true }
+gpc-wallet = { workspace = true }
+griffin-core = { workspace = true }
+hex = { workspace = true }
+log = { workspace = true }
+minicbor = { workspace = true }
+reqwest = { workspace = true }
+sc-cli = { workspace = true }
