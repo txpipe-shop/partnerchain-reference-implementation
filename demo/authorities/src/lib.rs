@@ -36,7 +36,7 @@ pub const RAW_AUTHORITIES_POLICY_ID: &str =
     "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005";
 
 /// In charge of parsing a datum to lookup for aura and grandpa keys.
-fn parse_authorities(bytes: &[u8]) -> Result<(Vec<Bytes>, Vec<Bytes>), ConfigParsingErrors> {
+pub fn parse_authorities(bytes: &[u8]) -> Result<(Vec<Bytes>, Vec<Bytes>), ConfigParsingErrors> {
     let mut aura_keys = vec![];
     let mut grandpa_keys = vec![];
     if let Ok(MaybeIndefArray::Indef(arr0)) = minicbor::decode::<MaybeIndefArray<AnyCbor>>(bytes) {

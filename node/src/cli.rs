@@ -1,3 +1,4 @@
+use dolos_queries::DolosQueryCommand;
 use game::GameCommand;
 use gpc_wallet::cli::WalletCommand;
 use griffin_partner_chains_runtime::opaque::SessionKeys;
@@ -112,6 +113,9 @@ pub enum Subcommand {
     /// Commands to play the Asteria game
     #[clap(flatten)]
     Game(GameCommand),
+
+    #[clap(flatten)]
+    DolosQuery(DolosQueryCommand),
 
     #[clap(flatten)]
     PartnerChains(PartnerChainsSubcommand<WizardBindings>),

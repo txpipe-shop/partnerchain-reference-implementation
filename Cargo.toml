@@ -10,13 +10,13 @@ version = "0.0.6"
 default-members = ["runtime"]
 members = [
     "demo/authorities",
+    "dolos_queries",
     "game",
     "griffin-core",
     "griffin-rpc",
     "node",
     "runtime",
     "wallet",
-    "game",
     "toolkit/partner-chains-cli",
     "toolkit/cli/commands",
     "toolkit/cli/node-commands",
@@ -80,6 +80,8 @@ griffin-partner-chains-runtime = { path = "./runtime", default-features = false 
 griffin-rpc = { default-features = false, path = "griffin-rpc" }
 gpc-wallet = { default-features = false, path = "wallet" }
 game = { default-features = false, path = "game" }
+dolos_queries = { default-features = false, path = "dolos_queries" }
+blockfrost = { version = "1.1.0" }
 clap = { version = "4.5.13" }
 derive-new = { version = "0.7.0" }
 docify = { version = "0.2.9" }
@@ -93,6 +95,7 @@ parity-scale-codec = { package = "parity-scale-codec", version = "3.6.12", defau
 	"derive",
 	"max-encoded-len",
 ] }
+reqwest = { version = "0.12.12" }
 codec = { version = "3.7.4", default-features = false, package = "parity-scale-codec" }
 scale-info = { version = "2.11.6", default-features = false }
 serde = { version = "1.0.209", default-features = false, features = [

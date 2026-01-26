@@ -61,6 +61,11 @@ pub fn run() -> sc_cli::Result<()> {
             let _ = rt.block_on(cmd.run());
             Ok(())
         }
+        Some(Subcommand::DolosQuery(cmd)) => {
+            let rt = Runtime::new().unwrap();
+            let _ = rt.block_on(cmd.run());
+            Ok(())
+        }
         Some(Subcommand::PartnerChains(cmd)) => {
             partner_chains_node_commands::run::<
                 // _,
