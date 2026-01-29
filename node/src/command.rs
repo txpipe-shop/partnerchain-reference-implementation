@@ -156,16 +156,12 @@ pub fn run() -> sc_cli::Result<()> {
                             griffin_core::types::OpaqueBlock,
                             <griffin_core::types::OpaqueBlock as sp_runtime::traits::Block>::Hash,
                         >,
-                    >(
-                        config, cli.consensus
-                    )
+                    >(config)
                     .map_err(sc_cli::Error::Service),
-                    sc_network::config::NetworkBackendType::Litep2p => service::new_full::<
-                        sc_network::Litep2pNetworkBackend,
-                    >(
-                        config, cli.consensus
-                    )
-                    .map_err(sc_cli::Error::Service),
+                    sc_network::config::NetworkBackendType::Litep2p => {
+                        service::new_full::<sc_network::Litep2pNetworkBackend>(config)
+                            .map_err(sc_cli::Error::Service)
+                    }
                 }
             })
         }
