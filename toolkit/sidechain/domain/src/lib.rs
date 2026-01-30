@@ -6,6 +6,7 @@
 #![deny(missing_docs)]
 
 pub mod byte_string;
+pub mod cross_chain_app;
 pub mod crypto;
 pub mod mainchain_epoch;
 

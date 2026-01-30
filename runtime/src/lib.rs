@@ -21,7 +21,7 @@ use polkadot_sdk_frame::runtime::apis;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{OpaqueMetadata};
 use sp_inherents::InherentData;
 use sp_runtime::{
     impl_opaque_keys,
@@ -43,6 +43,7 @@ use sp_version::{runtime_version, RuntimeVersion};
 pub mod opaque {
     use super::*;
     use authority_selection_inherents::MaybeFromCandidateKeys;
+    use sp_consensus_grandpa::AuthorityId as GrandpaId;
     use sp_core::{ed25519, sr25519};
 
     // This part is necessary for generating session keys in the runtime
@@ -52,6 +53,7 @@ pub mod opaque {
             pub grandpa: GrandpaAppPublic,
         }
     }
+
     impl From<(sr25519::Public, ed25519::Public)> for SessionKeys {
         fn from((aura, grandpa): (sr25519::Public, ed25519::Public)) -> Self {
             Self {
@@ -60,6 +62,7 @@ pub mod opaque {
             }
         }
     }
+
     // Typically these are not implemented manually, but rather for the pallet associated with the
     // keys. Here we are not using the pallets, and these implementations are trivial, so we just
     // re-write them.
@@ -70,56 +73,10 @@ pub mod opaque {
 
     pub struct GrandpaAppPublic;
     impl BoundToRuntimeAppPublic for GrandpaAppPublic {
-        type Public = sp_consensus_grandpa::AuthorityId;
+        type Public = GrandpaId;
     }
 
-    pub const CROSS_CHAIN: KeyTypeId = KeyTypeId(*b"crch");
     pub struct CrossChainRuntimeAppPublic;
-
-    pub mod cross_chain_app {
-        use super::CROSS_CHAIN;
-        use parity_scale_codec::MaxEncodedLen;
-        use sidechain_domain::SidechainPublicKey;
-        use sp_core::crypto::AccountId32;
-        use sp_runtime::app_crypto::{app_crypto, ecdsa};
-        use sp_runtime::traits::IdentifyAccount;
-        use sp_runtime::MultiSigner;
-        use sp_std::vec::Vec;
-
-        app_crypto!(ecdsa, CROSS_CHAIN);
-        impl MaxEncodedLen for Signature {
-            fn max_encoded_len() -> usize {
-                ecdsa::Signature::max_encoded_len()
-            }
-        }
-
-        impl From<Signature> for Vec<u8> {
-            fn from(value: Signature) -> Self {
-                value.into_inner().0.to_vec()
-            }
-        }
-
-        impl From<Public> for AccountId32 {
-            fn from(value: Public) -> Self {
-                MultiSigner::from(ecdsa::Public::from(value)).into_account()
-            }
-        }
-
-        impl From<Public> for Vec<u8> {
-            fn from(value: Public) -> Self {
-                value.into_inner().0.to_vec()
-            }
-        }
-
-        impl TryFrom<SidechainPublicKey> for Public {
-            type Error = SidechainPublicKey;
-            fn try_from(pubkey: SidechainPublicKey) -> Result<Self, Self::Error> {
-                let cross_chain_public_key =
-                    Public::try_from(pubkey.0.as_slice()).map_err(|_| pubkey)?;
-                Ok(cross_chain_public_key)
-            }
-        }
-    }
 
     impl MaybeFromCandidateKeys for SessionKeys {}
 
@@ -130,7 +87,7 @@ pub mod opaque {
     }
 }
 
-pub type CrossChainPublic = opaque::cross_chain_app::Public;
+pub type CrossChainPublic = sidechain_domain::cross_chain_app::Public;
 
 /// The runtime version.
 #[runtime_version]
