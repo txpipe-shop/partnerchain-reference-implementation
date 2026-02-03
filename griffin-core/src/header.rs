@@ -59,7 +59,6 @@ impl ExtendedHeader {
     }
 
     pub fn set_pcdata(&mut self, data: PartnerChainData) {
-        sp_io::storage::set(DATA_KEY, &data.encode());
         self.data = Some(data)
     }
 }

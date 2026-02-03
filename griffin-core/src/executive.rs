@@ -5,17 +5,15 @@
 //!
 //! It does all the reusable verification of UTXO transactions.
 
-use crate::pallas_applying::{
-    babbage::{
+use crate::{pallas_applying::{
+    UTxOs, babbage::{
         check_ins_not_empty,
         // check_all_ins_in_utxos,
         check_preservation_of_value,
         check_tx_validity_interval,
         check_witness_set,
-    },
-    utils::BabbageError::*,
-    UTxOs,
-};
+    }, utils::BabbageError::*
+}};
 use crate::pallas_codec::utils::CborWrap;
 use crate::pallas_primitives::{
     babbage::{
@@ -34,7 +32,7 @@ use crate::{
     header::ExtendedHeader,
     types::{Block, BlockNumber, DispatchResult, Header, Input, Output, Transaction, UTxOError},
     utxo_set::TransparentUtxoSet,
-    DATA_KEY, EXTRINSIC_KEY, HEADER_KEY, HEIGHT_KEY, LOG_TARGET,
+    EXTRINSIC_KEY, HEADER_KEY, HEIGHT_KEY, LOG_TARGET,
 };
 use crate::{SLOT_LENGTH, ZERO_SLOT, ZERO_TIME};
 use alloc::{collections::btree_set::BTreeSet, string::String, vec::Vec};
@@ -346,10 +344,6 @@ where
         // performing pool validations and other off-chain runtime calls.
         sp_io::storage::set(HEIGHT_KEY, &header.number().encode());
 
-        if let Some(data) = ExtendedHeader::get_pcdata_storage() {
-            sp_io::storage::set(DATA_KEY, &(data).encode());
-        }
-
         // griffin blocks always allow user transactions.
         ExtrinsicInclusionMode::AllExtrinsics
     }
@@ -397,14 +391,14 @@ where
             <Header as HeaderT>::Hashing::ordered_trie_root(extrinsics, StateVersion::V0);
         sp_io::storage::clear(EXTRINSIC_KEY);
         header.set_extrinsics_root(extrinsics_root);
-
+        
         let raw_state_root = &sp_io::storage::root(StateVersion::V1)[..];
         let state_root = <Header as HeaderT>::Hash::decode(&mut &raw_state_root[..]).unwrap();
         header.set_state_root(state_root);
         if let Some(data) = ExtendedHeader::get_pcdata_storage() {
             header.set_pcdata(data);
         }
-
+        
         debug!(target: LOG_TARGET, "finalizing block {:?}", header);
         header
     }

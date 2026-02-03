@@ -11,7 +11,7 @@ use crate::{
 };
 use alloc::{
     collections::BTreeMap,
-    string::{String, ToString},
+    string::{String},
     vec,
     vec::Vec,
 };
@@ -57,8 +57,7 @@ pub struct PartnerChainData {
     pub genesis_utxo: UtxoId,
     pub d_parameter_policy: PolicyId,
     pub permissioned_policy: PolicyId,
-    pub candidates_address: PolicyId,
-    pub current_committee_utxo: Option<Input>
+    pub candidates_address: PolicyId
 }
 
 /// Genesis configuration for the Griffin chain.
