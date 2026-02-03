@@ -1,4 +1,4 @@
-use crate::{DATA_KEY, genesis::config_builder::PartnerChainData};
+use crate::{genesis::config_builder::PartnerChainData, DATA_KEY};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ pub type BlockNumber = u32;
     Serialize,
     Deserialize,
 )]
-pub struct ExtendedHeader{
+pub struct ExtendedHeader {
     pub parent_hash: OpaqueHash,
     pub number: BlockNumber,
     pub state_root: OpaqueHash,

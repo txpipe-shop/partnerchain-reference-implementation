@@ -19,6 +19,12 @@ pub const GENESIS_DEFAULT_JSON: &str = r#"
         "permissioned_policy": "0x00000000000000000000000000000000000000000000000000000000",
         "candidates_address": "0x00000000000000000000000000000000000000000000000000000000"
     },
+    "committee_data": {
+        "address": "0000000000000000000000000000000000000000000000000000000000",
+        "current_asset_name": "Authorities",
+        "next_asset_name": "NextAuthorities",
+        "policy_id": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005"
+    },
     "outputs": [
         {
             "address": "6101e6301758a6badfab05035cffc8e3438b3aff2a4edc6544b47329c4",

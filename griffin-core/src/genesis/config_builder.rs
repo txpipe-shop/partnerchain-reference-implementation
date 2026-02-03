@@ -5,9 +5,9 @@ use crate::{
     h224::H224,
     pallas_crypto::hash::Hash,
     types::{
-        address_from_hex, AssetName, Coin, EncapBTree, Input, Multiasset, Output, Transaction,
+        Address, address_from_hex, AssetName, Coin, EncapBTree, Input, Multiasset, Output, Transaction,
     },
-    DATA_KEY, EXTRINSIC_KEY, SLOT_LENGTH, UTXO_SET, ZERO_SLOT, ZERO_TIME,
+    COMMITTEE_KEY, DATA_KEY, EXTRINSIC_KEY, SLOT_LENGTH, UTXO_SET, ZERO_SLOT, ZERO_TIME,
 };
 use alloc::{
     collections::BTreeMap,
@@ -20,9 +20,9 @@ use hex::FromHex;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
+use sidechain_domain::{PolicyId, UtxoId};
 use sp_io::hashing::twox_128;
 use sp_runtime::traits::Hash as HashT;
-use sidechain_domain::{UtxoId, PolicyId};
 
 pub struct GriffinGenesisConfigBuilder;
 
@@ -57,7 +57,49 @@ pub struct PartnerChainData {
     pub genesis_utxo: UtxoId,
     pub d_parameter_policy: PolicyId,
     pub permissioned_policy: PolicyId,
-    pub candidates_address: PolicyId
+    pub candidates_address: PolicyId,
+}
+
+/// Initial configuration for the block producing committee identifiers.
+/// It includes the expected address and asset class of the committee utxo.
+/// Also, we have a field dedicated to storing the UTxO for the next committee, which can be
+/// updated at any point.
+#[derive(
+    Serialize,
+    Deserialize,
+    Clone,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub struct CommitteeData {
+    pub address: Address,
+    pub current_asset_name: AssetName,
+    pub next_asset_name: AssetName,
+    pub policy_id: H224,
+}
+
+#[derive(
+    Serialize,
+    Deserialize,
+    Clone,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub struct CommitteeDataUnparsed {
+    pub address: String,
+    pub current_asset_name: String,
+    pub next_asset_name: String,
+    pub policy_id: String,
 }
 
 /// Genesis configuration for the Griffin chain.
@@ -69,6 +111,7 @@ pub struct GenesisConfig {
     pub zero_time: u64,
     pub slot_length: u32,
     pub partner_chain_data: Option<PartnerChainData>,
+    pub committee_data: CommitteeDataUnparsed,
     pub outputs: Vec<TransparentOutput>,
 }
 
@@ -90,12 +133,20 @@ where
                 .collect(),
         ))];
 
+        let cmt_data: CommitteeData = CommitteeData {
+            address: Address::from(hex::decode(genesis_config.committee_data.address).unwrap()),
+            current_asset_name: AssetName::from(genesis_config.committee_data.current_asset_name),
+            next_asset_name: AssetName::from(genesis_config.committee_data.next_asset_name),
+            policy_id: H224::from(Hash::from_str(&genesis_config.committee_data.policy_id).unwrap())
+        };
+
         // The transactions, zero slot and zero time are stored under special keys.
         sp_io::storage::set(EXTRINSIC_KEY, &transactions.encode());
         sp_io::storage::set(ZERO_SLOT, &genesis_config.zero_slot.encode());
         sp_io::storage::set(ZERO_TIME, &genesis_config.zero_time.encode());
         sp_io::storage::set(SLOT_LENGTH, &genesis_config.slot_length.encode());
         sp_io::storage::set(DATA_KEY, &genesis_config.partner_chain_data.encode());
+        sp_io::storage::set(COMMITTEE_KEY, &cmt_data.encode());
 
         for tx in transactions.into_iter() {
             // Enforce that transactions do not have any inputs.

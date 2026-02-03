@@ -61,6 +61,9 @@ pub const HEIGHT_KEY: &[u8] = b"height";
 /// execution. This allows the information to be available in the runtime.
 pub const DATA_KEY: &[u8] = b"pcdata";
 
+/// A storage key that will store the information about the current and next authoring committees.
+pub const COMMITTEE_KEY: &[u8] = b"cmt";
+
 /// A transient storage key that will hold the list of extrinsics that have been applied so far.
 /// This key is cleared before the end of the block.
 pub const EXTRINSIC_KEY: &[u8] = b"extrinsics";
