@@ -10,14 +10,21 @@ license.workspace = true
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
+authority-selection-inherents = { workspace = true }
 parity-scale-codec = { features = ["derive"], workspace = true }
 griffin-core = { version = "0.2.0", path = "../../griffin-core", default-features = false }
+hex = { workspace = true }
 hex-literal = {workspace = true }
+log = { workspace = true }
+scale-info = { workspace = true }
+serde = { workspace = true, features = ["alloc"], optional = true, default-features = false }
+sidechain-domain = { workspace = true }
 sp-consensus-aura = { features = ["serde"], workspace = true, default-features = false }
 sp-consensus-grandpa = { features = ["serde"], workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
+sp-io = { workspace = true }
+sp-session-validator-management = { workspace = true }
 thiserror = { workspace = true, default-features = false }
-serde = { workspace = true, features = ["alloc"], optional = true, default-features = false }
 
 [features]
 default = ["std"]

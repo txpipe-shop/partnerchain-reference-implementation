@@ -2,21 +2,25 @@
 
 extern crate alloc;
 
-use alloc::{string::ToString, vec, vec::Vec};
-use core::str::FromStr;
-use griffin_core::h224::H224;
-use griffin_core::header::ExtendedHeader;
-use griffin_core::pallas_codec::minicbor;
-use griffin_core::pallas_codec::utils::AnyCbor;
-use griffin_core::pallas_primitives::{Bytes, MaybeIndefArray};
-use griffin_core::types::{Address, AssetName, Datum, Output};
-use griffin_core::uplc::Hash;
+mod types;
+
+use alloc::{fmt::Debug, vec::Vec};
+use authority_selection_inherents::CommitteeMember as CommitteeMemberOf;
+use griffin_core::genesis::config_builder::CommitteeData;
+use griffin_core::types::{Datum, Output};
 use griffin_core::utxo_set::TransparentUtxoSet;
-use hex_literal::hex;
+use griffin_core::COMMITTEE_KEY;
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
+use sidechain_domain::cross_chain_app::Public as CrossChainPublic;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_core::crypto::ByteArray;
+use sp_core::{ed25519, sr25519};
+use sp_session_validator_management::CommitteeMember as CommitteeMemberT;
 use thiserror::Error;
+use types::*;
+
+pub type CommitteeMember = CommitteeMemberOf<CrossChainPublic, AuthKeys>;
 
 #[derive(Debug, Error)]
 pub enum ConfigParsingErrors {
@@ -28,39 +32,45 @@ pub enum ConfigParsingErrors {
     MoreThanOneOutput,
     #[error("NFT not owned by the expected address")]
     BadAddress,
+    #[error("No datum found")]
+    DatumMissing,
+    #[error("Datum has wrong shape")]
+    BadDatum,
 }
 
-const AUTHORITIES_ADDRESS: &[u8] =
-    &hex!("0000000000000000000000000000000000000000000000000000000000");
-pub const RAW_AUTHORITIES_TOKEN_NAME: &str = "Authorities";
-pub const RAW_AUTHORITIES_POLICY_ID: &str =
-    "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005";
+#[derive(
+    Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, Debug, PartialEq, Eq,
+)]
+pub struct AuthKeys {
+    aura: AuraId,
+    grandpa: GrandpaId,
+    weight: u64,
+}
+
+impl From<(Vec<u8>, Vec<u8>, u64)> for AuthKeys {
+    fn from(thruple: (Vec<u8>, Vec<u8>, u64)) -> AuthKeys {
+        let mut aura_raw = [0u8; 32];
+        aura_raw.copy_from_slice(&thruple.0);
+        let aura_public = sr25519::Public::from_raw(aura_raw);
+
+        let mut gran_raw = [0u8; 32];
+        gran_raw.copy_from_slice(&thruple.1);
+        let gran_public = ed25519::Public::from_raw(gran_raw);
+        AuthKeys {
+            aura: AuraId::from(aura_public),
+            grandpa: GrandpaId::from(gran_public),
+            weight: thruple.2,
+        }
+    }
+}
 
 /// In charge of parsing a datum to lookup for aura and grandpa keys.
-fn parse_authorities(bytes: &[u8]) -> Result<(Vec<Bytes>, Vec<Bytes>), ConfigParsingErrors> {
-    let mut aura_keys = vec![];
-    let mut grandpa_keys = vec![];
-    if let Ok(MaybeIndefArray::Indef(arr0)) = minicbor::decode::<MaybeIndefArray<AnyCbor>>(bytes) {
-        if let Ok(MaybeIndefArray::Indef(arr1)) =
-            minicbor::decode::<MaybeIndefArray<AnyCbor>>(arr0[1].raw_bytes())
-        {
-            for arr11 in arr1.iter() {
-                if let Ok(MaybeIndefArray::Indef(arr2)) =
-                    minicbor::decode::<MaybeIndefArray<Bytes>>(arr11.raw_bytes())
-                {
-                    aura_keys.push(arr2[1].clone());
-                    grandpa_keys.push(arr2[2].clone());
-                } else {
-                    return Err(ConfigParsingErrors::BadPlutusData);
-                }
-            }
-        } else {
-            return Err(ConfigParsingErrors::BadPlutusData);
-        }
-    } else {
-        return Err(ConfigParsingErrors::BadPlutusData);
+fn parse_authorities(datum: Datum) -> Result<Vec<AuthKeys>, ConfigParsingErrors> {
+    let decoded: CommitteeDatum = CommitteeDatum::from(datum);
+    match decoded {
+        CommitteeDatum::Ok { cmt } => Ok(cmt.into_iter().map(|mem| mem.authority_keys()).collect()),
+        CommitteeDatum::MalformedCommitteeDatum => Err(ConfigParsingErrors::BadDatum),
     }
-    Ok((aura_keys, grandpa_keys))
 }
 
 fn expect_unique(outputs: &Vec<Output>) -> Result<Output, ConfigParsingErrors> {
@@ -72,13 +82,16 @@ fn expect_unique(outputs: &Vec<Output>) -> Result<Output, ConfigParsingErrors> {
 }
 
 fn fetch_utxo_datum() -> Result<Datum, ConfigParsingErrors> {
-    let asset_name: AssetName = AssetName::from(RAW_AUTHORITIES_TOKEN_NAME.to_string());
-    let policy_id: H224 = H224::from(Hash::from_str(RAW_AUTHORITIES_POLICY_ID).unwrap());
-    let authorities_addr: Address = Address::from(AUTHORITIES_ADDRESS.to_vec());
+    let cmt_data = sp_io::storage::get(COMMITTEE_KEY)
+        .and_then(|d| CommitteeData::decode(&mut &*d).ok())
+        .unwrap();
 
-    let outputs = TransparentUtxoSet::peek_utxos_with_asset(&asset_name, &policy_id);
+    let outputs = TransparentUtxoSet::peek_utxos_with_asset(
+        &cmt_data.current_asset_name,
+        &cmt_data.policy_id,
+    );
     let output = expect_unique(&outputs).unwrap();
-    if output.address == authorities_addr {
+    if output.address == cmt_data.address {
         Ok(output.datum_option.clone().expect("Missing Inline Datum"))
     } else {
         Err(ConfigParsingErrors::BadAddress)
@@ -86,27 +99,16 @@ fn fetch_utxo_datum() -> Result<Datum, ConfigParsingErrors> {
 }
 
 pub fn aura_authorities() -> Vec<AuraId> {
-    let Datum(ref datum) = fetch_utxo_datum().unwrap();
-    let (key_bytes, _) = parse_authorities(datum).unwrap();
-    key_bytes
-        .iter()
-        .map(|b| {
-            AuraId::from_slice(b.as_ref()).expect("Invalid Aura authority hex/bytes was provided")
-        })
-        .collect()
+    let datum = fetch_utxo_datum().unwrap();
+    let authority_keys = parse_authorities(datum).unwrap();
+    authority_keys.into_iter().map(|keys| keys.aura).collect()
 }
 
 pub fn grandpa_authorities() -> sp_consensus_grandpa::AuthorityList {
-    let Datum(ref datum) = fetch_utxo_datum().unwrap();
-    let (_, key_bytes) = parse_authorities(datum).unwrap();
-    key_bytes
-        .iter()
-        .map(|b| {
-            (
-                GrandpaId::from_slice(b.as_ref())
-                    .expect("Invalid Grandpa authority hex was provided"),
-                1,
-            )
-        })
+    let datum = fetch_utxo_datum().unwrap();
+    let authority_keys = parse_authorities(datum).unwrap();
+    authority_keys
+        .into_iter()
+        .map(|keys| (keys.grandpa, keys.weight))
         .collect()
 }

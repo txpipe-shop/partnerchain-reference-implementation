@@ -14,42 +14,42 @@ pub const KEY_TYPE_ID: KeyTypeId = KeyTypeId(*b"crch");
 app_crypto!(ecdsa, KEY_TYPE_ID);
 
 impl MaxEncodedLen for Signature {
-	fn max_encoded_len() -> usize {
-		ecdsa::Signature::max_encoded_len()
-	}
+    fn max_encoded_len() -> usize {
+        ecdsa::Signature::max_encoded_len()
+    }
 }
 
 impl From<Signature> for Vec<u8> {
-	fn from(value: Signature) -> Self {
-		value.into_inner().0.to_vec()
-	}
+    fn from(value: Signature) -> Self {
+        value.into_inner().0.to_vec()
+    }
 }
 
 impl From<Public> for AccountId32 {
-	fn from(value: Public) -> Self {
-		MultiSigner::from(ecdsa::Public::from(value)).into_account()
-	}
+    fn from(value: Public) -> Self {
+        MultiSigner::from(ecdsa::Public::from(value)).into_account()
+    }
 }
 
 impl From<Public> for Vec<u8> {
-	fn from(value: Public) -> Self {
-		value.into_inner().0.to_vec()
-	}
+    fn from(value: Public) -> Self {
+        value.into_inner().0.to_vec()
+    }
 }
 
 impl From<Vec<u8>> for Public {
-	fn from(value: Vec<u8>) -> Self {
-		let v: [u8; 33] = value
-                    .try_into()
-                    .map_err(|_| "Expected Vec<u8> of length 33")
-                    .unwrap();
-		ecdsa::Public::from_raw(v).into()
-	}
+    fn from(value: Vec<u8>) -> Self {
+        Public(ecdsa::Public::from(
+            <[u8; 33]>::try_from(value)
+                .ok()
+                .expect("Unable to obtain Public"),
+        ))
+    }
 }
 
 impl TryFrom<SidechainPublicKey> for Public {
-	type Error = SidechainPublicKey;
-	fn try_from(pubkey: SidechainPublicKey) -> Result<Self, Self::Error> {
-		Public::try_from(pubkey.0.as_slice()).map_err(|_| pubkey)
-	}
+    type Error = SidechainPublicKey;
+    fn try_from(pubkey: SidechainPublicKey) -> Result<Self, Self::Error> {
+        Public::try_from(pubkey.0.as_slice()).map_err(|_| pubkey)
+    }
 }

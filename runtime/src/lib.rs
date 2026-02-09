@@ -21,7 +21,7 @@ use polkadot_sdk_frame::runtime::apis;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{OpaqueMetadata};
+use sp_core::OpaqueMetadata;
 use sp_inherents::InherentData;
 use sp_runtime::{
     impl_opaque_keys,

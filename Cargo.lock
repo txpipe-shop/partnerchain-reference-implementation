@@ -2127,13 +2127,20 @@ dependencies = [
 name = "demo-authorities"
 version = "0.1.0"
 dependencies = [
+ "authority-selection-inherents",
  "griffin-core",
+ "hex",
  "hex-literal 1.0.0",
+ "log",
  "parity-scale-codec",
+ "scale-info",
  "serde",
+ "sidechain-domain",
  "sp-consensus-aura",
  "sp-consensus-grandpa",
  "sp-core",
+ "sp-io",
+ "sp-session-validator-management",
  "thiserror 2.0.12",
 ]
 

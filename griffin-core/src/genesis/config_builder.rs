@@ -5,16 +5,12 @@ use crate::{
     h224::H224,
     pallas_crypto::hash::Hash,
     types::{
-        Address, address_from_hex, AssetName, Coin, EncapBTree, Input, Multiasset, Output, Transaction,
+        address_from_hex, Address, AssetName, Coin, EncapBTree, Input, Multiasset, Output,
+        Transaction,
     },
     COMMITTEE_KEY, DATA_KEY, EXTRINSIC_KEY, SLOT_LENGTH, UTXO_SET, ZERO_SLOT, ZERO_TIME,
 };
-use alloc::{
-    collections::BTreeMap,
-    string::{String},
-    vec,
-    vec::Vec,
-};
+use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
 use core::str::FromStr;
 use hex::FromHex;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
@@ -137,7 +133,9 @@ where
             address: Address::from(hex::decode(genesis_config.committee_data.address).unwrap()),
             current_asset_name: AssetName::from(genesis_config.committee_data.current_asset_name),
             next_asset_name: AssetName::from(genesis_config.committee_data.next_asset_name),
-            policy_id: H224::from(Hash::from_str(&genesis_config.committee_data.policy_id).unwrap())
+            policy_id: H224::from(
+                Hash::from_str(&genesis_config.committee_data.policy_id).unwrap(),
+            ),
         };
 
         // The transactions, zero slot and zero time are stored under special keys.

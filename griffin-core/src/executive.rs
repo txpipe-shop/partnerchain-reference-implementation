@@ -5,15 +5,17 @@
 //!
 //! It does all the reusable verification of UTXO transactions.
 
-use crate::{pallas_applying::{
-    UTxOs, babbage::{
+use crate::pallas_applying::{
+    babbage::{
         check_ins_not_empty,
         // check_all_ins_in_utxos,
         check_preservation_of_value,
         check_tx_validity_interval,
         check_witness_set,
-    }, utils::BabbageError::*
-}};
+    },
+    utils::BabbageError::*,
+    UTxOs,
+};
 use crate::pallas_codec::utils::CborWrap;
 use crate::pallas_primitives::{
     babbage::{
@@ -391,14 +393,14 @@ where
             <Header as HeaderT>::Hashing::ordered_trie_root(extrinsics, StateVersion::V0);
         sp_io::storage::clear(EXTRINSIC_KEY);
         header.set_extrinsics_root(extrinsics_root);
-        
+
         let raw_state_root = &sp_io::storage::root(StateVersion::V1)[..];
         let state_root = <Header as HeaderT>::Hash::decode(&mut &raw_state_root[..]).unwrap();
         header.set_state_root(state_root);
         if let Some(data) = ExtendedHeader::get_pcdata_storage() {
             header.set_pcdata(data);
         }
-        
+
         debug!(target: LOG_TARGET, "finalizing block {:?}", header);
         header
     }
