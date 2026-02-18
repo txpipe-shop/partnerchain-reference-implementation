@@ -4,10 +4,10 @@ extern crate alloc;
 
 mod types;
 
-use alloc::{fmt::Debug, vec::Vec};
+use alloc::{fmt::Debug, vec, vec::Vec};
 use authority_selection_inherents::CommitteeMember as CommitteeMemberOf;
 use griffin_core::genesis::config_builder::CommitteeData;
-use griffin_core::types::{Datum, Output};
+use griffin_core::types::{AssetName, Datum, Output};
 use griffin_core::utxo_set::TransparentUtxoSet;
 use griffin_core::COMMITTEE_KEY;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
@@ -81,34 +81,47 @@ fn expect_unique(outputs: &Vec<Output>) -> Result<Output, ConfigParsingErrors> {
     }
 }
 
-fn fetch_utxo_datum() -> Result<Datum, ConfigParsingErrors> {
-    let cmt_data = sp_io::storage::get(COMMITTEE_KEY)
+pub fn get_cmt_data() -> CommitteeData {
+    sp_io::storage::get(COMMITTEE_KEY)
         .and_then(|d| CommitteeData::decode(&mut &*d).ok())
-        .unwrap();
+        .unwrap()
+}
 
-    let outputs = TransparentUtxoSet::peek_utxos_with_asset(
-        &cmt_data.current_asset_name,
-        &cmt_data.policy_id,
-    );
+fn fetch_utxo(asset_name: AssetName, cmt: CommitteeData) -> Result<Output, ConfigParsingErrors> {
+    let outputs = TransparentUtxoSet::peek_utxos_with_asset(&asset_name, &cmt.policy_id);
     let output = expect_unique(&outputs).unwrap();
-    if output.address == cmt_data.address {
-        Ok(output.datum_option.clone().expect("Missing Inline Datum"))
+    if output.address == cmt.address {
+        Ok(output)
     } else {
         Err(ConfigParsingErrors::BadAddress)
     }
 }
 
 pub fn aura_authorities() -> Vec<AuraId> {
-    let datum = fetch_utxo_datum().unwrap();
-    let authority_keys = parse_authorities(datum).unwrap();
-    authority_keys.into_iter().map(|keys| keys.aura).collect()
+    let cmt = get_cmt_data();
+    if let Some(datum) = fetch_utxo(cmt.clone().current_asset_name, cmt)
+        .unwrap()
+        .datum_option
+    {
+        let authority_keys = parse_authorities(datum).unwrap();
+        authority_keys.into_iter().map(|keys| keys.aura).collect()
+    } else {
+        vec![]
+    }
 }
 
 pub fn grandpa_authorities() -> sp_consensus_grandpa::AuthorityList {
-    let datum = fetch_utxo_datum().unwrap();
-    let authority_keys = parse_authorities(datum).unwrap();
-    authority_keys
-        .into_iter()
-        .map(|keys| (keys.grandpa, keys.weight))
-        .collect()
+    let cmt = get_cmt_data();
+    if let Some(datum) = fetch_utxo(cmt.clone().current_asset_name, cmt)
+        .unwrap()
+        .datum_option
+    {
+        let authority_keys = parse_authorities(datum).unwrap();
+        authority_keys
+            .into_iter()
+            .map(|keys| (keys.grandpa, keys.weight))
+            .collect()
+    } else {
+        vec![]
+    }
 }

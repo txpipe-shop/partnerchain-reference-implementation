@@ -67,12 +67,20 @@ Ideally it is paid to a script address that makes some validation upon its spend
 
 #### 4. Modify authorities identifiers
 
-The UTxO with the authorities set can be owned by any address and include any token, as long as it is configured accordingly in the [authorities crate](../authorities/src/lib.rs). Here we have three constants:
+The authority identifiers are set at [genesis](../../runtime/src/genesis.rs), this information is inherently stored on the chain meaning that it can't be modified without causing a fork. This ensures that every node on the chain will use the same parameters to fetch the authorities from the UTxO set.
+For our demo authorities module, we include 4 constants:
 ```rust
-const AUTHORITIES_ADDRESS: &[u8] = &hex!("0000000000000000000000000000000000000000000000000000000000");
-pub const RAW_AUTHORITIES_TOKEN_NAME: &str = "Authorities";
-pub const RAW_AUTHORITIES_POLICY_ID: &str = "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005";
+"committee_data": {
+        "address": "0000000000000000000000000000000000000000000000000000000000",
+        "current_asset_name": "Authorities",
+        "next_asset_name": "NextAuthorities",
+        "policy_id": "0298aa99f95e2fe0a0132a6bb794261fb7e7b0d988215da2f2de2005"
+    },
 ```
-that need to match the corresponding details in the genesis configuration. If these fields are modified you will need to re-build the project (`cargo build`).
-
+On the genesis the initial set of authorities needs to be stored in a UTxO that conforms with this or else the chain will not start.
 After this configuration is finished, the blockchain will be ready to read the authorities from the genesis!
+
+The authority rotation logic we decided upon for demonstrative purposes places the responsibility of checks onto the smart contract where the authority set UTxO lives. We have included a `next_asset_name` field which identifies the set of authorities to change to. The idea is simple: when a new set of authorities is elected, it is stored in a new UTxO that lives in the same smart contract as the current authority set, and it is identified by `next_asset_name`. When the committee is ready to be rotated, the current and next UTxOs can be consumed and the next UTxO's datum can be moved into the new current UTxO. This way the smart contract decides which rotations are valid and it can be as simple or as complex as desired.
+
+
+This is just an example of a possible implementation and of course the developer might decide to add or remove fields from the `committee_data` to serve their purpose and smart contracts better.

@@ -39,20 +39,18 @@ impl From<Datum> for CommitteeDatum {
 impl From<CommitteeDatum> for PallasPlutusData {
     fn from(ship_datum: CommitteeDatum) -> Self {
         match ship_datum {
-            CommitteeDatum::Ok { cmt } => {
-                PallasPlutusData::Constr(Constr {
-                    tag: 121,
-                    any_constructor: None,
-                    fields: Indef(
-                        [PallasPlutusData::Array(Indef(
-                            cmt.into_iter()
-                                .map(|mem| PallasPlutusData::from(CommitteeMemberWrapper(mem)))
-                                .collect(),
-                        ))]
-                        .to_vec(),
-                    ),
-                })
-            }
+            CommitteeDatum::Ok { cmt } => PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [PallasPlutusData::Array(Indef(
+                        cmt.into_iter()
+                            .map(|mem| PallasPlutusData::from(CommitteeMemberWrapper(mem)))
+                            .collect(),
+                    ))]
+                    .to_vec(),
+                ),
+            }),
             CommitteeDatum::MalformedCommitteeDatum => {
                 PallasPlutusData::BigInt(BigInt::Int(Int(minicbor::data::Int::from(-1))))
             }
@@ -91,43 +89,39 @@ pub struct CommitteeMemberWrapper(CommitteeMember);
 impl From<CommitteeMemberWrapper> for PallasPlutusData {
     fn from(member: CommitteeMemberWrapper) -> Self {
         match member.0 {
-            CommitteeMember::Permissioned { id, keys } => {
-                PallasPlutusData::Constr(Constr {
-                    tag: 121,
-                    any_constructor: None,
-                    fields: Indef(
-                        [
-                            PallasPlutusData::BoundedBytes(BoundedBytes(id.to_raw_vec())),
-                            PallasPlutusData::Constr(Constr {
-                                tag: 121,
-                                any_constructor: None,
-                                fields: Indef(
-                                    [
-                                        PallasPlutusData::BoundedBytes(BoundedBytes(
-                                            keys.aura.to_raw_vec(),
-                                        )),
-                                        PallasPlutusData::BoundedBytes(BoundedBytes(
-                                            keys.grandpa.to_raw_vec(),
-                                        )),
-                                        PallasPlutusData::BigInt(BigInt::Int(Int(
-                                            minicbor::data::Int::from(keys.weight),
-                                        ))),
-                                    ]
-                                    .to_vec(),
-                                ),
-                            }),
-                        ]
-                        .to_vec(),
-                    ),
-                })
-            }
-            CommitteeMember::Registered { .. } => {
-                PallasPlutusData::Constr(Constr {
-                    tag: 121,
-                    any_constructor: None,
-                    fields: Indef([].to_vec()),
-                })
-            }
+            CommitteeMember::Permissioned { id, keys } => PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef(
+                    [
+                        PallasPlutusData::BoundedBytes(BoundedBytes(id.to_raw_vec())),
+                        PallasPlutusData::Constr(Constr {
+                            tag: 121,
+                            any_constructor: None,
+                            fields: Indef(
+                                [
+                                    PallasPlutusData::BoundedBytes(BoundedBytes(
+                                        keys.aura.to_raw_vec(),
+                                    )),
+                                    PallasPlutusData::BoundedBytes(BoundedBytes(
+                                        keys.grandpa.to_raw_vec(),
+                                    )),
+                                    PallasPlutusData::BigInt(BigInt::Int(Int(
+                                        minicbor::data::Int::from(keys.weight),
+                                    ))),
+                                ]
+                                .to_vec(),
+                            ),
+                        }),
+                    ]
+                    .to_vec(),
+                ),
+            }),
+            CommitteeMember::Registered { .. } => PallasPlutusData::Constr(Constr {
+                tag: 121,
+                any_constructor: None,
+                fields: Indef([].to_vec()),
+            }),
         }
     }
 }
