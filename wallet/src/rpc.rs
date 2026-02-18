@@ -1,9 +1,10 @@
 //! Helper functions for communicating with the Node's RPC endpoint.
 
+// use griffin_core::genesis::config_builder::CommitteeData;
 use griffin_core::types::{Input, OpaqueBlock, Output};
 use griffin_core::{SLOT_LENGTH, ZERO_SLOT, ZERO_TIME};
 use jsonrpsee::{core::client::ClientT, http_client::HttpClient, rpc_params};
-use parity_scale_codec::Encode;
+use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 
 /// Get the Node's block hash at a particular height
@@ -76,3 +77,15 @@ pub async fn node_get_slot_length(client: &HttpClient) -> anyhow::Result<Option<
     let slot_length = u32::from_le_bytes(slot_length_bytes);
     Ok(Some(slot_length))
 }
+
+// /// Get the Node's Committee Data
+// pub async fn node_get_committee_data(client: &HttpClient) -> anyhow::Result<Option<CommitteeData>> {
+//     let params = rpc_params![hex::encode(str::from_utf8(COMMITTEE_KEY).unwrap())];
+//     let rpc_response: Option<String> = client.request("state_getStorage", params).await?;
+//     let cmt_data: Option<CommitteeData> =
+//         hex::decode(rpc_response.unwrap().strip_prefix("0x").unwrap())
+//             .map(|d| CommitteeData::decode(&mut &*d))
+//             .unwrap()
+//             .ok();
+//     Ok(cmt_data)
+// }
