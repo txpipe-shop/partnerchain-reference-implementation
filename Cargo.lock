@@ -1555,7 +1555,7 @@ checksum = "fe6d2e5af09e8c8ad56c969f2157a3d4238cebc7c55f0a517728c38f7b200f81"
 dependencies = [
  "serde",
  "termcolor",
- "unicode-width 0.2.0",
+ "unicode-width 0.1.14",
 ]
 
 [[package]]
@@ -3524,6 +3524,7 @@ dependencies = [
  "sc-consensus-manual-seal",
  "sc-executor",
  "sc-network",
+ "sc-offchain",
  "sc-service",
  "sc-telemetry",
  "sc-transaction-pool",
@@ -3604,7 +3605,7 @@ dependencies = [
  "sc-client-api",
  "sc-executor",
  "scale-info",
- "schemars 1.0.4",
+ "schemars 0.8.22",
  "secp256k1 0.26.0",
  "serde",
  "serde_json",
@@ -3630,6 +3631,7 @@ dependencies = [
  "authority-selection-inherents",
  "demo-authorities",
  "griffin-core",
+ "log",
  "parity-scale-codec",
  "polkadot-sdk-frame",
  "scale-info",
@@ -3644,6 +3646,7 @@ dependencies = [
  "sp-core",
  "sp-genesis-builder",
  "sp-inherents",
+ "sp-io",
  "sp-runtime",
  "sp-session",
  "sp-std",
@@ -4140,6 +4143,7 @@ dependencies = [
  "hyper-util",
  "log",
  "rustls",
+ "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
@@ -6617,7 +6621,7 @@ checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
  "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand_core 0.4.2",
  "serde",
  "unicode-normalization",
 ]
@@ -9039,6 +9043,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-offchain"
+version = "46.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk.git?tag=polkadot-stable2506-2#2caeef482a437414c6bed2395a16abe08fccbfbb"
+dependencies = [
+ "bytes",
+ "fnv",
+ "futures",
+ "futures-timer",
+ "http-body-util",
+ "hyper 1.6.0",
+ "hyper-rustls",
+ "hyper-util",
+ "num_cpus",
+ "once_cell",
+ "parity-scale-codec",
+ "parking_lot 0.12.3",
+ "rand 0.8.5",
+ "rustls",
+ "sc-client-api",
+ "sc-network",
+ "sc-network-types",
+ "sc-transaction-pool-api",
+ "sc-utils",
+ "sp-api",
+ "sp-core",
+ "sp-externalities",
+ "sp-keystore",
+ "sp-offchain",
+ "sp-runtime",
+ "threadpool",
+ "tracing",
+]
+
+[[package]]
 name = "sc-proposer-metrics"
 version = "0.20.0"
 source = "git+https://github.com/paritytech/polkadot-sdk.git?tag=polkadot-stable2506-2#2caeef482a437414c6bed2395a16abe08fccbfbb"
@@ -9413,7 +9451,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fbf2ae1b8bc8e02df939598064d22402220cd5bbcca1c76f7d6a310974d5615"
 dependencies = [
  "dyn-clone",
- "schemars_derive 0.8.22",
+ "schemars_derive",
  "serde",
  "serde_json",
 ]
@@ -9438,7 +9476,6 @@ checksum = "82d20c4491bc164fa2f6c5d44565947a52ad80b9505d8e36f8d54c27c739fcd0"
 dependencies = [
  "dyn-clone",
  "ref-cast",
- "schemars_derive 1.0.4",
  "serde",
  "serde_json",
 ]
@@ -9448,18 +9485,6 @@ name = "schemars_derive"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32e265784ad618884abaea0600a9adf15393368d840e0222d101a072f3f7534d"
-dependencies = [
- "proc-macro2",
- "quote",
- "serde_derive_internals",
- "syn 2.0.101",
-]
-
-[[package]]
-name = "schemars_derive"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33d020396d1d138dc19f1165df7545479dcd58d93810dc5d646a16e55abefa80"
 dependencies = [
  "proc-macro2",
  "quote",

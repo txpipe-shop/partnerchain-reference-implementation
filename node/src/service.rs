@@ -150,6 +150,32 @@ pub fn new_full<Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Ha
             metrics,
         })?;
 
+    use futures::FutureExt;
+    use sc_client_api::backend::Backend;
+    use sc_transaction_pool_api::OffchainTransactionPoolFactory;
+    if config.offchain_worker.enabled {
+        let offchain_workers =
+            sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
+                runtime_api_provider: client.clone(),
+                is_validator: config.role.is_authority(),
+                keystore: Some(keystore_container.keystore()),
+                offchain_db: backend.offchain_storage(),
+                transaction_pool: Some(OffchainTransactionPoolFactory::new(
+                    transaction_pool.clone(),
+                )),
+                network_provider: Arc::new(network.clone()),
+                enable_http_requests: true,
+                custom_extensions: |_| vec![],
+            })?;
+        task_manager.spawn_handle().spawn(
+            "offchain-workers-runner",
+            "offchain-worker",
+            offchain_workers
+                .run(client.clone(), task_manager.spawn_handle())
+                .boxed(),
+        );
+    }
+
     let rpc_extensions_builder = {
         let client = client.clone();
         let pool = transaction_pool.clone();

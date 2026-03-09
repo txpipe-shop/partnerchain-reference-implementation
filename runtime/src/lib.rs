@@ -9,6 +9,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 extern crate alloc;
 
 pub mod genesis;
+mod offchain_worker;
 
 use alloc::{string::ToString, vec, vec::Vec};
 use griffin_core::genesis::config_builder::GenesisConfig;
@@ -303,6 +304,12 @@ impl_runtime_apis! {
 
         fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
             vec![]
+        }
+    }
+
+    impl apis::OffchainWorkerApi<Block> for Runtime {
+        fn offchain_worker(_header: &<Block as BlockT>::Header) {
+            offchain_worker::offchain_worker(_header);
         }
     }
 }
